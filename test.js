@@ -1,4 +1,4 @@
-var testtoken = "thr1.AAAAAGJxU4R5Xfc6-yAbsg.ZD-7-i8Xlmk"
+var testtoken = "thr1.AAAAAGJyhzll2fEH6ba78g.cN377-Yogu8"
 var room = HBInit({ roomName: "kimmich birşeyler deniyor", token: testtoken, noPlayer: true, maxPlayers: 4, public: true });
 
 room.setDefaultStadium("Big");
