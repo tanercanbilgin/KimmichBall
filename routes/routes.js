@@ -9,7 +9,7 @@ let refreshToken = '';
 
 router.get('/playerstats/:auth', async (req, res) => {
   try{
-        const data = await Model.findOne({auth: req.params.auth}, 'playerName games wins winrate playtime goals assists ownGoals elo');
+        const data = await Model.findOne({auth: req.params.auth}, 'playerName games wins winrate playtime goals assists ownGoals cs elo');
         res.json(data)
   }
   catch(error){
@@ -73,7 +73,9 @@ router.patch("/update/:auth", async (req, res) => {
     if (req.body.elo) {
 			post.elo = req.body.elo
 		}
-    
+    if (req.body.cs) {
+			post.cs = req.body.cs
+		}
 		await post.save()
 		res.send(post)
 	} catch {

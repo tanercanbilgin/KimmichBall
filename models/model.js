@@ -57,6 +57,11 @@ const dataSchema = new mongoose.Schema({
         type: Number,
         default: 0
     },
+    cs: {
+        required: false,
+        type: Number,
+        default: 0
+    },
     elo: {
         required: false,
         type: Number,

@@ -26,3 +26,5 @@ app.use(cors({ origin: 'https://html5.haxball.com' }))
 app.listen(3000, () => {
     console.log(`Server Started at ${3000}`)
 })
+
+async ()=> await mongoose.model('Data', dataSchema).updateMany({}, {$set: {cs: 0}})

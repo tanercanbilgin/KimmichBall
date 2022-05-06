@@ -5,10 +5,10 @@
 const roomName = 'Futsal 4v4 Normal | kimmich | tuts2yancheck';
 const maxPlayers = 12;
 const roomPublic = true;
-const token = "thr1.AAAAAGJ0KFENKyZBYCmcwA.uSFc0bXlYSY"; // Insert token here
+const token = "thr1.AAAAAGJ1CxJ8JH4yL4mKVA.zqmoNBPYEvE"; // Insert token here
 
-var roomWebhook = 'https://discord.com/api/webhooks/967743887781277726/4eaP_gumD2y5wvLEfoyMDEmHUt6a7SqpM0JEnJGXxPAELThViUq1haaqbzP5lhhV-HhA'; // this webhook is used to send the details of the room (chat, join, leave) ; it should be in a private discord channel
-var gameWebhook = 'https://discord.com/api/webhooks/967744035634700288/dd40UebVebst5LTVmscG51T-f80Wekd-mUd1Mw4nKpIbRUPt9xV4Gl3_WXVnagKyXQRh'; // this webhook is used to send the summary of the games ; it should be in a public discord channel
+var roomWebhook = ''//'https://discord.com/api/webhooks/967743887781277726/4eaP_gumD2y5wvLEfoyMDEmHUt6a7SqpM0JEnJGXxPAELThViUq1haaqbzP5lhhV-HhA'; // this webhook is used to send the details of the room (chat, join, leave) ; it should be in a private discord channel
+var gameWebhook = ''//'https://discord.com/api/webhooks/967744035634700288/dd40UebVebst5LTVmscG51T-f80Wekd-mUd1Mw4nKpIbRUPt9xV4Gl3_WXVnagKyXQRh'; // this webhook is used to send the summary of the games ; it should be in a public discord channel
 
 var saveRecordingVariable = false;
 var timeLimit = 3;
@@ -2648,21 +2648,24 @@ function getGoalString(team) {
 /* ROOM STATS FUNCTIONS */
 
 async function updatePlayerStats(player, teamStats) {
-    
     var data = await checkStats(authArray[player.id][0]);
     const stats = Object.fromEntries(Object.entries(data).filter(([key, value]) => key !== '_id'))
     var pComp = getPlayerComp(player);
     stats.games++;
     hasWon = false
+    cs = false
     if (lastWinner == teamStats) stats.wins++, hasWon = true;
-    const bonus = (hasWon ? 3 : -3);
+    if ((lastWinner == teamStats) && (game.scores.red == 0 || game.scores.blue == 0) && (player.id == teamRed[3].id || player.id == teamBlue[3].id) && (player.id == teamRed[2].id || player.id == teamBlue[2].id)) cs = true, stats.cs++;
+    const csbonus = (cs ? 3 : 0);
+    const bonus = (hasWon ? 3 : -1);
     stats.winrate = ((100 * stats.wins) / (stats.games || 1)).toPrecision(3);
     stats.goals += getGoalsPlayer(pComp);
     stats.assists += getAssistsPlayer(pComp);
     stats.ownGoals += getOwnGoalsPlayer(pComp);
     stats.playtime += getGametimePlayer(pComp);
-    const newElo = getGoalsPlayer(pComp)*2 + getAssistsPlayer(pComp)*2 - getOwnGoalsPlayer(pComp)*2 + bonus*2
-    stats.elo += newElo
+    const newElo = getGoalsPlayer(pComp)*5 + getAssistsPlayer(pComp)*3 - getOwnGoalsPlayer(pComp)*5 + bonus*2 + csbonus*4
+    console.log(stats.playerName,"newElo: ", newElo,"hasWon: ", hasWon,"cs: ", cs,"csbonus", csbonus*4, "bonus", bonus*4)
+    if (getGametimePlayer(pComp) >= 10) stats.elo += newElo
     await updatePlayer(authArray[player.id][0], stats)
 }
 
@@ -3488,6 +3491,7 @@ async function newPlayer (a, b) {
         playtime: 0,
         winrate: 0,
         games: 0,
+        cs: 0,
         elo: 1000
     }
     await fetch(`http://localhost:3000/api/newplayer`, { 
