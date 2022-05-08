@@ -9,7 +9,7 @@ let refreshToken = '';
 
 router.get('/playerstats/:auth', async (req, res) => {
   try{
-        const data = await Model.findOne({auth: req.params.auth}, 'playerName games wins winrate playtime goals assists ownGoals cs elo');
+        const data = await Model.findOne({auth: req.params.auth}, 'isim oyunlar galibiyet mağlubiyet aktiflik gol asist kk cs puan bakiye');
         res.json(data)
   }
   catch(error){
@@ -20,9 +20,12 @@ router.get('/playerstats/:auth', async (req, res) => {
 router.post("/newplayer", async (req, res) => {
   try{
   const post = new Model({
-      playerName: req.body.playerName,
+      isim: req.body.isim,
       auth: req.body.auth,
-      isAdmin: req.body.isAdmin
+      conn: req.body.conn,
+      isAdmin: req.body.isAdmin,
+      isVIP: req.body.isVIP,
+      isMaster: req.body.isMaster
   })
 await post.save()
 res.send(post)
@@ -36,45 +39,50 @@ res.send(post)
 router.patch("/update/:auth", async (req, res) => {
 	try {
 		const post = await Model.findOne({ auth: req.params.auth })
-
-		if (req.body.playerName) {
-			post.playerName = req.body.playerName
+		if (req.body.isim) {
+			post.isim = req.body.isim
 		}
 		if (req.body.auth) {
 			post.auth = req.body.auth
 		}
+		if (req.body.conn) {
+			post.conn = req.body.conn
+		}
 		if (req.body.isAdmin) {
 			post.isAdmin = req.body.isAdmin
 		}
-    if (req.body.goals) {
-			post.goals = req.body.goals
+		if (req.body.isMaster) {
+			post.isMaster = req.body.is
 		}
-    if (req.body.assists) {
-			post.assists = req.body.assists
+		if (req.body.isVIP) {
+			post.isVIP= req.body.isVIP
 		}
-    if (req.body.ownGoals) {
-			post.ownGoals = req.body.ownGoals
+    if (req.body.gol) {
+			post.gol = req.body.gol
 		}
-    if (req.body.wins) {
-			post.wins = req.body.wins
+    if (req.body.asist) {
+			post.asist = req.body.asist
 		}
-    if (req.body.loses) {
-			post.lose = req.body.loses
+    if (req.body.kk) {
+			post.kk = req.body.kk
 		}
-    if (req.body.winrate) {
-			post.winrate = req.body.winrate
+    if (req.body.galibiyet) {
+			post.galibiyet = req.body.galibiyet
 		}
-    if (req.body.playtime) {
-			post.playtime = req.body.playtime
+    if (req.body.aktiflik) {
+			post.aktiflik = req.body.aktiflik
 		}
-    if (req.body.games) {
-			post.games = req.body.games
+    if (req.body.oyunlar) {
+			post.oyunlar = req.body.oyunlar
 		}
-    if (req.body.elo) {
-			post.elo = req.body.elo
+    if (req.body.puan) {
+			post.puan = req.body.puan
 		}
     if (req.body.cs) {
 			post.cs = req.body.cs
+		}
+    if (req.body.bakiye) {
+			post.bakiye = req.body.bakiye
 		}
 		await post.save()
 		res.send(post)
@@ -82,7 +90,8 @@ router.patch("/update/:auth", async (req, res) => {
 		res.status(404)
 		res.send({ error: "Post doesn't exist!" })
 	}
-})
+	})
+
 /*
 router.get('/auth/discord/redirect', async (req, res) => {
   const { code } = req.query;

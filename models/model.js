@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const dataSchema = new mongoose.Schema({
-    playerName: {
+    isim: {
         required: true,
         type: String
     },
@@ -9,50 +9,52 @@ const dataSchema = new mongoose.Schema({
         required: true,
         type: String
     },
-    isAdmin: {
+    conn: {
         required: true,
+        type: String
+    },
+    isMaster: {
+        required: false,
+        type: Boolean
+    },
+    isAdmin: {
+        required: false,
+        type: Boolean
+    },
+    isVIP: {
+        required: false,
         type: Boolean
     },
     discordID: {
         required: false,
         type: String
     },
-    goals: {
+    gol: {
         required: false,
         type: Number,
         default: 0
     },
-    assists: {
+    asist: {
         required: false,
         type: Number,
         default: 0
     },
-    ownGoals: {
+    kk: {
         required: false,
         type: Number,
         default: 0
     },
-    wins: {
+    galibiyet: {
         required: false,
         type: Number,
         default: 0
     },
-    loses: {
+    aktiflik: {
         required: false,
         type: Number,
         default: 0
     },
-    playtime: {
-        required: false,
-        type: Number,
-        default: 0
-    },
-    winrate: {
-        required: false,
-        type: Number,
-        default: 0
-    },
-    games: {
+    oyunlar: {
         required: false,
         type: Number,
         default: 0
@@ -62,10 +64,15 @@ const dataSchema = new mongoose.Schema({
         type: Number,
         default: 0
     },
-    elo: {
+    puan: {
         required: false,
         type: Number,
         default: 1000
+        },
+    bakiye: {
+        required: false,
+        type: Number,
+        default: 0
     },
     createdAt: { 
         type: Number
@@ -77,4 +84,4 @@ const dataSchema = new mongoose.Schema({
     timestamps: { currentTime: () => Math.floor(Date.now() / 1000) }
   })
 
-module.exports = mongoose.model('Data', dataSchema)
+module.exports = mongoose.model('gamedata', dataSchema)
