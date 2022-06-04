@@ -1,3 +1,6 @@
+const HaxballJS = require("haxball.js");
+
+HaxballJS.then((HBInit) => {
 /* VARIABLES */
 
 /* ROOM */
@@ -5,7 +8,7 @@
 const roomName = 'Futsal v4 | Kimmich Odaları';
 const maxPlayers = 16;
 const roomPublic = true;
-const token = "thr1.AAAAAGJ4CFxjBiR-xUP5TA.W9S1_FUAfNE"; // Insert token here
+const token = "thr1.AAAAAGJ807AwC1vcHpjmug.EXOqt77hFwY"; // Insert token here
 
 var roomWebhook = ''//'https://discord.com/api/webhooks/967743887781277726/4eaP_gumD2y5wvLEfoyMDEmHUt6a7SqpM0JEnJGXxPAELThViUq1haaqbzP5lhhV-HhA'; // this webhook is used to send the details of the room (chat, join, leave) ; it should be in a private discord channel
 var gameWebhook = 'https://discord.com/api/webhooks/967744035634700288/dd40UebVebst5LTVmscG51T-f80Wekd-mUd1Mw4nKpIbRUPt9xV4Gl3_WXVnagKyXQRh'; // this webhook is used to send the summary of the games ; it should be in a public discord channel
@@ -19,6 +22,9 @@ var gameConfig = {
     maxPlayers: maxPlayers,
     public: roomPublic,
     noPlayer: true,
+	code: 'tr',
+	lon: 27.1,
+	lat: 38.4
 }
 
 if (typeof token == 'string' && token.length == 39) {
@@ -99,9 +105,9 @@ class MutePlayer {
     }
 
     static incrementId() {
-    if (!this.latestId) this.latestId = 1
-    else this.latestId++
-    return this.latestId
+        if (!this.latestId) this.latestId = 1
+        else this.latestId++
+        return this.latestId
     }
 
     setDuration(minutes) {
@@ -178,7 +184,7 @@ class BallTouch {
 
 const Team = { SPECTATORS: 0, RED: 1, BLUE: 2 };
 const State = { PLAY: 0, PAUSE: 1, STOP: 2 };
-const Role = { PLAYER: 0, ADMIN_TEMP: 1, ADMIN_PERM: 2, MASTER: 3 };
+const Role = { PLAYER: 0, ADMIN_TEMP: 1, ADMIN_PERM: 2, MASTER: 3, VIP: 4 };
 const HaxNotification = { NONE: 0, CHAT: 1, MENTION: 2 };
 const Situation = { STOP: 0, KICKOFF: 1, PLAY: 2, GOAL: 3 };
 
@@ -215,6 +221,10 @@ var masterList = [
     // 'INSERT_MASTER_AUTH_HERE',
     // 'INSERT_MASTER_AUTH_HERE_2'
 ];
+var vipList = [
+    // 'INSERT_VIP_AUTH_HERE',
+    // 'INSERT_VIP_AUTH_HERE_2'
+];
 
 /* COMMANDS */
 
@@ -227,11 +237,31 @@ var commands = {
 Örnek: \'!yardım bb\' sana \'bb\' komutunun nasıl kullanacağını gösterir.`,
         function: helpCommand,
     },
+    discord: {
+        aliases: ['dc'],
+        roles: Role.PLAYER,
+        desc: `
+        Bu komut ile odanın discord linkini öğrenebilirsin.`,
+        function: dclinkCommand,
+    },
     yetki: {
         aliases: [],
         roles: Role.PLAYER,
         desc: false,
         function: masterCommand,
+    },
+    vip: {
+        aliases: [],
+        roles: Role.PLAYER,
+        desc: false,
+        function: vipCommand,
+    },
+    vipler: {
+        aliases: ['vips'],
+        roles: Role.PLAYER,
+        desc: `Bu komut ile sunucumuzdan VIP almış oyuncuları görebilirsin.
+        Sende aralarında bulunmak istiyorsan hemen discord sunucumuza gel!`,
+        function: vipListCommand,
     },
     afk: {
         aliases: [],
@@ -241,8 +271,8 @@ var commands = {
     En az 1, en fazla 5 dakika afk kalabilirsin. Komutu tekrar kullanmak için 10 dakika beklemelisin`,
         function: afkCommand,
     },
-    afklistesi: {
-        aliases: ['afkliste'],
+    afklar: {
+        aliases: ['afklistesi'],
         roles: Role.PLAYER,
         desc: `
         Bu komut ile kimler AFK görebilirsin.`,
@@ -326,7 +356,7 @@ var commands = {
         function: statsLeaderboardCommand,
     },
     antrenman: {
-        aliases: ['ant','antr'],
+        aliases: ['ant', 'antr'],
         roles: Role.ADMIN_TEMP,
         desc: `
         Bu komut ile antrenman haritasını açarsın.`,
@@ -361,76 +391,73 @@ var commands = {
         function: restartSwapCommand,
     },
     değiş: {
-        aliases: ['swap','s'],
+        aliases: ['swap', 's'],
         roles: Role.ADMIN_TEMP,
         desc: `
     Bu komut ile takımları yer değiştirirsin.`,
         function: swapCommand,
     },
     kırmızıkick: {
-        aliases: ['kickr', 'rediat','redat','kırmızıyıat', 'kırmızıat','kickrec','kk'],
+        aliases: ['kickr', 'rediat', 'redat', 'kırmızıyıat', 'kırmızıat', 'kickrec', 'kk'],
         roles: Role.ADMIN_TEMP,
         desc: `
     Bu komut ile kırmızı takımını oyundan atarsın(sen de dahilsin). Neden attığını belirtmen gerekiyor.`,
         function: kickTeamCommand,
     },
     mavikick: {
-        aliases: ['kickb','blueat','maviyiat','maviat','kickblue','mk'],
+        aliases: ['kickb', 'blueat', 'maviyiat', 'maviat', 'kickblue', 'mk'],
         roles: Role.ADMIN_TEMP,
         desc: `
     Bu komut ile mavi takımını oyundan atarsın(sen de dahilsin). Neden attığını belirtmen gerekiyor.`,
         function: kickTeamCommand,
     },
     speckick: {
-        aliases: ['kicks', 'specat', 'izleyiciat','izleyiciyiat','izleyicileriat','sk'],
+        aliases: ['kicks', 'specat', 'izleyiciat', 'izleyiciyiat', 'izleyicileriat', 'sk'],
         roles: Role.ADMIN_TEMP,
         desc: `
     Bu komut ile izleyici takımını oyundan atarsın(sen de dahilsin). Neden attığını belirtmen gerekiyor.`,
         function: kickTeamCommand,
     },
-    sustur: {
-        aliases: ['m','mute'],
+    mute: {
+        aliases: ['sustur', 'mute'],
         roles: Role.ADMIN_TEMP,
         desc: `
         Bu komut ile bir oyunucuyu susturursun. İstersen yanına kaç dakika susması gerektiğini belirtebilirsin.
-        Örnek: !sustur #3 20, 3 idsine sahip oyuncuyu 20 dakika boyunca susturur.`,
+        Örnek: !mute #3 20, 3 idsine sahip oyuncuyu 20 dakika boyunca susturur.`,
         function: muteCommand,
     },
-    susturkaldır: {
-        aliases: ['um', 'unmute'],
+    unmute: {
+        aliases: ['um'],
         roles: Role.ADMIN_TEMP,
         desc: `
-        Bu komut ile susturulmuş oyuncunun cezasını kaldırırsın.
-        Komutu 2 farklı şekilde kullanabilirsin. 
-        !susturliste yazarak susturulmuş oyuncunun numarasını bulursun ve !susturkaldır 45(oyuncunun yanında numarası yazıyor) yazarsın.
-        Ya da !susturkaldır #3(oyuncu idsi) yazarsın.
-        Unutma aradaki fark # koyup koymaman.`,
+        Bu komut ile mutelanmış oyuncunun cezasını kaldırırsın.
+        !mutelar yazarak mutelanmış oyuncunun numarasını bulursun ve !unmute 45(oyuncunun yanında numarası yazıyor) yazarsın.`,
         function: unmuteCommand,
     },
-    sessiz: {
-        aliases: ['susturulmuş','sessiz','susturliste','mutes'],
+    mutelar: {
+        aliases: ['mutes'],
         roles: Role.ADMIN_TEMP,
         desc: `
-        Bu komut ile susturulmuş oyuncuları görürsün.`,
+        Bu komut ile mutelanmış oyuncuları görürsün.`,
         function: muteListCommand,
     },
     bankaldır: {
         aliases: ['clearbans'],
         roles: Role.MASTER,
         desc: `
-    Bu komut ile banlanan bütün oyuncuların banını kaldırabilirsin. Eğer sadece bir kişinin banını kaldırmak istiyorsan !banlistesi yazmalısın
+    Bu komut ile banlanan bütün oyuncuların banını kaldırabilirsin. Eğer sadece bir kişinin banını kaldırmak istiyorsan !banlar yazmalısın
     Daha sonra oyuncunun yanındaki numarayı öğrenip !bankaldır 45(oyuncunun yanındaki numara) yazmalısın.`,
         function: clearbansCommand,
     },
-    banlistesi: {
-        aliases: ['banlist','bans','banlar'],
+    banlar: {
+        aliases: ['banlist', 'bans', 'banlistesi'],
         roles: Role.MASTER,
         desc: `
     Bu komut ile banlanan oyuncuları numarasıyla birlikte görebilirsin.`,
         function: banListCommand,
     },
     adminler: {
-        aliases: ['adminlist','adminlistesi','admins','online'],
+        aliases: ['adminlist', 'adminlistesi'],
         roles: Role.MASTER,
         desc: `
         Bu komut ile admin listesini görebilirsin.`,
@@ -441,28 +468,25 @@ var commands = {
         roles: Role.MASTER,
         desc: `
     Bu komut birini admin yapmanı sağlar.
-Örnek: !adminyap #3, idsi 3 olan oyuncuyu admin yapar.`,
+    Örnek: !adminyap #3, idsi 3 olan oyuncuyu admin yapar.`,
         function: setAdminCommand,
     },
     adminkaldır: {
-        aliases: ['unadmin','removeadmin'],
+        aliases: ['unadmin', 'removeadmin'],
         roles: Role.MASTER,
         desc: `
         Bu komut ile bir oyuncunun adminliğini alabilirsin.
-        Komutu 2 farklı şekilde kullanabilirsin. 
-        !adminlistesi yazarak oyuncunun numarasını bulursun ve !adminkaldır 45(oyuncunun yanında numarası yazıyor) yazarsın.
-        Ya da !adminkaldır #3(oyuncu idsi) yazarsın.
-        Unutma aradaki fark # koyup koymaman.`,
+        !adminler yazarak oyuncunun numarasını bulursun ve !adminkaldır 45(oyuncunun yanında numarası yazıyor) yazarsın.`,
         function: removeAdminCommand,
     },
     odaşifresi: {
-        aliases: ['roompass','odaşifre'],
+        aliases: ['roompass', 'odaşifre'],
         roles: Role.MASTER,
         desc: `
         Bu komut ile odaya şifre koyarsın. Kullanımı !odaşifresi deneme123
         Geri kaldırmak için !odaşifresi yazman yeterli`,
         function: passwordCommand,
-    },
+    }
 };
 
 /* GAME */
@@ -470,7 +494,7 @@ var commands = {
 var lastTouches = Array(2).fill(null);
 var lastTeamTouched;
 
-var speedCoefficient = 100 / (5 * 1.5 * (0.99 ** 60 + 1));
+var speedCoefficient = 100 / (5 * (0.99 ** 60 + 1));
 var ballSpeed = 0;
 var playerRadius = 15;
 var ballRadius = 6.25;
@@ -732,7 +756,7 @@ function calculateStadiumVariables() {
         setTimeout(() => {
             let ballDisc = room.getDiscProperties(0);
             let playerDisc = room.getPlayerDiscProperties(teamRed.concat(teamBlue)[0].id);
-            ballRadius = ballDisc.radius;
+            ballRadius = 6.25;
             playerRadius = playerDisc.radius;
             triggerDistance = ballRadius + playerRadius + 0.01;
             speedCoefficient = 100 / (5 * ballDisc.invMass * (ballDisc.damping ** 60 + 1));
@@ -842,6 +866,16 @@ function swapButton() {
 
 function leaveCommand(player, message) {
     room.kickPlayer(player.id, 'Görüşürüz !', false);
+}
+
+function dclinkCommand(player, message) {
+    room.sendAnnouncement(
+        `Discord sunucumuza davetlisin ! Link: https://discord.gg/wspDawNSDp`,
+        player.id,
+        infoColor,
+        'bold',
+        HaxNotification.CHAT
+    );
 }
 
 function helpCommand(player, message) {
@@ -1018,39 +1052,70 @@ function afkListCommand(player, message) {
     room.sendAnnouncement(cstm, player.id, announcementColor, 'bold', null);
 }
 
+async function vipCommand(player, message) {
+    var data = await checkPlayer(authArray[player.id][0]);
+    const perm = Object.fromEntries(Object.entries(data).filter(([key, value]) => key !== '_id'))
+    if (perm.isVIP == true && vipList.includes(authArray[player.id][0]) == false) {
+        vipList.push(authArray[player.id][0]);
+        room.sendAnnouncement(
+            `${player.name} vip hesabına giriş yaptı!`,
+            null,
+            announcementColor,
+            'bold',
+            HaxNotification.CHAT
+        );
+    } else if (perm.isVIP == false) {
+        room.sendAnnouncement(
+            `${player.name} yetkili değilsin kanka :(`,
+            null,
+            announcementColor,
+            'bold',
+            HaxNotification.MENTION
+        );
+    } else {
+        room.sendAnnouncement(
+            `Zaten yetkini aldın kanka!`,
+            player.id,
+            errorColor,
+            'bold',
+            HaxNotification.MENTION
+        );
+    }
+}
+
 async function masterCommand(player, message) {
     var data = await checkPlayer(authArray[player.id][0]);
     const perm = Object.fromEntries(Object.entries(data).filter(([key, value]) => key !== '_id'))
     if (perm.isMaster == true && masterList.includes(authArray[player.id][0]) == false) {
-            room.setPlayerAdmin(player.id, true);
-            masterList.push(authArray[player.id][0]);
-            room.sendAnnouncement(
-                `${player.name} yetkisini aldı!`,
-                null,
-                announcementColor,
-                'bold',
-                HaxNotification.CHAT
-            );
-            
+        room.setPlayerAdmin(player.id, true);
+        masterList.push(authArray[player.id][0]);
+        room.sendAnnouncement(
+            `${player.name} yetkisini aldı!`,
+            null,
+            announcementColor,
+            'bold',
+            HaxNotification.CHAT
+        );
+
     } else if (perm.isAdmin == true && adminList.includes(authArray[player.id][0]) == false) {
-            room.setPlayerAdmin(player.id, true);
-            adminList.push(authArray[player.id][0]);
-            room.sendAnnouncement(
-                `${player.name} adminliğini aldı!`,
-                null,
-                announcementColor,
-                'bold',
-                HaxNotification.CHAT
-            );
-        } else if (perm.isAdmin == false && perm.isMaster == false) {
-            room.sendAnnouncement(
-                `${player.name} yetkili değilsin kanka :(`,
-                null,
-                announcementColor,
-                'bold',
-                HaxNotification.MENTION
-            );
-        } else {
+        room.setPlayerAdmin(player.id, true);
+        adminList.push(authArray[player.id][0]);
+        room.sendAnnouncement(
+            `${player.name} adminliğini aldı!`,
+            null,
+            announcementColor,
+            'bold',
+            HaxNotification.CHAT
+        );
+    } else if (perm.isAdmin == false && perm.isMaster == false) {
+        room.sendAnnouncement(
+            `${player.name} yetkili değilsin kanka :(`,
+            null,
+            announcementColor,
+            'bold',
+            HaxNotification.MENTION
+        );
+    } else {
         room.sendAnnouncement(
             `Zaten yetkini aldın kanka!`,
             player.id,
@@ -1241,7 +1306,7 @@ function unmuteCommand(player, message) {
                     );
                 } else {
                     room.sendAnnouncement(
-                        `Bu oyuncu zaten susturulmamış !`,
+                        `Bu oyuncu susturulmuş değil !`,
                         player.id,
                         errorColor,
                         'bold',
@@ -1250,7 +1315,7 @@ function unmuteCommand(player, message) {
                 }
             } else {
                 room.sendAnnouncement(
-                    `Böyle bir IDye sahip oyuncu yok. Komutun kullanımı için !yardım susturkaldır yaz.`,
+                    `Böyle bir IDye sahip oyuncu yok. Komutun kullanımı için !yardım unmute yaz.`,
                     player.id,
                     errorColor,
                     'bold',
@@ -1269,7 +1334,7 @@ function unmuteCommand(player, message) {
             );
         } else {
             room.sendAnnouncement(
-                `Yanlış komut kullanımı. Doğru kullanımı için !yardım susturkaldır yaz.`,
+                `Yanlış komut kullanımı. Doğru kullanımı için !yardım unmute yaz.`,
                 player.id,
                 errorColor,
                 'bold',
@@ -1278,7 +1343,7 @@ function unmuteCommand(player, message) {
         }
     } else {
         room.sendAnnouncement(
-            `Yanlış bir numara girdin. Komutun kullanımı için !yardım susturkaldır yaz.`,
+            `Yanlış bir numara girdin. Komutun kullanımı için !yardım unmute yaz.`,
             player.id,
             errorColor,
             'bold',
@@ -1298,7 +1363,7 @@ function muteListCommand(player, message) {
         );
         return false;
     }
-    var cstm = '🔇 Susturulmuş oyuncular : ';
+    var cstm = '🔇 mutelanmış oyuncular : ';
     for (let mute of muteArray.list) {
         cstm += mute.name + `[${mute.id}], `;
     }
@@ -1406,10 +1471,32 @@ async function adminListCommand(player, message) {
     }
     var cstm = '📢 Admin listesi : ';
     for (let i = 0; i < adminList.length; i++) {
-        var data = await checkStats(adminList[i]);
-        const stats = Object.fromEntries(Object.entries(data).filter(([key, value]) => key !== '_id'))
-        toname = stats.isim
-        cstm += toname + `[${i}], `;
+        cstm += adminList[i][1] + `[${i}], `;
+    }
+    cstm = cstm.substring(0, cstm.length - 2) + '.';
+    room.sendAnnouncement(
+        cstm,
+        player.id,
+        announcementColor,
+        'bold',
+        null
+    );
+}
+
+async function vipListCommand(player, message) {
+    if (vipList.length == 0) {
+        room.sendAnnouncement(
+            "📢 VIP listesinde kimse yok.",
+            player.id,
+            announcementColor,
+            'bold',
+            null
+        );
+        return false;
+    }
+    var cstm = '📢 VIP listesi : ';
+    for (let i = 0; i < vipList.length; i++) {
+        cstm += vipList[i][1] + `[${i}], `;
     }
     cstm = cstm.substring(0, cstm.length - 2) + '.';
     room.sendAnnouncement(
@@ -1779,7 +1866,7 @@ function choosePlayer() {
         timeOutCap = setTimeout(
             (player) => {
                 room.sendAnnouncement(
-                    `${player.name}, aceltee ! Seçmek için sadece ${Number.parseInt(String(chooseTime / 2))} saniyen kaldı !`,
+                    `${player.name}, acele et ! Seçmek için sadece ${Number.parseInt(String(chooseTime / 2))} saniyen kaldı !`,
                     player.id,
                     warningColor,
                     'bold',
@@ -1833,7 +1920,7 @@ function chooseModeFunction(player, message) {
                     'bold',
                     HaxNotification.CHAT
                 );
-            } else if (['alt','aşağı'].includes(msgArray[0].toLowerCase())) {
+            } else if (['alt', 'aşağı'].includes(msgArray[0].toLowerCase())) {
                 room.setPlayerTeam(teamSpec[teamSpec.length - 1].id, Team.RED);
                 redCaptainChoice = 'alt';
                 clearTimeout(timeOutCap);
@@ -2693,15 +2780,18 @@ async function updatePlayerStats(player, teamStats) {
     if (lastWinner == teamStats) stats.galibiyet++, hasWon = true;
     if ((lastWinner == teamStats) && (game.scores.red == 0 || game.scores.blue == 0) && (player.id == teamRed[3].id || player.id == teamBlue[3].id) && (player.id == teamRed[2].id || player.id == teamBlue[2].id)) cs = true, stats.cs++;
     const csbonus = (cs ? 3 : 0);
-    const bonus = (hasWon ? 0 : -3);
+    const bonus = (hasWon ? 2 : -3);
     stats.gol += getGoalsPlayer(pComp);
     stats.asist += getAssistsPlayer(pComp);
     stats.kk += getOwnGoalsPlayer(pComp);
     stats.aktiflik += getGametimePlayer(pComp);
-    const yeniPuan = getGoalsPlayer(pComp)*5 + getAssistsPlayer(pComp)*3 - getOwnGoalsPlayer(pComp)*5 + bonus*5 + csbonus*4
+    const yeniPuan = getGoalsPlayer(pComp) * 5 + getAssistsPlayer(pComp) * 3 - getOwnGoalsPlayer(pComp) * 5 + bonus * 5 + csbonus * 4
     stats.puan += yeniPuan
     console.log(player.name, yeniPuan)
+    room.sendAnnouncement(`${player.name}, bu maçın sonucunda aldığın puan: `+yeniPuan,player.id,announcementColor,'bold');
     await updatePlayer(authArray[player.id][0], stats)
+    await setAvatar(stats.puan, player);
+
 }
 
 async function updateStats() {
@@ -2728,7 +2818,7 @@ async function printRankings(statKey, id = 0) {
     var leaderboard = [];
     data.forEach(function (element) {
         leaderboard.push(Object.fromEntries(Object.entries(element).filter(([key, value]) => ['isim', `${statKey}`].includes(key))))
-      });
+    });
     if (leaderboard.length < 5) {
         if (id != 0) {
             room.sendAnnouncement(
@@ -2881,22 +2971,20 @@ function fetchGametimeReport(game) {
         var minutes = getMinutesReport(time[1]);
         var seconds = getSecondsReport(time[1]);
         fieldGametimeRed.value += `> **${time[0].name}:** ${minutes > 0 ? `${minutes} dk` : ''}` +
-                                `${seconds > 0 || minutes == 0 ? `${seconds} sn` : ''}\n`;
+            `${seconds > 0 || minutes == 0 ? `${seconds} sn` : ''}\n`;
     }
-    fieldGametimeRed.value += `\n${
-        blueTeamTimes.length - redTeamTimes.length > 0 ? '\n'.repeat(blueTeamTimes.length - redTeamTimes.length) : ''
-    }`;
+    fieldGametimeRed.value += `\n${blueTeamTimes.length - redTeamTimes.length > 0 ? '\n'.repeat(blueTeamTimes.length - redTeamTimes.length) : ''
+        }`;
     fieldGametimeRed.value += '=====================';
 
     for (let time of blueTeamTimes) {
         var minutes = getMinutesReport(time[1]);
         var seconds = getSecondsReport(time[1]);
         fieldGametimeBlue.value += `> **${time[0].name}:** ${minutes > 0 ? `${minutes} dk` : ''}` +
-                                `${seconds > 0 || minutes == 0 ? `${seconds} sn` : ''}\n`;
+            `${seconds > 0 || minutes == 0 ? `${seconds} sn` : ''}\n`;
     }
-    fieldGametimeBlue.value += `\n${
-        redTeamTimes.length - blueTeamTimes.length > 0 ? '\n'.repeat(redTeamTimes.length - blueTeamTimes.length) : ''
-    }`;
+    fieldGametimeBlue.value += `\n${redTeamTimes.length - blueTeamTimes.length > 0 ? '\n'.repeat(redTeamTimes.length - blueTeamTimes.length) : ''
+        }`;
     fieldGametimeBlue.value += '=====================';
 
     return [fieldGametimeRed, fieldGametimeBlue];
@@ -2921,25 +3009,23 @@ function fetchActionsSummaryReport(game) {
     if (redActions.length > 0) {
         for (let act of redActions) {
             fieldReportRed.value += `> **${act[0].team != Team.RED ? '[KK] ' : ''}${act[0].name}:` +
-                                    `**${act[1] > 0 ? ` ${act[1]}G` : ''}${act[2] > 0 ? ` ${act[2]}A` : ''}\n`;
+                `**${act[1] > 0 ? ` ${act[1]}G` : ''}${act[2] > 0 ? ` ${act[2]}A` : ''}\n`;
         }
     }
     var blueActions = actionReportCount(goals[1]);
     if (blueActions.length > 0) {
         for (let act of blueActions) {
             fieldReportBlue.value += `> **${act[0].team != Team.BLUE ? '[KK] ' : ''}${act[0].name}:` +
-            `**${act[1] > 0 ? ` ${act[1]}G` : ''}${act[2] > 0 ? ` ${act[2]}A` : ''}\n`;
+                `**${act[1] > 0 ? ` ${act[1]}G` : ''}${act[2] > 0 ? ` ${act[2]}A` : ''}\n`;
         }
     }
 
-    fieldReportRed.value += `\n${
-        blueActions.length - redActions.length > 0 ? '\n'.repeat(blueActions.length - redActions.length) : ''
-    }`;
+    fieldReportRed.value += `\n${blueActions.length - redActions.length > 0 ? '\n'.repeat(blueActions.length - redActions.length) : ''
+        }`;
     fieldReportRed.value += '=====================';
 
-    fieldReportBlue.value += `\n${
-        redActions.length - blueActions.length > 0 ? '\n'.repeat(redActions.length - blueActions.length) : ''
-    }`;
+    fieldReportBlue.value += `\n${redActions.length - blueActions.length > 0 ? '\n'.repeat(redActions.length - blueActions.length) : ''
+        }`;
     fieldReportBlue.value += '=====================';
 
     return [fieldReportRed, fieldReportBlue];
@@ -3015,22 +3101,24 @@ function fetchSummaryEmbed(game) {
 
 room.onPlayerJoin = async function (player) {
     authArray[player.id] = [player.auth, player.conn];
-    if (await checkPlayer(authArray[player.id][0])== null) await newPlayer(player.name, authArray[player.id][0], authArray[player.id][1]);
+    if (player.auth == null) 
+    room.kickPlayer(player.id, "Anonim hesaplar sunucumuza alınmıyor!", true);
+    if (await checkPlayer(authArray[player.id][0]) == null) await newPlayer(player.name, authArray[player.id][0], authArray[player.id][1]);
     const stats = Object.fromEntries(Object.entries(await checkPlayer(authArray[player.id][0])).filter(([key, value]) => key !== '_id'))
-    if(room.getPlayerList().length >= 13){
+    if (room.getPlayerList().length >= 13) {
         if (stats.isAdmin == false && stats.isMaster == false && stats.isVIP == false) {
-        room.kickPlayer(player.id,`Son 4 kişilik yer adminlere ayırılmıştır.`,false);
-    }
+            room.kickPlayer(player.id, `Son 4 kişilik yer adminlere ayırılmıştır.`, false);
+        }
     }
     await setAvatar(stats.puan, player);
-    if (player.name != stats.isim) await updateName(authArray[player.id][0], player.name)
-    if (player.conn != stats.conn) await updateName(authArray[player.id][0], player.conn)
+    if (player.name != stats.isim) await updateName(authArray[player.id][0], player.name), room.sendAnnouncement(stats.isim+" ismini "+player.name+" olarak değiştirmiş!" ,null, 0xFFFFFF)
+    if (player.conn != stats.conn) await updateConn(authArray[player.id][0], player.conn)
     if (roomWebhook != '') {
         fetch(roomWebhook, {
             method: 'POST',
             body: JSON.stringify({
                 content: `[${getDate()}] ➡️ GİRİŞ (${playersAll.length + 1}/${maxPlayers})\n**` +
-                        `${player.name}** [${authArray[player.id][0]}] {${authArray[player.id][1]}}`,
+                    `${player.name}** [${authArray[player.id][0]}] {${authArray[player.id][1]}}`,
                 username: roomName,
             }),
             headers: {
@@ -3047,7 +3135,7 @@ room.onPlayerJoin = async function (player) {
     );
     updateTeams();
     updateAdmins();
-    if (masterList.findIndex((auth) => auth == player.auth) != -1) {
+    if (masterList.map((a) => a[0]).findIndex((auth) => auth == player.auth) != -1) {
         room.sendAnnouncement(
             `Yetkili ${player.name} odaya giriş yaptı !`,
             null,
@@ -3065,12 +3153,20 @@ room.onPlayerJoin = async function (player) {
             HaxNotification.CHAT
         );
         room.setPlayerAdmin(player.id, true);
+    } else if (vipList.map((a) => a[0]).findIndex((auth) => auth == player.auth)) {
+        room.sendAnnouncement(
+            `VIP ${player.name} odaya giriş yaptı !`,
+            null,
+            announcementColor,
+            'bold',
+            HaxNotification.CHAT
+        );
     }
     var sameAuthCheck = playersAll.filter((p) => p.id != player.id && authArray[p.id][0] == player.auth);
     if (sameAuthCheck.length > 0 && !debugMode) {
         var oldPlayerArray = playersAll.filter((p) => p.id != player.id && authArray[p.id][0] == player.auth);
         for (let oldPlayer of oldPlayerArray) {
-            //ghostKickHandle(oldPlayer, player);
+            ghostKickHandle(oldPlayer, player);
         }
     }
     handlePlayersJoin();
@@ -3104,7 +3200,7 @@ room.onPlayerLeave = function (player) {
         if (!kickFetchVariable) {
             if (roomWebhook != '') {
                 var stringContent = `[${getDate()}] ⬅️ LEAVE (${playersAll.length}/${maxPlayers})\n**${player.name}**` +
-                                    `[${authArray[player.id][0]}] {${authArray[player.id][1]}}`;
+                    `[${authArray[player.id][0]}] {${authArray[player.id][1]}}`;
                 fetch(roomWebhook, {
                     method: 'POST',
                     body: JSON.stringify({
@@ -3129,14 +3225,14 @@ room.onPlayerKicked = function (kickedPlayer, reason, ban, byPlayer) {
     kickFetchVariable = true;
     if (roomWebhook != '') {
         var stringContent = `[${getDate()}] ⛔ ${ban ? 'BAN' : 'KICK'} (${playersAll.length}/${maxPlayers})\n` +
-                            `**${kickedPlayer.name}** [${authArray[kickedPlayer.id][0]}] {${authArray[kickedPlayer.id][1]}} was ${ban ? 'banned' : 'kicked'}` +
-                            `${byPlayer != null ? ' by **' + byPlayer.name + '** [' + authArray[byPlayer.id][0] + '] {' + authArray[byPlayer.id][1] + '}' : ''}`
+            `**${kickedPlayer.name}** [${authArray[kickedPlayer.id][0]}] {${authArray[kickedPlayer.id][1]}} was ${ban ? 'banned' : 'kicked'}` +
+            `${byPlayer != null ? ' by **' + byPlayer.name + '** [' + authArray[byPlayer.id][0] + '] {' + authArray[byPlayer.id][1] + '}' : ''}`
         fetch(roomWebhook, {
             method: 'POST',
             body: JSON.stringify({
                 content: `[${getDate()}] ⛔ ${ban ? 'BAN' : 'KICK'} (${players.length}/${maxPlayers})\n` +
-                `**${kickedPlayer.name}** [${authArray[kickedPlayer.id][0]}] {${authArray[kickedPlayer.id][1]}} was ${ban ? 'banned' : 'kicked'}` +
-                `${byPlayer != null ? ' by **' + byPlayer.name + '** [' + authArray[byPlayer.id][0] + '] {' + authArray[byPlayer.id][1] + '}' : ''}`,
+                    `**${kickedPlayer.name}** [${authArray[kickedPlayer.id][0]}] {${authArray[kickedPlayer.id][1]}} was ${ban ? 'banned' : 'kicked'}` +
+                    `${byPlayer != null ? ' by **' + byPlayer.name + '** [' + authArray[byPlayer.id][0] + '] {' + authArray[byPlayer.id][1] + '}' : ''}`,
                 username: roomName,
             }),
             headers: {
@@ -3173,16 +3269,16 @@ room.onPlayerChat = function (player, message) {
     }
     let msgArray = message.split(/ +/);
     if (roomWebhook != '')
-            fetch(roomWebhook, {
-                method: 'POST',
-                body: JSON.stringify({
-                    content: `[${getDate()}] 💬 **${player.name}** : ${message.replace('@', '@ ')}`,
-                    username: roomName,
-                }),
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            }).then((res) => res);
+        fetch(roomWebhook, {
+            method: 'POST',
+            body: JSON.stringify({
+                content: `[${getDate()}] 💬 **${player.name}** : ${message.replace('@', '@ ')}`,
+                username: roomName,
+            }),
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        }).then((res) => res);
     if (msgArray[0][0] == '!') {
         let command = getCommand(msgArray[0].slice(1).toLowerCase());
         if (command != false && commands[command].roles <= getRole(player)) commands[command].function(player, message);
@@ -3261,7 +3357,7 @@ room.onPlayerBallKick = function (player) {
 
 /* GAME MANAGEMENT */
 
-room.onGameStart = function (byPlayer) {
+room.onGameStart = async function (byPlayer) {
     clearTimeout(startTimeout);
     if (byPlayer != null) clearTimeout(stopTimeout);
     game = new Game();
@@ -3294,9 +3390,9 @@ room.onGameStop = function (byPlayer) {
         (
             (game.scores.timeLimit != 0 &&
                 ((game.scores.time >= 0.5 * game.scores.timeLimit &&
-                game.scores.time < 0.75 * game.scores.timeLimit &&
-                game.scores.red != game.scores.blue) ||
-                game.scores.time >= 0.75 * game.scores.timeLimit)
+                    game.scores.time < 0.75 * game.scores.timeLimit &&
+                    game.scores.red != game.scores.blue) ||
+                    game.scores.time >= 0.75 * game.scores.timeLimit)
             ) ||
             endGameVariable
         )
@@ -3322,15 +3418,15 @@ room.onGamePause = function (byPlayer) {
                 'bold',
                 HaxNotification.NONE
             );
-    } else {
-        room.sendAnnouncement(
-            `Oyun durduruldu !`,
-            null,
-            defaultColor,
-            'bold',
-            HaxNotification.NONE
-        );
-    }
+        } else {
+            room.sendAnnouncement(
+                `Oyun durduruldu !`,
+                null,
+                defaultColor,
+                'bold',
+                HaxNotification.NONE
+            );
+        }
     }
     clearTimeout(unpauseTimeout);
     gameState = State.PAUSE;
@@ -3417,9 +3513,16 @@ room.onPositionsReset = function () {
 
 /* MISCELLANEOUS */
 
-room.onRoomLink = function () {
+room.onRoomLink = async function () {
     room.setTeamColors(1, 60, 0xCFCFCF, [0xCF1238]);
     room.setTeamColors(2, 60, 0xCFCFCF, [0x2C89AB]);
+    const data = await getAll()
+    data.forEach(function (element) {
+        const check = Object.fromEntries(Object.entries(element))
+        if (check.isMaster == true) masterList.push(check.auth)
+        if (check.isAdmin == true) adminList.push([check.auth, check.isim])
+        if (check.isVIP == true) vipList.push([check.auth, check.isim])
+    });
 };
 
 room.onPlayerAdminChange = function (changedPlayer, byPlayer) {
@@ -3478,16 +3581,16 @@ room.onGameTick = function () {
 
 
 // kimmich difference
-async function newPlayer (a, b, c) {
+async function newPlayer(a, b, c) {
     const data = {
-        isim: a, 
+        isim: a,
         auth: b,
-        conn: c, 
+        conn: c,
         isAdmin: false,
         isMaster: false,
         isVIP: false,
-        gol: 0, 
-        assist: 0, 
+        gol: 0,
+        assist: 0,
         kk: 0,
         galibiyet: 0,
         mağlubiyet: 0,
@@ -3497,7 +3600,7 @@ async function newPlayer (a, b, c) {
         puan: 1000,
         bakiye: 0
     }
-    await fetch(`http://localhost:3000/api/newplayer`, { 
+    await fetch(`http://localhost:3000/api/newplayer`, {
         method: 'POST',
         body: JSON.stringify(data),
         headers: {
@@ -3506,21 +3609,21 @@ async function newPlayer (a, b, c) {
     }).then((res) => res);
 };
 
-async function checkPlayer (a) {
-    const req = await fetch (`http://localhost:3000/api/getAuth/${a}`);
+async function checkPlayer(a) {
+    const req = await fetch(`http://localhost:3000/api/getAuth/${a}`);
     const res = await req.json();
     return res;
 }
 
-async function checkStats (a) {
-    const req = await fetch (`http://localhost:3000/api/playerstats/${a}`);
+async function checkStats(a) {
+    const req = await fetch(`http://localhost:3000/api/playerstats/${a}`);
     const res = await req.json();
     return res;
 }
 
-async function updatePlayer (a, stats) {
+async function updatePlayer(a, stats) {
     const data = stats
-    await fetch(`http://localhost:3000/api/update/${a}`, { 
+    await fetch(`http://localhost:3000/api/update/${a}`, {
         method: 'PATCH',
         body: JSON.stringify(data),
         headers: {
@@ -3528,9 +3631,19 @@ async function updatePlayer (a, stats) {
         },
     }).then((res) => res);
 };
-async function updateName (a, name) {
-    const data = {"isim": name}
-    await fetch(`http://localhost:3000/api/update/${a}`, { 
+async function updateName(a, name) {
+    const data = { "isim": name }
+    await fetch(`http://localhost:3000/api/update/${a}`, {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    }).then((res) => res);
+};
+async function updateConn(a, conn) {
+    const data = { "conn": conn }
+    await fetch(`http://localhost:3000/api/update/${a}`, {
         method: 'PATCH',
         body: JSON.stringify(data),
         headers: {
@@ -3539,20 +3652,27 @@ async function updateName (a, name) {
     }).then((res) => res);
 };
 
-async function getAll () {
-    const req = await fetch (`http://localhost:3000/api/getAll`);
+async function getAll() {
+    const req = await fetch(`http://localhost:3000/api/getAll`);
     const res = await req.json();
     return res;
 }
 
-async function setAvatar (puan, player){
-    if (puan >= 700) room.setPlayerAvatar(player.id, "👎")
-    if (puan >= 800) room.setPlayerAvatar(player.id, "👍")
-    if (puan >= 900) room.setPlayerAvatar(player.id, "🌵")
+async function setAvatar(puan, player) {
+    if (puan >= 750) room.setPlayerAvatar(player.id, "👎")
+    if (puan >= 850) room.setPlayerAvatar(player.id, "👍")
+    if (puan >= 950) room.setPlayerAvatar(player.id, "🌵")
     if (puan >= 1000) room.setPlayerAvatar(player.id, "🔥")
-    if (puan >= 1100) room.setPlayerAvatar(player.id, "💧")
-    if (puan >= 1200) room.setPlayerAvatar(player.id, "⚡")
-    if (puan >= 1300) room.setPlayerAvatar(player.id, "💎")
-    if (puan >= 1400) room.setPlayerAvatar(player.id, "🏆")
-    if (puan >= 1500) room.setPlayerAvatar(player.id, "👑")
+    if (puan >= 1050) room.setPlayerAvatar(player.id, "💧")
+    if (puan >= 1100) room.setPlayerAvatar(player.id, "⚡")
+    if (puan >= 1150) room.setPlayerAvatar(player.id, "💎")
+    if (puan >= 1200) room.setPlayerAvatar(player.id, "🏆")
+    if (puan >= 1250) room.setPlayerAvatar(player.id, "👑")
 }
+
+var sure = 1000 * 180;
+dclink = setInterval(function(){room.sendAnnouncement(" ▒█▀▀▄ ▀█▀ ▒█▀▀▀█ ▒█▀▀█ ▒█▀▀▀█ ▒█▀▀█ ▒█▀▀▄ ",null, 0x5F85FF);},sure);
+dclink = setInterval(function(){room.sendAnnouncement(" ▒█░▒█ ▒█░ ░▀▀▀▄▄ ▒█░░░ ▒█░░▒█ ▒█▄▄▀ ▒█░▒█ ",null, 0x7E76FF);},sure);
+dclink = setInterval(function(){room.sendAnnouncement(" ▒█▄▄▀ ▄█▄ ▒█▄▄▄█ ▒█▄▄█ ▒█▄▄▄█ ▒█░▒█ ▒█▄▄▀ ",null, 0x9E66FF);},sure);
+dclink = setInterval(function(){room.sendAnnouncement(" Discordumuza gelmeyi unutmayın! https://discord.gg/wspDawNSDp",null, 0x17E8EC);},sure);
+  });

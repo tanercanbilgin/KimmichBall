@@ -1,11 +1,6 @@
 const express = require('express');
 const Model = require('../models/model');
 const router = express.Router();
-const axios = require('axios');
-const url = require('url');
-
-let accessToken = '';
-let refreshToken = '';
 
 router.get('/playerstats/:auth', async (req, res) => {
   try{
@@ -84,6 +79,9 @@ router.patch("/update/:auth", async (req, res) => {
     if (req.body.bakiye) {
 			post.bakiye = req.body.bakiye
 		}
+    if (req.body.discordID) {
+			post.discordID = req.body.discordID
+		}
 		await post.save()
 		res.send(post)
 	} catch {
@@ -91,74 +89,6 @@ router.patch("/update/:auth", async (req, res) => {
 		res.send({ error: "Post doesn't exist!" })
 	}
 	})
-
-/*
-router.get('/auth/discord/redirect', async (req, res) => {
-  const { code } = req.query;
-  if (code) {
-    try {
-      const formData = new url.URLSearchParams({
-        client_id: process.env.CLIENT_ID,
-        client_secret: process.env.CLIENT_SECRET,
-        grant_type: 'authorization_code',
-        code: code.toString(),
-        redirect_uri: process.env.REDIRECT_URL,
-      });
-      const response = await axios.post(
-        'https://discord.com/api/v8/oauth2/token',
-        formData.toString(),
-        {
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-          },
-        }
-      );
-      const { access_token, refresh_token } = response.data;
-      accessToken = access_token;
-      refreshToken = refresh_token;
-      console.log(accessToken, refresh_token);
-      res.sendStatus(200);
-    } catch (err) {
-      res.sendStatus(400);
-    }
-  }
-});
-
-router.get('/auth/user', async (req, res) => {
-  try {
-    const response = await axios.get('https://discord.com/api/v8/users/@me', {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
-    res.send(response.data);
-  } catch (err) {
-    res.send("1")
-  }
-});
-
-router.get('/auth/revoke', async (req, res) => {
-  const formData = new url.URLSearchParams({
-    client_id: process.env.CLIENT_ID,
-    client_secret: process.env.CLIENT_SECRET,
-    token: accessToken,
-  });
-  try {
-    const response = await axios.post(
-      'https://discord.com/api/v8/oauth2/token/revoke',
-      formData.toString(),
-      {
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-      }
-    );
-    res.send(response.data);
-  } catch (err) {
-    res.sendStatus(400);
-  }
-});
-*/
 
 //Get by Auth method
 router.get('/getAuth/:auth', async (req, res) => {
@@ -171,7 +101,7 @@ router.get('/getAuth/:auth', async (req, res) => {
     }
 })
 
-//Get by Auth method
+//Get All method
 router.get('/getAll', async (req, res) => {
   try{;
       const data = await Model.find();

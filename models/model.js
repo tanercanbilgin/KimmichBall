@@ -74,6 +74,11 @@ const dataSchema = new mongoose.Schema({
         type: Number,
         default: 0
     },
+    discordID: {
+        required: false,
+        type: Number,
+        default: 0
+    },
     createdAt: { 
         type: Number
     },
