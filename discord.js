@@ -67,12 +67,14 @@ bot.on("messageCreate", async function (message) {
       } catch (e) {
         console.error(e);
       }
-    } else {
+    } /*else {
       message.reply(
-        "kanalın amacının dışına çıkıyorsun, kayıt olman gerekiyor!"
-      );
-      if (message.deletable) await message.delete({ timeout: 5_000 });
-    }
+        "kanalın amacının dışına çıkıyorsun, buradan sadece kayıt olabilirsin!"
+      ).then(msg => {
+        msg.delete({ timeout: 5_000 });
+      })
+        .catch("Uyarı mesajı silinemedi.");
+    }*/
   }
 });
 
