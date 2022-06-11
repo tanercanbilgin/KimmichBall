@@ -68,7 +68,7 @@ const dataSchema = new mongoose.Schema({
         required: false,
         type: Number,
         default: 1000
-        },
+    },
     bakiye: {
         required: false,
         type: Number,
@@ -79,14 +79,14 @@ const dataSchema = new mongoose.Schema({
         type: Number,
         default: 0
     },
-    createdAt: { 
+    createdAt: {
         type: Number
     },
-    updatedAt:{
+    updatedAt: {
         type: Number
     }
 }, {
     timestamps: { currentTime: () => Math.floor(Date.now() / 1000) }
-  })
+})
 
 module.exports = mongoose.model('gamedata', dataSchema)

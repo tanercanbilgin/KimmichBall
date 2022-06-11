@@ -5,6 +5,16 @@ const futsalantmap = require("./map/futsalant.hbs");
 const futsalv12map = require("./map/futsalv12.hbs");
 const futsalv4map = require("./map/futsalv4.hbs");
 
+const { exit } = require('process')
+
+const { program } = require("commander");
+program.requiredOption("--token <token>");
+program.parse()
+let { token: haxtoken } = program.opts();
+if (!haxtoken || haxtoken.length != 39) {
+  exit(1);
+}
+
 const {
   Client,
   MessageEmbed,
@@ -162,26 +172,39 @@ HaxballJS.then((HBInit) => {
         const [, id, ...reason] = splittedMsg;
         const $reason = reason.join(" ");
         room.kickPlayer(Number(id), $reason, false);
+        message.reply(`${authArray[Number(id)].name}, ${$reason} sebebiyle kicklendi.`);
       }
       if (command == "!ban") {
         const [, id, ...reason] = splittedMsg;
         const $reason = reason.join(" ");
         room.kickPlayer(Number(id), $reason, true);
+        banList.push([authArray[Number(id)].name, id])
+        message.reply(`${authArray[Number(id)].name}, ${$reason} sebebiyle banlandı.`);
+      }
+      if (command == "!muteall") {
+        if (allMuted == true) {
+          allMuted = false;
+          message.reply("Sohbet tüm oyuncular için kapatıldı.");
+        } else {
+          allMuted = true
+          message.reply("Sohbet tekrardan açıldı.");
+        }
       }
       if (command == "!adminyap") {
         let [, id, on_off] = splittedMsg;
         id = Number(id);
         if (on_off == 1) {
-          if (!adminList.map((a) => a[0]).includes(id[0])) {
-            if (!masterList.includes(authArray[id][0])) {
-              room.setPlayerAdmin(id, true);
-              adminList.push([authArray[id][0], authArray[id][1]]);
-              message.reply("Oyuncu başarıyla admin yapıldı.");
-            }
+          if (authArray[id][5] == false) {
+            authArray[id][5] = true
+            room.setPlayerAdmin(id, true);
+            message.reply("Oyuncu başarıyla admin yapıldı.");
+          }
+          else {
+            message.reply("Oyuncu zaten admin!")
           }
         }
         if (on_off == 0) {
-          adminList = adminList.filter((a) => a[0] != authArray[id][0]);
+          authArray[id][5] = false
           room.setPlayerAdmin(id, false);
           message.reply("Oyuncu artık admin değil.");
         }
@@ -190,16 +213,19 @@ HaxballJS.then((HBInit) => {
         let [, id, on_off] = splittedMsg;
         id = Number(id);
         if (on_off == 1) {
-          if (!vipList.map((a) => a[0]).includes(id[0])) {
-            if (!vipList.includes(authArray[id][0])) {
-              vipList.push([authArray[id][0], authArray[id][1]]);
-              message.reply("Oyuncu artık VIP");
-            }
+          if (authArray[id][4] == false) {
+            authArray[id][4] = true
+            room.setPlayerAdmin(id, true);
+            message.reply("Oyuncu başarıyla VIP yapıldı.");
+          }
+          else {
+            message.reply("Oyuncu zaten VIP!")
           }
         }
         if (on_off == 0) {
-          vipList = vipList.filter((a) => a[0] != authArray[id][0]);
-          message.reply("Oyuncu artık VIP değil");
+          authArray[id][4] = false
+          room.setPlayerAdmin(id, false);
+          message.reply("Oyuncu artık VIP değil.");
         }
       }
     }
@@ -209,7 +235,6 @@ HaxballJS.then((HBInit) => {
 
   /* ROOM */
 
-  const dctoken = "thr1.AAAAAGKgr_OxWoBcXEZFRw.Ie_LLp2vfXw";
   const roomName = "🔥 ｖ４ ｆｕｔｓａｌ ａｃｅｍｉ 🔥";
   const maxPlayers = 12;
   const roomPublic = true;
@@ -222,7 +247,7 @@ HaxballJS.then((HBInit) => {
     "https://discord.com/api/webhooks/981886750714634251/JkH1Q0ar3qlNOvMNFjwj-stYoZG3jeLle96vSX43YIYQMcWORd9s96VxgLi9IG4T-pFs";
   var giriscikisWebhook =
     "https://discord.com/api/webhooks/981886634356244480/-Nd2R1ThrJN2na0Hgp_47d70u_KOu562XX9_Pd97UVPkxBCaeexOHvBjkJbaC2lJyZU9";
-  var fetchRecordingVariable = false;
+  var fetchRecordingVariable = true;
   var timeLimit = 3;
   var scoreLimit = 3;
 
@@ -231,7 +256,7 @@ HaxballJS.then((HBInit) => {
     maxPlayers: maxPlayers,
     public: roomPublic,
     noPlayer: true,
-    token: dctoken,
+    token: haxtoken,
     geo: { "lat": 39.925533, "lon": 32.866283, "code": "JP", },
   });
 
@@ -264,6 +289,8 @@ HaxballJS.then((HBInit) => {
   var SMSet = new Set();
 
   var mentionPlayersUnpause = true;
+
+  var allMuted = false
 
   /* OBJECTS */
 
@@ -447,20 +474,6 @@ HaxballJS.then((HBInit) => {
   /* AUTH */
 
   var authArray = [];
-  var adminList = [
-    // ['INSERT_AUTH_HERE_1', 'NICK_OF_ADMIN_1'],
-    // ['INSERT_AUTH_HERE_2', 'NICK_OF_ADMIN_2'],
-  ];
-  var masterList = [
-    // 'INSERT_MASTER_AUTH_HERE',
-    // 'INSERT_MASTER_AUTH_HERE_2'
-  ];
-  var vipList = [
-    // 'INSERT_VIP_AUTH_HERE',
-    // 'INSERT_VIP_AUTH_HERE_2'
-  ];
-
-  var dcList = [];
 
   /* COMMANDS */
 
@@ -479,13 +492,6 @@ HaxballJS.then((HBInit) => {
       desc: `
         Bu komut ile odanın discord linkini öğrenebilirsin.`,
       function: dclinkCommand,
-    },
-    vipler: {
-      aliases: ["vips"],
-      roles: Role.PLAYER,
-      desc: `Bu komut ile sunucumuzdan VIP almış oyuncuları görebilirsin.
-        Sende aralarında bulunmak istiyorsan hemen discord sunucumuza gel!`,
-      function: vipListCommand,
     },
     afk: {
       aliases: [],
@@ -679,6 +685,13 @@ HaxballJS.then((HBInit) => {
         Örnek: !mute #3 20, 3 idsine sahip oyuncuyu 20 dakika boyunca susturur.`,
       function: muteCommand,
     },
+    muteall: {
+      aliases: ["toplusustur", "toplumute"],
+      roles: Role.ADMIN_TEMP,
+      desc: `
+        Bu komut ile sunucuyu toplu şekilde susturursun. Sadece adminler mesaj atabilir.`,
+      function: muteAllCommand,
+    },
     unmute: {
       aliases: ["um"],
       roles: Role.ADMIN_TEMP,
@@ -708,29 +721,6 @@ HaxballJS.then((HBInit) => {
       desc: `
     Bu komut ile banlanan oyuncuları numarasıyla birlikte görebilirsin.`,
       function: banListCommand,
-    },
-    adminler: {
-      aliases: ["adminlist", "adminlistesi"],
-      roles: Role.MASTER,
-      desc: `
-        Bu komut ile admin listesini görebilirsin.`,
-      function: adminListCommand,
-    },
-    adminyap: {
-      aliases: ["setadmin", "adminekle"],
-      roles: Role.MASTER,
-      desc: `
-    Bu komut birini admin yapmanı sağlar.
-    Örnek: !adminyap #3, idsi 3 olan oyuncuyu admin yapar.`,
-      function: setAdminCommand,
-    },
-    adminkaldır: {
-      aliases: ["unadmin", "removeadmin"],
-      roles: Role.MASTER,
-      desc: `
-        Bu komut ile bir oyuncunun adminliğini alabilirsin.
-        !adminler yazarak oyuncunun numarasını bulursun ve !adminkaldır 45(oyuncunun yanında numarası yazıyor) yazarsın.`,
-      function: removeAdminCommand,
     },
     odaşifresi: {
       aliases: ["roompass", "odaşifre"],
@@ -914,7 +904,7 @@ HaxballJS.then((HBInit) => {
     var redCap =
       game.playerComp[0][0] != undefined
         ? game.playerComp[0][0].player.name
-        : "Kırmızı";
+        : "Kirmizi";
     var blueCap =
       game.playerComp[1][0] != undefined
         ? game.playerComp[1][0].player.name
@@ -1599,6 +1589,28 @@ HaxballJS.then((HBInit) => {
     }
   }
 
+  function muteAllCommand(player, message) {
+    if (allMuted == true) {
+      allMuted = false;
+      room.sendAnnouncement(
+        `Sohbet tekrardan aktif, tekrardan kapanmaması için lütfen kurallara uyalım.`,
+        null,
+        announcementColor,
+        "bold",
+        null
+      );
+    } else {
+      allMuted = true
+      room.sendAnnouncement(
+        `Sohbetin oyunu etkilemesinden dolayı geçici olarak sohbet kapatıldı.`,
+        null,
+        announcementColor,
+        "bold",
+        null
+      );
+    }
+  }
+
   function unmuteCommand(player, message) {
     var msgArray = message.split(/ +/).slice(1);
     if (msgArray.length > 0) {
@@ -1762,7 +1774,7 @@ HaxballJS.then((HBInit) => {
     cstm = cstm.substring(0, cstm.length - 2) + ".";
     room.sendAnnouncement(cstm, player.id, announcementColor, "bold", null);
   }
-
+  /*
   async function adminListCommand(player, message) {
     if (adminList.length == 0) {
       room.sendAnnouncement(
@@ -1952,6 +1964,7 @@ HaxballJS.then((HBInit) => {
       );
     }
   }
+  */
 
   function passwordCommand(player, message) {
     var msgArray = message.split(/ +/).slice(1);
@@ -2005,7 +2018,7 @@ HaxballJS.then((HBInit) => {
     const reason2 = reason1.join(" ");
 
     room.sendAnnouncement(`${player.name}, başarıyla admin çağırdın. Unutma bu komutu kötüye kullanırsan banlanırsın!`, player.id, 0x2C89AB, "bold", 2);
-    var admincagirText = `\`\`\`ini\n[${player.name}#${player.id}, ${reason2 != "" ? reason2 + " sebebiyle" : ""} admin çağırdı]\`\`\`\n||<@&839206422461546557>||`;
+    var admincagirText = `\`\`\`ini\n[${player.name}#${player.id}, ${reason2 != "" ? reason2 + " sebebiyle" : ""}admin çağırdı]\`\`\`\n||<@&839206422461546557>||`;
 
     fetch(admincagirChannel, {
       method: "POST",
@@ -2458,22 +2471,20 @@ HaxballJS.then((HBInit) => {
   }
 
   function getRole(player) {
-    const Role = {
-      PLAYER: 0,
-      ADMIN_TEMP: 1,
-      VIP: 2,
-      ADMIN_PERM: 3,
-      MASTER: 4,
-    };
-    if (!vipList.find((a) => a[0] == authArray[player.id][0])) {
+    /* PLAYER: 0,
+    ADMIN_TEMP: 1,
+    VIP: 2,
+    ADMIN_PERM: 3,
+    MASTER: 4
+    */
+    if (authArray[player.id][4] == false)
       return (
-        !!masterList.find((a) => a == authArray[player.id][0]) * 3 +
-        !!adminList.find((a) => a[0] == authArray[player.id][0]) * 2 +
+        !!authArray[player.id][6] * 3 +
+        !!authArray[player.id][5] * 2 +
         player.admin * 1
       );
-    } else {
-      return !!vipList.find((a) => a[0] == authArray[player.id][0]) * 2;
-    }
+    else if (authArray[player.id][4] == true)
+      return (!!authArray[player.id][4] * 2)
   }
 
   function ghostKickHandle(oldP, newP) {
@@ -3265,16 +3276,17 @@ HaxballJS.then((HBInit) => {
       Object.entries(data).filter(([key, value]) => key !== "_id")
     );
     var pComp = getPlayerComp(player);
+    if (pComp == null) return;
     stats.oyunlar++;
     hasWon = false;
     if (lastWinner == teamStats) stats.galibiyet++, (hasWon = true);
-    stats.CS += getCSPlayer(pComp);
-    const csbonus = getCSPlayer == 0 ? 3 : 0;
+    const csbonus = getCSPlayer(pComp) == 1 ? 3 : 0;
     const bonus = hasWon ? 2 : -2;
     stats.gol += getGoalsPlayer(pComp);
     stats.asist += getAssistsPlayer(pComp);
     stats.kk += getOwnGoalsPlayer(pComp);
     stats.aktiflik += getGametimePlayer(pComp);
+    stats.cs += getCSPlayer(pComp);
     const yeniPuan =
       getGoalsPlayer(pComp) * 5 +
       getAssistsPlayer(pComp) * 3 -
@@ -3670,20 +3682,29 @@ HaxballJS.then((HBInit) => {
   /* PLAYER MOVEMENT */
 
   room.onPlayerJoin = async function (player) {
-    authArray[player.id] = [player.auth, player.conn];
+
+    authArray[player.id] = [player.auth, player.conn, player.name, false, false, false, false];
+
     if (player.auth == null)
       room.kickPlayer(player.id, "Anonim hesaplar sunucumuza alınmıyor!", true);
+
     if ((await checkPlayer(authArray[player.id][0])) == null)
       await newPlayer(
-        player.name,
+        authArray[player.id][2],
         authArray[player.id][0],
         authArray[player.id][1]
       );
+
     const stats = Object.fromEntries(
       Object.entries(await checkPlayer(authArray[player.id][0])).filter(
         ([key, value]) => key !== "_id"
       )
     );
+    authArray[player.id][3] = stats.discordID != 0;
+    authArray[player.id][4] = stats.isVIP != 0;
+    authArray[player.id][5] = stats.isAdmin != 0;
+    authArray[player.id][6] = stats.isMaster != 0;
+
     /* LAG YAPIYOR!!
     if (room.getPlayerList().length >= 13) {
       if (getRole(player) == Role.PLAYER) {
@@ -3694,22 +3715,23 @@ HaxballJS.then((HBInit) => {
         );
       }
     }*/
+
     await setAvatar(stats.puan, player);
-    if (player.name != stats.isim)
-      await updateName(authArray[player.id][0], player.name),
+    if (authArray[player.id][2] != stats.isim)
+      await updateName(authArray[player.id][0], authArray[player.id][2]),
         room.sendAnnouncement(
           stats.isim + " ismini " + player.name + " olarak değiştirmiş!",
           null,
           0xffffff
         );
-    if (player.conn != stats.conn)
-      await updateConn(authArray[player.id][0], player.conn);
+    if (authArray[player.id][1] != stats.conn)
+      await updateConn(authArray[player.id][0], authArray[player.id][1]);
     if (giriscikisWebhook != "") {
       fetch(giriscikisWebhook, {
         method: "POST",
         body: JSON.stringify({
           content: `\`\`\`fix\n[${getDate()}] ${player.name
-            }, odaya giriş yaptı (${playersAll.length + 1}/${maxPlayers})\`\`\``,
+            }, odaya giriş yaptı (${playersAll.length}/${maxPlayers})\`\`\``,
           username: "Giriş - Çıkış Takip Botu",
         }),
         headers: {
@@ -3718,7 +3740,7 @@ HaxballJS.then((HBInit) => {
       }).then((res) => res);
     }
     room.sendAnnouncement(
-      `👋 ${player.name}, hoşgeldin ! Komutlar için !yardım, discord sunucusu için !dc, avatarlar için !avatarlar.\nDiscord sunucumuzda kayıt olduktan sonra isminin yanındaki işaret yeşile dönecek.`,
+      `👋 ${player.name}, hoşgeldin ! Komutlar için !yardım, discord sunucusu için !dc, avatarlar için !avatarlar.\n${stats.discordID == 0 ? "Discord sunucumuzda kayıt olduktan sonra isminin yanındaki işaret yeşile dönecek." : ""}`,
       player.id,
       welcomeColor,
       "bold",
@@ -3726,33 +3748,29 @@ HaxballJS.then((HBInit) => {
     );
     updateTeams();
     updateAdmins();
-    if (masterList.findIndex((auth) => auth == player.auth) != -1) {
+    if (authArray[player.id][6] == true) {
       room.sendAnnouncement(
-        `Yetkili ${player.name} odaya giriş yaptı !`,
+        `KURUCU 👑 ${player.name} odaya giriş yaptı !`,
         null,
-        announcementColor,
+        "0xE91E63",
         "bold",
         HaxNotification.CHAT
       );
       room.setPlayerAdmin(player.id, true);
-    } else if (
-      adminList.map((a) => a[0]).findIndex((auth) => auth == player.auth) != -1
-    ) {
+    } else if (authArray[player.id][5] == true) {
       room.sendAnnouncement(
-        `Admin ${player.name} odaya giriş yaptı !`,
+        `ADMİN ⚡️ ${player.name} odaya giriş yaptı !`,
         null,
-        announcementColor,
+        "0x5499C7",
         "bold",
         HaxNotification.CHAT
       );
       room.setPlayerAdmin(player.id, true);
-    } else if (
-      vipList.map((a) => a[0]).findIndex((auth) => auth == player.auth) != -1
-    ) {
+    } else if (authArray[player.id][4] == true) {
       room.sendAnnouncement(
-        `VIP ${player.name} odaya giriş yaptı !`,
+        `VIP 💎${player.name} odaya giriş yaptı !`,
         null,
-        announcementColor,
+        "0x2ECC71",
         "bold",
         HaxNotification.CHAT
       );
@@ -3892,14 +3910,8 @@ HaxballJS.then((HBInit) => {
     return false;
   }
 
-  /*
-  var spamList = {};
-  var bound = 3; //You can either decrease or increase this, min = 2;
-  var spamBanLimit = 3;
-  var spamTimer = 3000; //In milliseconds
-  var removal = 60000; //In milliseconds */
-
   room.onPlayerChat = function (player, message) {
+
     if (gameState !== State.STOP && player.team != Team.SPECTATORS) {
       let pComp = getPlayerComp(player);
       if (pComp != null) pComp.inactivityTicks = 0;
@@ -3956,13 +3968,18 @@ HaxballJS.then((HBInit) => {
         "bold",
         HaxNotification.CHAT
       );
+      for (var a = 0; a < playersAll.length; a++) {
+        if (playersAll[a].admin == true) {
+          room.sendAnnouncement(player.name + "・" + message, playersAll[a].id, 0xFFFF00, "bold", 1);
+        }
+      }
       return false;
     }
 
     if (isUsingIllegalChars(message)) {
 
       room.sendAnnouncement(
-        `Böyle konuşmaya devam edersen kalıcı olarak banlanacaksın!`,
+        `Yasaklı karakterler kullanmaya devam edersen banlanacaksın!`,
         player.id,
         errorColor,
         "bold",
@@ -3971,17 +3988,24 @@ HaxballJS.then((HBInit) => {
 
       return false;
     }
-
-    if (message.match(checkBadWords(message)) || getRole(player) <= Role.ADMIN_TEMP) {
-      room.sendAnnouncement(
-        `Böyle konuşmaya devam edersen kalıcı olarak banlanacaksın!`,
-        player.id,
-        errorColor,
-        "bold",
-        2
-      );
-      return false;
+    if (message.match(checkBadWords(message))) {
+      if (getRole(player) <= Role.ADMIN_TEMP) {
+        room.sendAnnouncement(
+          `Böyle konuşmaya devam edersen kalıcı olarak banlanacaksın!`,
+          player.id,
+          errorColor,
+          "bold",
+          2
+        );
+        for (var a = 0; a < playersAll.length; a++) {
+          if (playersAll[a].admin == true) {
+            room.sendAnnouncement("KÜFÜR 💢 " + player.name + "・" + message, playersAll[a].id, errorColor, "bold", 1);
+          }
+        }
+        return false;
+      }
     }
+
     // Renkli Yazı
     if (getRole(player) == Role.MASTER) {
       room.sendAnnouncement(
@@ -4015,14 +4039,30 @@ HaxballJS.then((HBInit) => {
         "normal"
       );
       return false;
-    } else if (getRole(player) < Role.ADMIN_TEMP) {
-      const tag = dcList.includes(authArray[player.id][0]) ? "✔️ " : "❌ ";
-      room.sendAnnouncement(
-        tag + player.name + "・" + message,
-        undefined,
-        "0xD5D8DC",
-        "normal"
-      );
+    } else if ((getRole(player) < Role.ADMIN_TEMP)) {
+      if (allMuted == true) {
+        for (var a = 0; a < playersAll.length; a++) {
+          if (playersAll[a].admin == true) {
+            room.sendAnnouncement(player.name + "・" + message, playersAll[a].id, 0xFFFF00, "bold", 1);
+          }
+        }
+        room.sendAnnouncement(
+          `Sohbet şu anda bütün oyuncular için kapalı, açıldığında tekrar konuşabileceksin.`,
+          player.id,
+          errorColor,
+          "bold",
+          null
+        );
+      }
+      else {
+        const tag = authArray[player.id][3] ? "✔️ " : "❌ ";
+        room.sendAnnouncement(
+          tag + player.name + "・" + message,
+          undefined,
+          "0xD5D8DC",
+          "normal"
+        );
+      }
       return false;
     }
   };
@@ -4234,14 +4274,6 @@ HaxballJS.then((HBInit) => {
     roomLink = url;
     room.setTeamColors(1, 60, 0xcfcfcf, [0xcf1238]);
     room.setTeamColors(2, 60, 0xcfcfcf, [0x2c89ab]);
-    const data = await getAll();
-    data.forEach(function (element) {
-      const check = Object.fromEntries(Object.entries(element));
-      if (check.isMaster == true && !masterList.includes(check.auth)) masterList.push(check.auth);
-      if (check.isAdmin == true && !adminList.map((a) => a[0]).includes(check.auth)) adminList.push([check.auth, check.isim]);
-      if (check.isVIP == true && !vipList.map((a) => a[0]).includes(check.auth)) vipList.push([check.auth, check.isim]);
-      if (check.discordID != 0 && !dcList.includes(check.auth)) dcList.push(check.auth);
-    });
   };
 
   room.onPlayerAdminChange = function (changedPlayer, byPlayer) {
@@ -4387,15 +4419,15 @@ HaxballJS.then((HBInit) => {
   }
 
   async function setAvatar(puan, player) {
-    if (puan <= 750) room.setPlayerAvatar(player.id, "👎");
-    if (puan >= 850) room.setPlayerAvatar(player.id, "👍");
-    if (puan >= 950) room.setPlayerAvatar(player.id, "🌵");
-    if (puan >= 1000) room.setPlayerAvatar(player.id, "🔥");
-    if (puan >= 1050) room.setPlayerAvatar(player.id, "💧");
-    if (puan >= 1100) room.setPlayerAvatar(player.id, "⚡");
-    if (puan >= 1150) room.setPlayerAvatar(player.id, "💎");
-    if (puan >= 1200) room.setPlayerAvatar(player.id, "🏆");
-    if (puan >= 1250) room.setPlayerAvatar(player.id, "👑");
+    if (puan < 850) return room.setPlayerAvatar(player.id, "👎");
+    if (puan >= 850 && puan < 950) return room.setPlayerAvatar(player.id, "👍");
+    if (puan >= 950 && puan < 1000) return room.setPlayerAvatar(player.id, "🌵");
+    if (puan >= 1000 && puan < 1050) return room.setPlayerAvatar(player.id, "🔥");
+    if (puan >= 1050 && puan < 1100) return room.setPlayerAvatar(player.id, "💧");
+    if (puan >= 1100 && puan < 1150) return room.setPlayerAvatar(player.id, "⚡");
+    if (puan >= 1150 && puan < 1200) return room.setPlayerAvatar(player.id, "💎");
+    if (puan >= 1200 && puan < 1250) return room.setPlayerAvatar(player.id, "🏆");
+    if (puan >= 1250) return room.setPlayerAvatar(player.id, "👑");
   }
 
   function fetchRecording(game) {
@@ -4403,9 +4435,9 @@ HaxballJS.then((HBInit) => {
     const bufferData = Buffer.from(JSON.parse(data));
 
     const kayitWebhook = new WebhookClient({
-      id: "980846280299384892",
+      id: "981886983691436043",
       token:
-        "HF3QQlA25q5UkyLOyHYrZRS4o21bVRT0y9V7oT_T9OU1wQ2_iLqM9_Ea54tMl3H7EgWT",
+        "NOtfTbQ0GLRxQ1Kuy91EELSOhi_pxd8ss7tDWxv2EzHPNGbi3w-jHnECMSj3axCSjbwV",
     });
 
     if (bufferData != null) {
