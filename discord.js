@@ -74,6 +74,23 @@ bot.on("messageCreate", async function (message) {
 
     if (cmd == "!rank") {
       try {
+        // TIME FUNCTIONS
+        function getHoursStats(time) {
+          return Math.floor(time / 3600);
+        }
+
+        function getMinutesStats(time) {
+          return Math.floor(time / 60) - getHoursStats(time) * 60;
+        }
+
+        function getTimeStats(time) {
+          if (getHoursStats(time) > 0) {
+            return `${getHoursStats(time)} saat ${getMinutesStats(time)} dakika`;
+          } else {
+            return `${getMinutesStats(time)} dakika`;
+          }
+        }
+
         const data = await Model.find()
         const pos = data.sort(function (a, b) { return b["puan"] - a["puan"]; });
         for (var i = 0; i < pos.length; i++) {
@@ -95,7 +112,7 @@ bot.on("messageCreate", async function (message) {
             if (user[0].puan >= 1200 && user[0].puan < 1250) return "🏆";
             if (user[0].puan >= 1250) return "👑";
           }
-          const winrate = ((100 * user[0].galibiyet) / (user[0].oyunlar || 1)).toPrecision(3)
+          const winrate = ((100 * user[0].galibiyet) / (user[0].oyunlar || 1)).toPrecision(2)
           _Embed.setTitle(`\`\`\`${avatar()}・${user[0].isim} #${user[0].rank}\`\`\``);
           _Embed.setColor("#c0f00b");
           _Embed.setAuthor({ "name": "📈 RANK BİLGİLENDİRME" })
@@ -145,7 +162,7 @@ bot.on("messageCreate", async function (message) {
             "inline": true,
           });
           _Embed.setFooter({
-            "text": "VIP satın alarak bizlere katkıda bulunabilirsin",
+            "text": `${getTimeStats(user[0].aktiflik)} boyunca odamızda oynadın!`,
           });
           message.channel.send({
             embeds: [_Embed],

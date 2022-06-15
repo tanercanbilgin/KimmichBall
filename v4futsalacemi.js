@@ -1,9 +1,10 @@
-const fetch = require("node-fetch");
 const HaxballJS = require("haxball.js");
 const kufurlistesi = require("./kufurlistesi.js");
 const futsalantmap = require("./map/futsalant.hbs");
 const futsalv12map = require("./map/futsalv12.hbs");
 const futsalv4map = require("./map/futsalv4.hbs");
+
+const fetch = require("node-fetch")
 
 const { exit } = require('process')
 
@@ -2013,12 +2014,12 @@ HaxballJS.then((HBInit) => {
   }
 
   function admincagirCommand(player, message) {
-    admincagirChannel = 'https://discord.com/api/webhooks/984063298188247050/VLUBdcpjrCGqhjfWM7WiIqJfuUTK5hIJBc0AhWo7nYpehX9v1e_irlKttuiXVRrECJY6'
+    const admincagirChannel = 'https://discord.com/api/webhooks/984063298188247050/VLUBdcpjrCGqhjfWM7WiIqJfuUTK5hIJBc0AhWo7nYpehX9v1e_irlKttuiXVRrECJY6'
     const [, ...reason1] = message.split(/ +/gim);
     const reason2 = reason1.join(" ");
 
     room.sendAnnouncement(`${player.name}, başarıyla admin çağırdın. Unutma bu komutu kötüye kullanırsan banlanırsın!`, player.id, 0x2C89AB, "bold", 2);
-    var admincagirText = `\`\`\`ini\n[${player.name}#${player.id}, ${reason2 != "" ? reason2 + " sebebiyle" : ""}admin çağırdı]\`\`\`\n||<@&839206422461546557>||`;
+    var admincagirText = `\`\`\`ini\n[${player.name}#${player.id}, ${reason2 != "" ? reason2 + " sebebiyle " : ""}admin çağırdı]\`\`\`\n||<@&839206422461546557>||`;
 
     fetch(admincagirChannel, {
       method: "POST",
@@ -2165,14 +2166,14 @@ HaxballJS.then((HBInit) => {
     let possessionBluePct = 100 - possessionRedPct;
     let actionRedPct =
       (actionZoneHalf[0] / (actionZoneHalf[0] + actionZoneHalf[1])) * 100;
+    let possessionString = `🔴 ${possessionRedPct.toPrecision(2)}% - ${possessionBluePct.toPrecision(2)}% 🔵`;
     let actionBluePct = 100 - actionRedPct;
+    let actionString = `🔴 ${actionRedPct.toPrecision(2)}% - ${actionBluePct.toPrecision(2)}% 🔵`;
+    let CSString = getCSString(scores);
     room.sendAnnouncement(
-      `📊 Topla oynama: 🔴 ${possessionRedPct.toPrecision(
-        3
-      )}% - ${possessionBluePct.toPrecision(3)}% 🔵\n` +
-      `📊 Topun oynandığı bölgeler: 🔴 ${actionRedPct.toPrecision(
-        3
-      )}% - ${actionBluePct.toPrecision(3)}% 🔵`,
+      `📊 Topla oynama: ${possessionString}\n` +
+      `📊 Topun oynandığı bölgeler: ${actionString}\n` +
+      `${CSString}`,
       null,
       announcementColor,
       "bold",
@@ -3152,6 +3153,31 @@ HaxballJS.then((HBInit) => {
     return playerGK;
   }
 
+  function getCS(scores) {
+    let playersNameCS = [];
+    let redGK = getGK(Team.RED);
+    let blueGK = getGK(Team.BLUE);
+    if (redGK != null && scores.blue == 0) {
+      playersNameCS.push(redGK.player.name);
+    }
+    if (blueGK != null && scores.red == 0) {
+      playersNameCS.push(blueGK.player.name);
+    }
+    return playersNameCS;
+  }
+
+  function getCSString(scores) {
+    let playersCS = getCS(scores);
+    if (playersCS.length == 0) {
+      return `🥅 İki takımda kalesini gole kapatamadı..`;
+    } else if (playersCS.length == 1) {
+      return `🥅 ${playersCS[0]} gol yemedi!`;
+    } else if (playersCS.length == 2) {
+      return `🥅 ${playersCS[0]} ve ${playersCS[1]} gol yemedi!`;
+    } else {
+      return "";
+    }
+  }
 
   /* GLOBAL STATS FUNCTIONS */
 
@@ -3270,30 +3296,47 @@ HaxballJS.then((HBInit) => {
 
   /* ROOM STATS FUNCTIONS */
 
-  async function updatePlayerStats(player, teamStats) {
+  async function totalTeamElo(team) {
+    total = 0
+    for (var i = 0; i < team.length; i++) {
+      var data = await checkStats(authArray[team[i].id][0]);
+      const stats = Object.fromEntries(Object.entries(data).filter(([key, value]) => key !== "_id"));
+      total += stats.puan
+    }
+    return total
+  }
+
+  async function newEloDelta(player, hasWon, redElo, blueElo) {
+    abs = 0
+
+    if (player.team == Team.RED) abs = blueElo - redElo
+    if (player.team == Team.BLUE) abs = redElo - blueElo
+
+    const k = 15;
+    const finalScore = (hasWon ? 1 : 0);
+    const expectedScore = 1 / (1 + 10 ** ((abs) / 400));
+
+    return Math.round((finalScore - expectedScore) * k);
+  }
+
+  async function updatePlayerStats(player, teamStats, redElo, blueElo) {
     var data = await checkStats(authArray[player.id][0]);
-    const stats = Object.fromEntries(
-      Object.entries(data).filter(([key, value]) => key !== "_id")
-    );
+    const stats = Object.fromEntries(Object.entries(data).filter(([key, value]) => key !== "_id"));
+
     var pComp = getPlayerComp(player);
     if (pComp == null) return;
+    hasWon = false
     stats.oyunlar++;
-    hasWon = false;
     if (lastWinner == teamStats) stats.galibiyet++, (hasWon = true);
-    const csbonus = getCSPlayer(pComp) == 1 ? 3 : 0;
-    const bonus = hasWon ? 2 : -2;
     stats.gol += getGoalsPlayer(pComp);
     stats.asist += getAssistsPlayer(pComp);
     stats.kk += getOwnGoalsPlayer(pComp);
     stats.aktiflik += getGametimePlayer(pComp);
     stats.cs += getCSPlayer(pComp);
-    const yeniPuan =
-      getGoalsPlayer(pComp) * 5 +
-      getAssistsPlayer(pComp) * 3 -
-      getOwnGoalsPlayer(pComp) * 5 +
-      bonus * 5 +
-      csbonus * 4;
-    stats.puan += yeniPuan;
+    const yeniPuan = await newEloDelta(player, hasWon, redElo, blueElo)
+    stats.puan += yeniPuan
+    console.log(player.name, hasWon, yeniPuan)
+
     room.sendAnnouncement(
       `${player.name}, bu maçın sonucunda aldığın puan: ` + yeniPuan,
       player.id,
@@ -3313,11 +3356,14 @@ HaxballJS.then((HBInit) => {
       teamRedStats.length >= teamSize &&
       teamBlueStats.length >= teamSize
     ) {
+      const redElo = await totalTeamElo(teamRed)
+      const blueElo = await totalTeamElo(teamBlue)
+
       for (let player of teamRedStats) {
-        await updatePlayerStats(player, Team.RED);
+        await updatePlayerStats(player, Team.RED, redElo, blueElo);
       }
       for (let player of teamBlueStats) {
-        await updatePlayerStats(player, Team.BLUE);
+        await updatePlayerStats(player, Team.RED, redElo, blueElo);
       }
     }
   }
@@ -3451,32 +3497,42 @@ HaxballJS.then((HBInit) => {
     return 0;
   }
 
-  function actionReportCount(goals) {
-    var playerActionSummary = [];
-    for (let goal of goals) {
+  function actionReportCountTeam(goals, team) {
+    let playerActionSummaryTeam = [];
+    let indexTeam = team == Team.RED ? 0 : 1;
+    let indexOtherTeam = team == Team.RED ? 1 : 0;
+    for (let goal of goals[indexTeam]) {
       if (goal[0] != null) {
-        if (playerActionSummary.find((a) => a[0].id == goal[0].id)) {
-          var index = playerActionSummary.findIndex(
-            (a) => a[0].id == goal[0].id
-          );
-          playerActionSummary[index][1]++;
+        if (playerActionSummaryTeam.find(a => a[0].id == goal[0].id)) {
+          let index = playerActionSummaryTeam.findIndex(a => a[0].id == goal[0].id);
+          playerActionSummaryTeam[index][1]++;
         } else {
-          playerActionSummary.push([goal[0], 1, 0, 0]);
+          playerActionSummaryTeam.push([goal[0], 1, 0, 0]);
         }
         if (goal[1] != null) {
-          if (playerActionSummary.find((a) => a[0].id == goal[1].id)) {
-            var index = playerActionSummary.findIndex(
-              (a) => a[0].id == goal[1].id
-            );
-            playerActionSummary[index][2]++;
+          if (playerActionSummaryTeam.find(a => a[0].id == goal[1].id)) {
+            let index = playerActionSummaryTeam.findIndex(a => a[0].id == goal[1].id);
+            playerActionSummaryTeam[index][2]++;
           } else {
-            playerActionSummary.push([goal[1], 0, 1, 0]);
+            playerActionSummaryTeam.push([goal[1], 0, 1, 0]);
           }
         }
       }
     }
-    playerActionSummary.sort((a, b) => a[1] + a[2] - (b[1] + b[2]));
-    return playerActionSummary;
+    if (goals[indexOtherTeam].length == 0) {
+      let playerCS = getGK(team)?.player;
+      if (playerCS != null) {
+        if (playerActionSummaryTeam.find(a => a[0].id == playerCS.id)) {
+          let index = playerActionSummaryTeam.findIndex(a => a[0].id == playerCS.id);
+          playerActionSummaryTeam[index][3]++;
+        } else {
+          playerActionSummaryTeam.push([playerCS, 0, 0, 1]);
+        }
+      }
+    }
+
+    playerActionSummaryTeam.sort((a, b) => (a[1] + a[2] + a[3]) - (b[1] + b[2] + b[3]));
+    return playerActionSummaryTeam;
   }
 
   /* PRINT FUNCTIONS */
@@ -3501,12 +3557,12 @@ HaxballJS.then((HBInit) => {
 
   function fetchGametimeReport(game) {
     var fieldGametimeRed = {
-      name: "🔴        **KIRMIZI TAKIM İSTATİSTİKLERİ:**",
+      name: "🔴**KIRMIZI TAKIM:**",
       value: "⌛ __**Oyun Süresi:**__\n\n",
       inline: true,
     };
     var fieldGametimeBlue = {
-      name: "🔵       **MAVİ TAKIM İSTATİSTİKLERİ**",
+      name: "🔵**MAVİ TAKIM**",
       value: "⌛ __**Oyun Süresi:**__\n\n",
       inline: true,
     };
@@ -3550,12 +3606,12 @@ HaxballJS.then((HBInit) => {
 
   function fetchActionsSummaryReport(game) {
     var fieldReportRed = {
-      name: "🔴        **KIRMIZI TAKIM İSTATİSTİKLERİ**",
+      name: "🔴**KIRMIZI TAKIM**",
       value: "📊 __**Oyuncu İstatistikleri:**__\n\n",
       inline: true,
     };
     var fieldReportBlue = {
-      name: "🔵       **MAVİ TAKIM İSTATİSTİKLERİ**",
+      name: "🔵**MAVİ TAKIM**",
       value: "📊 __**Oyuncu İstatistikleri:**__\n\n",
       inline: true,
     };
@@ -3566,22 +3622,22 @@ HaxballJS.then((HBInit) => {
         game.goals[i].assist,
       ]);
     }
-    var redActions = actionReportCount(goals[0]);
+    var redActions = actionReportCountTeam(goals, Team.RED);
     if (redActions.length > 0) {
       for (let act of redActions) {
-        fieldReportRed.value +=
-          `> **${act[0].team != Team.RED ? "[KK] " : ""}${act[0].name}:` +
-          `**${act[1] > 0 ? ` ${act[1]}G` : ""}${act[2] > 0 ? ` ${act[2]}A` : ""
-          }\n`;
+        fieldReportRed.value += `> **${act[0].team != Team.RED ? '[KK] ' : ''}${act[0].name}:**` +
+          `${act[1] > 0 ? ` ${act[1]}G` : ''}` +
+          `${act[2] > 0 ? ` ${act[2]}A` : ''}` +
+          `${act[3] > 0 ? ` ${act[3]}CS` : ''}\n`;
       }
     }
-    var blueActions = actionReportCount(goals[1]);
+    var blueActions = actionReportCountTeam(goals, Team.BLUE);
     if (blueActions.length > 0) {
       for (let act of blueActions) {
-        fieldReportBlue.value +=
-          `> **${act[0].team != Team.BLUE ? "[KK] " : ""}${act[0].name}:` +
-          `**${act[1] > 0 ? ` ${act[1]}G` : ""}${act[2] > 0 ? ` ${act[2]}A` : ""
-          }\n`;
+        fieldReportBlue.value += `> **${act[0].team != Team.BLUE ? '[KK] ' : ''}${act[0].name}:**` +
+          `${act[1] > 0 ? ` ${act[1]}G` : ''}` +
+          `${act[2] > 0 ? ` ${act[2]}A` : ''}` +
+          `${act[3] > 0 ? ` ${act[3]}CS` : ''}\n`;
       }
     }
 
@@ -3605,12 +3661,12 @@ HaxballJS.then((HBInit) => {
     var logChannel = gameWebhook;
     var fields = [
       {
-        name: "🔴        **KIRMIZI TAKIM İSTATİSTİKLERİ**",
+        name: "🔴**KIRMIZI TAKIM**",
         value: "=====================\n\n",
         inline: true,
       },
       {
-        name: "🔵       **MAVİ TAKIM İSTATİSTİKLERİ**",
+        name: "🔵**MAVİ TAKIM**",
         value: "=====================\n\n",
         inline: true,
       },
@@ -3625,12 +3681,12 @@ HaxballJS.then((HBInit) => {
 
     var possR = possession[0] / (possession[0] + possession[1]);
     var possB = 1 - possR;
-    var possRString = (possR * 100).toPrecision(3).toString();
-    var possBString = (possB * 100).toPrecision(3).toString();
+    var possRString = (possR * 100).toPrecision(2).toString();
+    var possBString = (possB * 100).toPrecision(2).toString();
     var zoneR = actionZoneHalf[0] / (actionZoneHalf[0] + actionZoneHalf[1]);
     var zoneB = 1 - zoneR;
-    var zoneRString = (zoneR * 100).toPrecision(3).toString();
-    var zoneBString = (zoneB * 100).toPrecision(3).toString();
+    var zoneRString = (zoneR * 100).toPrecision(2).toString();
+    var zoneBString = (zoneB * 100).toPrecision(2).toString();
     var win =
       (game.scores.red > game.scores.blue) * 1 +
       (game.scores.blue > game.scores.red) * 2;
@@ -3731,7 +3787,7 @@ HaxballJS.then((HBInit) => {
         method: "POST",
         body: JSON.stringify({
           content: `\`\`\`fix\n[${getDate()}] ${player.name
-            }, odaya giriş yaptı (${playersAll.length}/${maxPlayers})\`\`\``,
+            }, odaya giriş yaptı (${players.length + 1}/${maxPlayers})\`\`\``,
           username: "Giriş - Çıkış Takip Botu",
         }),
         headers: {
@@ -3823,7 +3879,7 @@ HaxballJS.then((HBInit) => {
     if (!kickFetchVariable) {
       if (giriscikisWebhook != "") {
         var stringContent = `\`\`\`fix\n[${getDate()}] ${player.name
-          }, odadan çıkış yaptı (${playersAll.length}/${maxPlayers})\`\`\``;
+          }, odadan çıkış yaptı (${players.length}/${maxPlayers})\`\`\``;
         fetch(giriscikisWebhook, {
           method: "POST",
           body: JSON.stringify({
