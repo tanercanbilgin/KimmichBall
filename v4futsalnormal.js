@@ -71,85 +71,62 @@ HaxballJS.then((HBInit) => {
 
     if (message.channel.name.includes("v4n")) {
       if (command == "!oyuncular") {
-        tag = ""
         oyuncular = room.getPlayerList();
-        kirmizio = oyuncular.filter((p) => p.team == Team.RED);
-        mavio = oyuncular.filter((p) => p.team == Team.BLUE);
-        izleyicio = oyuncular.filter((p) => p.team == Team.SPECTATORS);
 
-        let ktakim = "";
-        let mtakim = "";
-        let itakim = "";
+        let tspec = '' // 0
+        let tred = '' // 1
+        let tblue = '' // 2
 
-        for (var i = 0; i < mavio.length; i++) {
-          if (getRole(mavio[mavio.length - 1 - i]) == Role.PLAYER) tag = "";
-          if (getRole(mavio[mavio.length - 1 - i]) == Role.ADMIN_TEMP) tag = "✨ ";
-          if (getRole(mavio[mavio.length - 1 - i]) == Role.VIP) tag = "VIP 💎 ";
-          if (getRole(mavio[mavio.length - 1 - i]) == Role.ADMIN_PERM) tag = "⚡️ ";
-          if (getRole(mavio[mavio.length - 1 - i]) == Role.MASTER) tag = "👑 ";
-          mtakim += `${tag}*${mavio[mavio.length - 1 - i].name} #${mavio[mavio.length - 1 - i].id
-            }*\n`;
+        function isAfk(oyuncu) {
+          if (AFKSet.has(oyuncu.id)) return "💤"
+          if (!AFKSet.has(oyuncu.id)) return ""
         }
 
-        for (var i = 0; i < kirmizio.length; i++) {
-          if (getRole(kirmizio[kirmizio.length - 1 - i]) == Role.PLAYER) tag = "";
-          if (getRole(kirmizio[kirmizio.length - 1 - i]) == Role.ADMIN_TEMP)
-            tag = "✨ ";
-          if (getRole(kirmizio[kirmizio.length - 1 - i]) == Role.VIP)
-            tag = "VIP 💎 ";
-          if (getRole(kirmizio[kirmizio.length - 1 - i]) == Role.ADMIN_PERM)
-            tag = "⚡️ ";
-          if (getRole(kirmizio[kirmizio.length - 1 - i]) == Role.MASTER)
-            tag = "👑 ";
-          ktakim += `${tag}*${kirmizio[kirmizio.length - 1 - i].name} #${kirmizio[kirmizio.length - 1 - i].id
-            }*\n`;
+        function getTag(oyuncu) {
+          if (getRole(oyuncu) == Role.PLAYER) return "";
+          if (getRole(oyuncu) == Role.ADMIN_TEMP) return "✨";
+          if (getRole(oyuncu) == Role.VIP) return "VIP 💎";
+          if (getRole(oyuncu) == Role.ADMIN_PERM) return "⚡️";
+          if (getRole(oyuncu) == Role.MASTER) return "👑";
         }
 
-        for (var i = 0; i < izleyicio.length; i++) {
-          if (getRole(izleyicio[izleyicio.length - 1 - i]) == Role.PLAYER) tag = "";
-          if (getRole(izleyicio[izleyicio.length - 1 - i]) == Role.ADMIN_TEMP)
-            tag = "✨ ";
-          if (getRole(izleyicio[izleyicio.length - 1 - i]) == Role.VIP)
-            tag = "VIP 💎 ";
-          if (getRole(izleyicio[izleyicio.length - 1 - i]) == Role.ADMIN_PERM)
-            tag = "⚡️ ";
-          if (getRole(izleyicio[izleyicio.length - 1 - i]) == Role.MASTER)
-            tag = "👑 ";
-          itakim += `${tag}*${izleyicio[izleyicio.length - 1 - i].name} #${izleyicio[izleyicio.length - 1 - i].id
-            }*\n`;
+        for (let oyuncu of oyuncular) {
+          if (oyuncu.team == 0) (tspec += `#${oyuncu.id} ${oyuncu.name}  ${getTag(oyuncu)}  ${isAfk(oyuncu)}\n`)
+          if (oyuncu.team == 1) (tred += `#${oyuncu.id} ${oyuncu.name}  ${getTag(oyuncu)}  ${isAfk(oyuncu)}\n`)
+          if (oyuncu.team == 2) (tblue += `#${oyuncu.id} ${oyuncu.name}  ${getTag(oyuncu)}  ${isAfk(oyuncu)}\n`)
         }
 
         const _Embed = new MessageEmbed();
         if (oyuncular.length >= 1) {
           _Embed.setTitle(roomName);
-          _Embed.setColor(0xffffff);
-          if (ktakim != "")
+          _Embed.setColor("#c0f00b");
+          if (tred != "")
             _Embed.addFields({
               name: "🔴 Kırmızı Takım",
-              value: `${ktakim}`,
+              value: `${tred}`,
             });
-          if (mtakim != "")
+          if (tblue != "")
             _Embed.addFields({
               name: "🔵 Mavi Takım",
-              value: `${mtakim}`,
+              value: `${tblue}`,
             });
-          if (itakim != "")
+          if (tspec != "")
             _Embed.addFields({
               name: "⚪ İzleyiciler",
-              value: `${itakim}`,
+              value: `${tspec}`,
             });
           _Embed.setFooter({
-            text: `Odadaki Oyuncu Sayısı : ${playersAll.length}/${maxPlayers}\n${currentStadium} haritası oynanıyor.`,
+            text: `Odadaki Oyuncu Sayısı : ${playersAll.length}/${maxPlayers}`,
           });
         } else {
-          _Embed.setColor("#ED4245");
+          _Embed.setColor("#E74C3C");
           _Embed.setDescription("Odada kimse yok");
         }
         const component = new MessageActionRow().addComponents(
           new MessageButton()
             .setURL(roomLink || "https://haxball.com/play")
             .setStyle("LINK")
-            .setLabel("ODAYA GİTMEK İÇİN TIKLA")
+            .setLabel("🔗 ODAYA GİTMEK İÇİN TIKLA")
         );
         message.channel.send({
           embeds: [_Embed],
@@ -163,9 +140,10 @@ HaxballJS.then((HBInit) => {
         dname = message.member.nickname || message.author.username;
         room.sendAnnouncement(
           "DISCORD 💬 " + dname + "・" + $reason,
-          undefined,
-          "0xA569BD",
-          "bold"
+          null,
+          0xA569BD,
+          "bold",
+          2
         );
         message.reply("Mesajın sunucuya başarıyla iletildi.");
       }
@@ -173,22 +151,86 @@ HaxballJS.then((HBInit) => {
         const [, id, ...reason] = splittedMsg;
         const $reason = reason.join(" ");
         room.kickPlayer(Number(id), $reason, false);
-        message.reply(`${[authArray][Number(id)][2]}, ${$reason} sebebiyle kicklendi.`);
+        message.reply(`${authArray[Number(id)][2]}, ${$reason} sebebiyle kicklendi.`);
       }
       if (command == "!ban") {
         const [, id, ...reason] = splittedMsg;
         const $reason = reason.join(" ");
         room.kickPlayer(Number(id), $reason, true);
-        banList.push([authArray[Number(id)].name, id])
-        message.reply(`${[authArray][Number(id)][2]}, ${$reason} sebebiyle banlandı.`);
+        banList.push([authArray[Number(id)][2], Number(id)]);
+        message.reply(`${authArray[Number(id)][2]}, ${$reason} sebebiyle banlandı.`);
+      }
+      if (command == "!mute") {
+        let [, id, amount] = splittedMsg;
+        var muteObj = new MutePlayer(
+          authArray[Number(id)][2],
+          Number(id),
+          authArray[Number(id)][0]
+        );
+        if (!amount) amount = muteDuration
+        muteObj.setDuration(amount);
+        message.reply(`${authArray[Number(id)][2]}, ${amount} dakika boyunca susturuldu.`);
+      }
+      if (command == "!unmute") {
+        const [, id] = splittedMsg;
+        var muteObj = muteArray.getByPlayerId(Number(id));
+        muteObj.remove();
+        message.reply(`${authArray[Number(id)][2]}, artık yazabilir.`);
+      }
+      if (command == "!banlar") {
+        if (banList.length == 0) {
+          message.reply("Ban listesinde kimse yok")
+        }
+        else {
+          var cstm = "📢 Ban listesi : ";
+          for (let ban of banList) {
+            cstm += ban[0] + `[${ban[1]}], `;
+          }
+          cstm = cstm.substring(0, cstm.length - 2) + ".";
+          message.reply(cstm)
+        }
+      }
+      if (command == "!mutelar") {
+        if (muteArray.list.length == 0) {
+          message.reply("Mute listesinde kimse yok")
+        }
+        else {
+          var cstm = "🔇 Mute Listesi : ";
+          for (let mute of muteArray.list) {
+            cstm += mute.name + `[${mute.id}], `;
+          }
+          cstm = cstm.substring(0, cstm.length - 2) + ".";
+          message.reply(cstm)
+        }
+      }
+      if (command == "!bankaldır") {
+        const [, id] = splittedMsg;
+        room.clearBan(Number(id));
+        message.reply(`${banList.filter((p) => p[1] == Number(id))[0][0]} adlı oyuncunun banı kaldırıldı.`);
+        banList = banList.filter((p) => p[1] != Number(id));
       }
       if (command == "!muteall") {
-        if (allMuted == true) {
-          allMuted = false;
+        dname = message.member.nickname || message.author.username;
+        if (allMuted == false) {
+          allMuted = true;
           message.reply("Sohbet tüm oyuncular için kapatıldı.");
+          room.sendAnnouncement(
+            "DISCORD 💬 " + dname + ", oyunu etkilemesinden dolayı sohbeti geçici olarak kapattı.",
+            null,
+            0xA569BD,
+            "bold",
+            0
+          );
         } else {
-          allMuted = true
+          allMuted = false
           message.reply("Sohbet tekrardan açıldı.");
+          room.sendAnnouncement(
+            "DISCORD 💬 " + dname + ", sohbeti tekrardan açtı. Kapanmaması için kurallara uy!",
+            null,
+            0xA569BD,
+            "bold",
+            0
+          );
         }
       }
       if (command == "!adminyap") {
@@ -198,16 +240,21 @@ HaxballJS.then((HBInit) => {
           if (authArray[id][5] == false) {
             authArray[id][5] = true
             room.setPlayerAdmin(id, true);
-            message.reply("Oyuncu başarıyla admin yapıldı.");
+            message.reply(`${authArray[Number(id)][2]}, başarıyla admin yapıldı.`);
           }
           else {
-            message.reply("Oyuncu zaten admin!")
+            message.reply(`${authArray[Number(id)][2]}, zaten admin!`)
           }
         }
         if (on_off == 0) {
-          authArray[id][5] = false
-          room.setPlayerAdmin(id, false);
-          message.reply("Oyuncu artık admin değil.");
+          if (authArray[id][5] == true) {
+            authArray[id][5] = false
+            room.setPlayerAdmin(id, false);
+            message.reply(`${authArray[Number(id)][2]}, artık admin değil.`);
+          }
+          else {
+            message.reply(`${authArray[Number(id)][2]}, zaten admin değildi!`)
+          }
         }
       }
       if (command == "!vipyap") {
@@ -216,17 +263,20 @@ HaxballJS.then((HBInit) => {
         if (on_off == 1) {
           if (authArray[id][4] == false) {
             authArray[id][4] = true
-            room.setPlayerAdmin(id, true);
-            message.reply("Oyuncu başarıyla VIP yapıldı.");
+            message.reply(`${authArray[Number(id)][2]}, başarıyla VIP yapıldı.`);
           }
           else {
-            message.reply("Oyuncu zaten VIP!")
+            message.reply(`${authArray[Number(id)][2]}, zaten VIP!`)
           }
         }
         if (on_off == 0) {
-          authArray[id][4] = false
-          room.setPlayerAdmin(id, false);
-          message.reply("Oyuncu artık VIP değil.");
+          if (authArray[id][4] == true) {
+            authArray[id][4] = false
+            message.reply(`${authArray[Number(id)][2]}, artık VIP değil.`);
+          }
+          else {
+            message.reply(`${authArray[Number(id)][2]}, zaten VIP değil!`)
+          }
         }
       }
     }
@@ -699,7 +749,7 @@ HaxballJS.then((HBInit) => {
       roles: Role.ADMIN_TEMP,
       desc: `
         Bu komut ile mutelanmış oyuncunun cezasını kaldırırsın.
-        !mutelar yazarak mutelanmış oyuncunun numarasını bulursun ve !unmute 45(oyuncunun yanında numarası yazıyor) yazarsın.`,
+        Örnek: !unmute #3, 3 idsine sahip oyuncu artık yazabilir.`,
       function: unmuteCommand,
     },
     mutelar: {
@@ -708,6 +758,13 @@ HaxballJS.then((HBInit) => {
       desc: `
         Bu komut ile mutelanmış oyuncuları görürsün.`,
       function: muteListCommand,
+    },
+    rankres: {
+      aliases: ["ranksıfırla", "rankreset"],
+      roles: Role.VIP,
+      desc: `
+        Bu komut ile rankını sıfırlayabilirsin!`,
+      function: rankResetCommand,
     },
     bankaldır: {
       aliases: ["clearbans"],
@@ -1173,6 +1230,17 @@ HaxballJS.then((HBInit) => {
       }
       commandString =
         commandString.substring(0, commandString.length - 1) + ".\n";
+      if (getRole(player) >= Role.VIP) {
+        commandString += `VIP komutları:`;
+        for (const [key, value] of Object.entries(commands)) {
+          if (value.desc && value.roles == Role.VIP)
+            commandString += ` !${key},`;
+        }
+        if (commandString.slice(commandString.length - 1) == ":")
+          commandString += ` Yok,`;
+        commandString =
+          commandString.substring(0, commandString.length - 1) + ".\n";
+      }
       if (getRole(player) >= Role.ADMIN_PERM) {
         commandString += `Admin komutları:`;
         for (const [key, value] of Object.entries(commands)) {
@@ -1685,7 +1753,7 @@ HaxballJS.then((HBInit) => {
   function muteListCommand(player, message) {
     if (muteArray.list.length == 0) {
       room.sendAnnouncement(
-        "🔇 Sustur listesinde kimse yok",
+        "🔇 Mute listesinde kimse yok",
         player.id,
         announcementColor,
         "bold",
@@ -1693,12 +1761,34 @@ HaxballJS.then((HBInit) => {
       );
       return false;
     }
-    var cstm = "🔇 mutelanmış oyuncular : ";
+    var cstm = "🔇 Mute Listesi : ";
     for (let mute of muteArray.list) {
       cstm += mute.name + `[${mute.id}], `;
     }
     cstm = cstm.substring(0, cstm.length - 2) + ".";
     room.sendAnnouncement(cstm, player.id, announcementColor, "bold", null);
+  }
+
+  /* VIP COMMANDS */
+
+  async function rankResetCommand(player, message) {
+    //stats = { "gol": 0, "asist": 0, "kk": 0, "galibiyet": 0, "oyunlar": 0, "cs": 0, "puan": 0 }
+    var data = await checkStats(authArray[player.id][0]);
+    const stats = Object.fromEntries(Object.entries(data).filter(([key, value]) => key !== "_id"));
+    stats.gol = "0"
+    stats.asist = "0"
+    stats.kk = "0"
+    stats.galibiyet = "0"
+    stats.oyunlar = "0"
+    stats.cs = "0"
+    stats.puan = "0"
+    await updatePlayer(authArray[player.id][0], stats);
+    room.sendAnnouncement(
+      `${player.name}, başarıyla rankını resetledin!`,
+      player.id,
+      successColor,
+      "bold"
+    );
   }
 
   /* MASTER COMMANDS */
@@ -3337,7 +3427,6 @@ HaxballJS.then((HBInit) => {
     stats.cs += getCSPlayer(pComp);
     const yeniPuan = await newEloDelta(player, hasWon, redElo, blueElo)
     stats.puan += yeniPuan
-    console.log(player.name, hasWon, yeniPuan)
 
     room.sendAnnouncement(
       `${player.name}, bu maçın sonucunda aldığın puan: ` + yeniPuan,
@@ -3365,7 +3454,7 @@ HaxballJS.then((HBInit) => {
         await updatePlayerStats(player, Team.RED, redElo, blueElo);
       }
       for (let player of teamBlueStats) {
-        await updatePlayerStats(player, Team.RED, redElo, blueElo);
+        await updatePlayerStats(player, Team.BLUE, redElo, blueElo);
       }
     }
   }
@@ -3789,7 +3878,7 @@ HaxballJS.then((HBInit) => {
         method: "POST",
         body: JSON.stringify({
           content: `\`\`\`fix\n[${getDate()}] ${player.name
-            }, odaya giriş yaptı (${players.length + 1}/${maxPlayers})\`\`\``,
+            }, odaya giriş yaptı (${playersAll.length + 1}/${maxPlayers})\`\`\``,
           username: "Giriş - Çıkış Takip Botu",
         }),
         headers: {
@@ -3798,7 +3887,7 @@ HaxballJS.then((HBInit) => {
       }).then((res) => res);
     }
     room.sendAnnouncement(
-      `👋 ${player.name}, hoşgeldin ! Komutlar için !yardım, discord sunucusu için !dc, avatarlar için !avatarlar.\n${stats.discordID == 0 ? "Discord sunucumuzda kayıt olduktan sonra isminin yanındaki işaret yeşile dönecek." : ""}`,
+      `👋 ${player.name}, hoşgeldin ! Komutlara göz atmayı unutma, !yardım.\nDiscord sunucumuzda DISNEY+ çekilişi var! Şartları öğrenmek için hemen discord sunucumuza gel!\n${stats.discordID == 0 ? "Discord sunucumuzda kayıt olduktan sonra isminin yanındaki işaret yeşile dönecek." : ""}`,
       player.id,
       welcomeColor,
       "bold",
@@ -3878,22 +3967,24 @@ HaxballJS.then((HBInit) => {
   };
 
   room.onPlayerLeave = function (player) {
-    if (!kickFetchVariable) {
-      if (giriscikisWebhook != "") {
-        var stringContent = `\`\`\`fix\n[${getDate()}] ${player.name
-          }, odadan çıkış yaptı (${players.length}/${maxPlayers})\`\`\``;
-        fetch(giriscikisWebhook, {
-          method: "POST",
-          body: JSON.stringify({
-            content: stringContent,
-            username: "Giriş - Çıkış Takip Botu",
-          }),
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }).then((res) => res);
-      }
-    } else kickFetchVariable = false;
+    setTimeout(() => {
+      if (!kickFetchVariable) {
+        if (giriscikisWebhook != "") {
+          var stringContent = `\`\`\`fix\n[${getDate()}] ${player.name
+            }, odadan çıkış yaptı (${playersAll.length}/${maxPlayers})\`\`\``;
+          fetch(giriscikisWebhook, {
+            method: "POST",
+            body: JSON.stringify({
+              content: stringContent,
+              username: "Giriş - Çıkış Takip Botu",
+            }),
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }).then((res) => res);
+        }
+      } else kickFetchVariable = false;
+    }, 10);
     handleLineupChangeLeave(player);
     checkCaptainLeave(player);
     updateTeams();
@@ -4057,7 +4148,7 @@ HaxballJS.then((HBInit) => {
         );
         for (var a = 0; a < playersAll.length; a++) {
           if (playersAll[a].admin == true) {
-            room.sendAnnouncement("KÜFÜR 💢 " + player.name + "・" + message, playersAll[a].id, errorColor, "bold", 1);
+            room.sendAnnouncement("KÜFÜR 💢 " + player.name + "・" + message, playersAll[a].id, errorColor, "bold", 0);
           }
         }
         return false;
@@ -4520,5 +4611,12 @@ HaxballJS.then((HBInit) => {
     }
     return new RegExp(`${content}`, "gim");
   };
+
+  setInterval(() => {
+    room.sendAnnouncement("                                        ▒█▀▀▄ ▀█▀ ▒█▀▀▀█ ▒█▀▀█ ▒█▀▀▀█ ▒█▀▀█ ▒█▀▀▄ ", null, 0x5F85FF, "normal", 0)
+    room.sendAnnouncement("                                        ▒█░▒█ ▒█░ ░▀▀▀▄▄ ▒█░░░ ▒█░░▒█ ▒█▄▄▀ ▒█░▒█ ", null, 0x7E76FF, "normal", 0)
+    room.sendAnnouncement("                                        ▒█▄▄▀ ▄█▄ ▒█▄▄▄█ ▒█▄▄█ ▒█▄▄▄█ ▒█░▒█ ▒█▄▄▀ ", null, 0x9E66FF, "normal", 0);
+    room.sendAnnouncement("                DISNEY + ÇEKİLİŞİMİZE KATILMAK İÇİN TIKLA! ➡ discord.gg/TG7mr7AsQa ⬅", null, 0x17E8EC, "normal", 2);
+  }, 3 * 60 * 1000);
 
 });

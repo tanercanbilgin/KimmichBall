@@ -2,7 +2,6 @@ const {
   Client,
   MessageEmbed,
 } = require("discord.js");
-const { json } = require("express");
 const Model = require("./models/model");
 const settings = require("./settings");
 // Auth token
@@ -27,8 +26,7 @@ bot.on("ready", () => {
 // Handle messages
 bot.on("messageCreate", async function (message) {
 
-  // Reply to user with generic message
-  if (message.channel.name.includes("discord-kayıt")) {
+  if (message.channel.id == '980178670914265089') {
     const {
       content: messageContent,
       author: userAccount,
@@ -59,8 +57,7 @@ bot.on("messageCreate", async function (message) {
               },
             }
           );
-          if (message.deletable) await message.delete({ timeout: 5_000 });
-          message.author.send("Sunucumuza başarıyla kayıt oldun! Odalarımızın devamı için VIP alarak bizlere destek olabilirsin.");
+          userAccount.send("Sunucumuza başarıyla kayıt oldun! Odalarımızın devamı için VIP alarak bizlere destek olabilirsin.");
         }
       } catch (e) {
         console.error(e);
@@ -68,7 +65,7 @@ bot.on("messageCreate", async function (message) {
     }
   }
 
-  if (message.channel.name.includes("rank-bilgi")) {
+  if (message.channel.id == '984939359675498498') {
 
     const [cmd,] = message.content.split(/ +/gim);
 
@@ -112,7 +109,7 @@ bot.on("messageCreate", async function (message) {
             if (user[0].puan >= 1200 && user[0].puan < 1250) return "🏆";
             if (user[0].puan >= 1250) return "👑";
           }
-          const winrate = ((100 * user[0].galibiyet) / (user[0].oyunlar || 1)).toPrecision(2)
+          const winrate = Math.floor((100 * user[0].galibiyet) / (user[0].oyunlar || 1))
           _Embed.setTitle(`\`\`\`${avatar()}・${user[0].isim} #${user[0].rank}\`\`\``);
           _Embed.setColor("#c0f00b");
           _Embed.setAuthor({ "name": "📈 RANK BİLGİLENDİRME" })
@@ -162,7 +159,7 @@ bot.on("messageCreate", async function (message) {
             "inline": true,
           });
           _Embed.setFooter({
-            "text": `${getTimeStats(user[0].aktiflik)} boyunca odamızda oynadın!`,
+            "text": `⌛ ${getTimeStats(user[0].aktiflik)} boyunca odamızda zaman geçirmişsin`,
           });
           message.channel.send({
             embeds: [_Embed],
