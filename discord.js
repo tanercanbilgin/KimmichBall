@@ -57,7 +57,7 @@ bot.on("messageCreate", async function (message) {
               },
             }
           );
-          userAccount.send("Sunucumuza başarıyla kayıt oldun! Odalarımızın devamı için VIP alarak bizlere destek olabilirsin.");
+          message.author.send("Sunucumuza başarıyla kayıt oldun! Odalarımızın devamı için VIP alarak bizlere destek olabilirsin.");
         }
       } catch (e) {
         console.error(e);
