@@ -85,7 +85,7 @@ HaxballJS.then((HBInit) => {
         function getTag(oyuncu) {
           if (getRole(oyuncu) == Role.PLAYER) return "";
           if (getRole(oyuncu) == Role.ADMIN_TEMP) return "✨";
-          if (getRole(oyuncu) == Role.VIP) return "VIP 💎";
+          if (getRole(oyuncu) == Role.VIP) return "💎";
           if (getRole(oyuncu) == Role.ADMIN_PERM) return "⚡️";
           if (getRole(oyuncu) == Role.MASTER) return "👑";
         }
@@ -346,6 +346,8 @@ HaxballJS.then((HBInit) => {
   var mentionPlayersUnpause = true;
 
   var allMuted = false
+
+  var adminCagirTimeout = false
 
   /* OBJECTS */
 
@@ -1076,23 +1078,23 @@ HaxballJS.then((HBInit) => {
   }
 
   /* PHYSICS FUNCTIONS */
-
-  function calculateStadiumVariables() {
-    if (checkStadiumVariable && teamRed.length + teamBlue.length > 0) {
-      checkStadiumVariable = false;
-      setTimeout(() => {
-        let ballDisc = room.getDiscProperties(0);
-        let playerDisc = room.getPlayerDiscProperties(
-          teamRed.concat(teamBlue)[0].id
-        );
-        ballRadius = 6.25;
-        playerRadius = playerDisc.radius;
-        triggerDistance = ballRadius + playerRadius + 0.01;
-        speedCoefficient =
-          100 / (5 * ballDisc.invMass * (ballDisc.damping ** 60 + 1));
-      }, 1);
-    }
-  }
+  /*
+    function calculateStadiumVariables() {
+      if (checkStadiumVariable && teamRed.length + teamBlue.length > 0) {
+        checkStadiumVariable = false;
+        setTimeout(() => {
+          let ballDisc = room.getDiscProperties(0);
+          let playerDisc = room.getPlayerDiscProperties(
+            teamRed.concat(teamBlue)[0].id
+          );
+          ballRadius = 6.25;
+          playerRadius = playerDisc.radius;
+          triggerDistance = ballRadius + playerRadius + 0.01;
+          speedCoefficient =
+            100 / (5 * ballDisc.invMass * (ballDisc.damping ** 60 + 1));
+        }, 1);
+      }
+    }*/
 
   function checkGoalKickTouch(array, index, goal) {
     if (array != null && array.length >= index + 1) {
@@ -2108,23 +2110,30 @@ HaxballJS.then((HBInit) => {
   }
 
   function admincagirCommand(player, message) {
-    const admincagirChannel = 'https://discord.com/api/webhooks/984063298188247050/VLUBdcpjrCGqhjfWM7WiIqJfuUTK5hIJBc0AhWo7nYpehX9v1e_irlKttuiXVRrECJY6'
-    const [, ...reason1] = message.split(/ +/gim);
-    const reason2 = reason1.join(" ");
+    const [, ...reason] = message.split(/ +/gim);
+    if (reason != "" && adminCagirTimeout == false && muteArray.getByAuth(authArray[player.id][0]) == null) {
+      var admincagirChannel = 'https://discord.com/api/webhooks/984063298188247050/VLUBdcpjrCGqhjfWM7WiIqJfuUTK5hIJBc0AhWo7nYpehX9v1e_irlKttuiXVRrECJY6'
 
-    room.sendAnnouncement(`${player.name}, başarıyla admin çağırdın. Unutma bu komutu kötüye kullanırsan banlanırsın!`, player.id, 0x2C89AB, "bold", 2);
-    var admincagirText = `\`\`\`ini\n[${player.name}#${player.id}, ${reason2 != "" ? reason2 + " sebebiyle " : ""}admin çağırdı]\`\`\`\n||<@&839206422461546557>||`;
+      room.sendAnnouncement(`${player.name}, başarıyla admin çağırdın. Unutma bu komutu kötüye kullanırsan banlanırsın!`, player.id, 0x2C89AB, "bold", 2);
+      var admincagirText = `\`\`\`ini\n[${player.name}#${player.id}, ${reason} sebebiyle admin çağırdı]\`\`\`\n||<@&839206422461546557>||`;
 
-    fetch(admincagirChannel, {
-      method: "POST",
-      body: JSON.stringify({
-        content: admincagirText,
-        username: "Admin Çağırma Botu",
-      }),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    }).then((res) => res);
+      fetch(admincagirChannel, {
+        method: "POST",
+        body: JSON.stringify({
+          content: admincagirText,
+          username: "Admin Çağırma Botu",
+        }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }).then((res) => res);
+      adminCagirTimeout = true
+      setTimeout(() => { adminCagirTimeout = false; }, 90_000);
+    } else if (reason == "" && adminCagirTimeout == false && muteArray.getByAuth(authArray[player.id][0]) == null) {
+      room.sendAnnouncement(`${player.name}, admin çağırabilmek için yanına sebebini de yazmalısın.`, player.id, 0x2C89AB, "bold", 2);
+    } else if (adminCagirTimeout == true && muteArray.getByAuth(authArray[player.id][0]) == null) {
+      room.sendAnnouncement(`${player.name}, kısa bir süre önce zaten admin çağırıldı.`, player.id, 0x2C89AB, "bold", 2);
+    }
     return false;
   }
 
@@ -3882,7 +3891,7 @@ HaxballJS.then((HBInit) => {
       }).then((res) => res);
     }
     room.sendAnnouncement(
-      `👋 ${player.name}, hoşgeldin ! Komutlara göz atmayı unutma, !yardım !dc !avatarlar.\n${stats.discordID == 0 ? "📢 Discord sunucumuzda kayıt olduktan sonra isminin yanındaki işaret yeşile dönecek." : ""}`,
+      `👋 ${player.name}, hoşgeldin ! Komutlara göz atmayı unutma, !yardım !dc !avatarlar.\n${stats.discordID == 0 ? "📢Hesabının Discorda bağlı olmadığı tespit edildi! İstatistiklerinin silinmesini istemiyorsan kayıt olmalısın!\n📢 Discord sunucumuzda kayıt olduktan sonra isminin yanındaki işaret yeşile dönecek." : ""}`,
       player.id,
       welcomeColor,
       "bold",
@@ -4265,7 +4274,7 @@ HaxballJS.then((HBInit) => {
         teamBlueStats.push(teamBlue[i]);
       }
     }
-    calculateStadiumVariables();
+    //calculateStadiumVariables();
   };
 
   room.onGameStop = function (byPlayer) {
@@ -4414,8 +4423,6 @@ HaxballJS.then((HBInit) => {
   room.onRoomLink = async function (url) {
     console.log(`${roomName} adlı oda açıldı.`);
     roomLink = url;
-    room.setTeamColors(1, 60, 0xcfcfcf, [0xcf1238]);
-    room.setTeamColors(2, 60, 0xcfcfcf, [0x2c89ab]);
   };
 
   room.onPlayerAdminChange = function (changedPlayer, byPlayer) {
@@ -4603,5 +4610,29 @@ HaxballJS.then((HBInit) => {
     room.sendAnnouncement("                                        ▒█▄▄▀ ▄█▄ ▒█▄▄▄█ ▒█▄▄█ ▒█▄▄▄█ ▒█░▒█ ▒█▄▄▀ ", null, 0x9E66FF, "normal", 0);
     room.sendAnnouncement("                  VIP ALARAK BİZE DESTEKTE BULUNABİLİRSİN ➡ discord.gg/TG7mr7AsQa ⬅", null, 0x17E8EC, "normal", 2);
   }, 3 * 60 * 1000);
+
+  room.setTeamColors(1, 60, 0xcfcfcf, [0xcf1238]);
+  room.setTeamColors(2, 60, 0xcfcfcf, [0x2c89ab]);
+
+  //Infos
+
+  function randomInt(max) {
+    return Math.floor(Math.random() * max);
+  }
+
+  const infoText = [
+    "📢 Mesajının başına t koyarsan sadece takımına mesaj gönderirsin",
+    "📢 Mesajının başına @@isim koyarsan sadece belirttiğin isme mesaj gönderirsin",
+    "😎 Rankını beğenmiyorsan VIP alarak !rankres komutunu kullanabilirsin.",
+    "💖 Odalarımız kar amacı gütmeden desteklerle açılıyor, sende bunun bir parçası olmak istersen Discorda gelebilirsin",
+    "💖 Odaları seviyorsan ve devamını istiyorsan bize VIP alarak destek olabilirsin",
+    "😒 Sunucu hakkında önerin veya şikayetin varsa bizlere Discord üzerinden ulaşabilirsin",
+    "😲 Bu avatarlar ne böyle diyorsan !avatarlar yazıp bilgi alabilirsin",
+    "😲 Komutların ne olduğu hakkında fikrin yoksa !yardım yazabilirsin",
+    "📣 Admin başvurularımız açık, sende ekibin parçası olmak için Discord üzerinden başvurabilirsin",
+    "📣 Discord sunucumuzda sürekli etkinlikler oluyor, sende bir parçası olmak için Discord sunucumuza gelebilirsin"
+  ]
+
+  setInterval(() => { room.sendAnnouncement(infoText[randomInt(infoText.length)], null, 0xF4D03F, "normal", 1); }, 30_000);
 
 });
