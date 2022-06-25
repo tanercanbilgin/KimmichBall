@@ -184,16 +184,13 @@ HaxballJS.then((HBInit) => {
       }
       if (command == "!banlar") {
         if (banList.length == 0) {
-          message.reply("Ban listesinde kimse yok")
+          message.reply("📢 Ban listesinde kimse yok.");
         }
-        else {
-          var cstm = "📢 Ban listesi : ";
-          for (let ban of banList) {
-            cstm += ban[0] + `[${ban[1]}], `;
-          }
-          cstm = cstm.substring(0, cstm.length - 2) + ".";
-          message.reply(cstm)
+        var cstm = "📢 Ban listesi : ";
+        for (let ban of banList) {
+          cstm += `[${ban[1]}]` + ban[0] + ` ${ban[2]} dk . `;
         }
+        message.reply(cstm)
       }
       if (command == "!mutelar") {
         if (muteArray.list.length == 0) {
@@ -773,6 +770,20 @@ HaxballJS.then((HBInit) => {
         Bu komut ile rankını sıfırlayabilirsin!`,
       function: rankResetCommand,
     },
+    kick: {
+      aliases: ["kickle"],
+      roles: Role.ADMIN_PERM,
+      desc: `
+    Bu komut ile oyuncuları kicklersin.`,
+      function: kickCommand,
+    },
+    ban: {
+      aliases: ["banla"],
+      roles: Role.ADMIN_PERM,
+      desc: `
+    Bu komut ile oyuncuları süreli veya süresiz banlarsın.`,
+      function: banCommand,
+    },
     bankaldır: {
       aliases: ["clearbans"],
       roles: Role.MASTER,
@@ -1078,26 +1089,6 @@ HaxballJS.then((HBInit) => {
       HaxNotification.CHAT
     );
   }
-
-  /* PHYSICS FUNCTIONS */
-
-  /* function calculateStadiumVariables() {
-    if (checkStadiumVariable && teamRed.length + teamBlue.length > 0) {
-      checkStadiumVariable = false;
-      setTimeout(() => {
-        let ballDisc = room.getDiscProperties(0);
-        let playerDisc = room.getPlayerDiscProperties(
-          teamRed.concat(teamBlue)[0].id
-        );
-        ballRadius = 6.25;
-        playerRadius = playerDisc.radius;
-        triggerDistance = ballRadius + playerRadius + 0.01;
-        speedCoefficient =
-          100 / (5 * ballDisc.invMass * (ballDisc.damping ** 60 + 1));
-      }, 1);
-    }
-  }
-  */
 
   function checkGoalKickTouch(array, index, goal) {
     if (array != null && array.length >= index + 1) {
@@ -1423,85 +1414,6 @@ HaxballJS.then((HBInit) => {
     room.sendAnnouncement(cstm, player.id, announcementColor, "bold", null);
   }
 
-  /*
-  async function vipCommand(player, message) {
-      var data = await checkPlayer(authArray[player.id][0]);
-      const perm = Object.fromEntries(Object.entries(data).filter(([key, value]) => key !== '_id'))
-      if (perm.isVIP == true && vipList.includes(authArray[player.id][0]) == false) {
-          vipList.push(authArray[player.id][0]);
-          room.sendAnnouncement(
-              `${player.name} vip hesabına giriş yaptı!`,
-              null,
-              announcementColor,
-              'bold',
-              HaxNotification.CHAT
-          );
-      } else if (perm.isVIP == false) {
-          room.sendAnnouncement(
-              `${player.name} yetkili değilsin kanka :(`,
-              null,
-              announcementColor,
-              'bold',
-              HaxNotification.MENTION
-          );
-      } else {
-          room.sendAnnouncement(
-              `Zaten yetkini aldın kanka!`,
-              player.id,
-              errorColor,
-              'bold',
-              HaxNotification.MENTION
-          );
-      }
-  }
-
-  */
-
-  /* YETKİ ALMA KOMUTU
-  async function masterCommand(player, message) {
-      var data = await checkPlayer(authArray[player.id][0]);
-      const perm = Object.fromEntries(Object.entries(data).filter(([key, value]) => key !== '_id'))
-      if (perm.isMaster == true && !masterList.includes(authArray[player.id][0])) {
-          room.setPlayerAdmin(player.id, true);
-          masterList.push(authArray[player.id][0]);
-          room.sendAnnouncement(
-              `${player.name} yetkisini aldı!`,
-              null,
-              announcementColor,
-              'bold',
-              HaxNotification.CHAT
-          );
-
-      } else if (perm.isAdmin == true && adminList.includes(authArray[player.id][0]) == false) {
-          room.setPlayerAdmin(player.id, true);
-          adminList.push(authArray[player.id][0]);
-          room.sendAnnouncement(
-              `${player.name} adminliğini aldı!`,
-              null,
-              announcementColor,
-              'bold',
-              HaxNotification.CHAT
-          );
-      } else if (perm.isAdmin == false && perm.isMaster == false) {
-          room.sendAnnouncement(
-              `${player.name} yetkili değilsin kanka :(`,
-              null,
-              announcementColor,
-              'bold',
-              HaxNotification.MENTION
-          );
-      } else {
-          room.sendAnnouncement(
-              `Zaten yetkini aldın kanka!`,
-              player.id,
-              errorColor,
-              'bold',
-              HaxNotification.MENTION
-          );
-      }
-  }
-  */
-
   /* ADMIN COMMANDS */
 
   function restartCommand(player, message) {
@@ -1777,6 +1689,75 @@ HaxballJS.then((HBInit) => {
     room.sendAnnouncement(cstm, player.id, announcementColor, "bold", null);
   }
 
+  function kickCommand(player, message) {
+    let splittedMsg = message.split(/ +/gm);
+    let [, id, ...sebep] = splittedMsg;
+    let reason = sebep.join(" ");
+    room.kickPlayer(id, reason, false)
+    room.sendAnnouncement(
+      `${authArray[id][2]}, odadan atıldı.`,
+      player.id,
+      announcementColor,
+      "bold",
+      null
+    );
+  }
+
+  async function banCommand(player, message) {
+    let splittedMsg = message.split(/ +/gm);
+    let [, id, sure, ...sebep] = splittedMsg;
+    let reason = sebep.join(" ");
+    if (room.getPlayer(parseInt(id)) != null) {
+      if (sebep != "") {
+        if (Number.isInteger(parseInt(sure))) {
+          setTimeout(async () => {
+            await removeBan(authArray[id][1], authArray[id][0]),
+              room.clearBan(parseInt(id)),
+              banList = banList.filter((p) => p[1] != id)
+          }, sure * 60_000)
+          room.kickPlayer(id, reason, true);
+          banList.push([authArray[id][2], id, sure])
+          await addBan(authArray[id][1], authArray[id][0])
+          room.sendAnnouncement(
+            `${authArray[id][2]}, ${sure} dakika boyunca ${reason} sebebiyle banlandı.`,
+            player.id,
+            announcementColor,
+            "bold",
+            null
+          );
+        }
+        else {
+          room.kickPlayer(id, sebep, true);
+          banList.push([authArray[id][2], id, "∞"])
+          await addBan(authArray[id][1], authArray[id][0])
+          room.sendAnnouncement(
+            `${authArray[id][2]}, kalıcı olarak ${reason} banlandı.`,
+            player.id,
+            announcementColor,
+            "bold",
+            null
+          );
+        }
+      } else {
+        room.sendAnnouncement(
+          `Banlaman için bir sebep belirtmen gerekiyor!`,
+          player.id,
+          errorColor,
+          "bold",
+          HaxNotification.CHAT
+        );
+      }
+    } else {
+      room.sendAnnouncement(
+        `Böyle bir IDye sahip oyuncu yok. Komutun kullanımı için !yardım sustur yaz.`,
+        player.id,
+        errorColor,
+        "bold",
+        HaxNotification.CHAT
+      );
+    }
+  }
+
   /* VIP COMMANDS */
 
   async function rankResetCommand(player, message) {
@@ -1875,198 +1856,6 @@ HaxballJS.then((HBInit) => {
     room.sendAnnouncement(cstm, player.id, announcementColor, "bold", null);
   }
 
-  /*
-   async function adminListCommand(player, message) {
-     if (adminList.length == 0) {
-       room.sendAnnouncement(
-         "📢 Admin listesinde kimse yok.",
-         player.id,
-         announcementColor,
-         "bold",
-         null
-       );
-       return false;
-     }
-     var cstm = "📢 Admin listesi : ";
-     for (let i = 0; i < adminList.length; i++) {
-       cstm += adminList[i][1] + `[${i}], `;
-     }
-     cstm = cstm.substring(0, cstm.length - 2) + ".";
-     room.sendAnnouncement(cstm, player.id, announcementColor, "bold", null);
-   }
- 
-   async function vipListCommand(player, message) {
-     if (vipList.length == 0) {
-       room.sendAnnouncement(
-         "📢 VIP listesinde kimse yok.",
-         player.id,
-         announcementColor,
-         "bold",
-         null
-       );
-       return false;
-     }
-     var cstm = "📢 VIP listesi : ";
-     for (let i = 0; i < vipList.length; i++) {
-       cstm += vipList[i][1] + `[${i}], `;
-     }
-     cstm = cstm.substring(0, cstm.length - 2) + ".";
-     room.sendAnnouncement(cstm, player.id, announcementColor, "bold", null);
-   }
- 
-   function setAdminCommand(player, message) {
-     var msgArray = message.split(/ +/).slice(1);
-     if (msgArray.length > 0) {
-       if (msgArray[0].length > 0 && msgArray[0][0] == "#") {
-         msgArray[0] = msgArray[0].substring(1, msgArray[0].length);
-         if (room.getPlayer(parseInt(msgArray[0])) != null) {
-           var playerAdmin = room.getPlayer(parseInt(msgArray[0]));
- 
-           if (
-             !adminList.map((a) => a[0]).includes(authArray[playerAdmin.id][0])
-           ) {
-             if (!masterList.includes(authArray[playerAdmin.id][0])) {
-               room.setPlayerAdmin(playerAdmin.id, true);
-               adminList.push([authArray[playerAdmin.id][0], playerAdmin.name]);
-               room.sendAnnouncement(
-                 `${playerAdmin.name} artık oda admini !`,
-                 null,
-                 announcementColor,
-                 "bold",
-                 HaxNotification.CHAT
-               );
-             } else {
-               room.sendAnnouncement(
-                 `Bu oyuncu zaten yetkili !`,
-                 player.id,
-                 errorColor,
-                 "bold",
-                 HaxNotification.CHAT
-               );
-             }
-           } else {
-             room.sendAnnouncement(
-               `Bu oyuncu zaten kalıcı bir admin !`,
-               player.id,
-               errorColor,
-               "bold",
-               HaxNotification.CHAT
-             );
-           }
-         } else {
-           room.sendAnnouncement(
-             `Yanlış ID girdin. Komutun kullanımı için !yardım adminyap yaz.`,
-             player.id,
-             errorColor,
-             "bold",
-             HaxNotification.CHAT
-           );
-         }
-       } else {
-         room.sendAnnouncement(
-           `Komutu yanlış girdin. Komutun doğru kullanımı için !yardım adminyap yaz.`,
-           player.id,
-           errorColor,
-           "bold",
-           HaxNotification.CHAT
-         );
-       }
-     } else {
-       room.sendAnnouncement(
-         `Yanlış bir numara girdin. Komutun kullanımı için !yardım adminyap yaz.`,
-         player.id,
-         errorColor,
-         "bold",
-         HaxNotification.CHAT
-       );
-     }
-   }
- 
-   function removeAdminCommand(player, message) {
-     var msgArray = message.split(/ +/).slice(1);
-     if (msgArray.length > 0) {
-       if (msgArray[0].length > 0 && msgArray[0][0] == "#") {
-         msgArray[0] = msgArray[0].substring(1, msgArray[0].length);
-         if (room.getPlayer(parseInt(msgArray[0])) != null) {
-           var playerAdmin = room.getPlayer(parseInt(msgArray[0]));
- 
-           if (
-             adminList.map((a) => a[0]).includes(authArray[playerAdmin.id][0])
-           ) {
-             room.setPlayerAdmin(playerAdmin.id, false);
-             adminList = adminList.filter(
-               (a) => a[0] != authArray[playerAdmin.id][0]
-             );
-             room.sendAnnouncement(
-               `${playerAdmin.name} artık bir oda admini değil !`,
-               null,
-               announcementColor,
-               "bold",
-               HaxNotification.CHAT
-             );
-           } else {
-             room.sendAnnouncement(
-               `Bu oyuncu kalıcı bir admin değil, kaldırmana gerek yok !`,
-               player.id,
-               errorColor,
-               "bold",
-               HaxNotification.CHAT
-             );
-           }
-         } else {
-           room.sendAnnouncement(
-             `Yanlış ID girdin. Komutun kullanımı için !yardım adminkaldır yaz.`,
-             player.id,
-             errorColor,
-             "bold",
-             HaxNotification.CHAT
-           );
-         }
-       } else if (
-         msgArray[0].length > 0 &&
-         parseInt(msgArray[0]) < adminList.length
-       ) {
-         var index = parseInt(msgArray[0]);
-         var playerAdmin = adminList[index];
-         if (
-           playersAll.findIndex((p) => authArray[p.id][0] == playerAdmin[0]) !=
-           -1
-         ) {
-           // check if there is the removed admin in the room
-           var indexRem = playersAll.findIndex(
-             (p) => authArray[p.id][0] == playerAdmin[0]
-           );
-           room.setPlayerAdmin(playersAll[indexRem].id, false);
-         }
-         adminList.splice(index);
-         room.sendAnnouncement(
-           `${playerAdmin[1]} artık oda admini değil !`,
-           null,
-           announcementColor,
-           "bold",
-           HaxNotification.CHAT
-         );
-       } else {
-         room.sendAnnouncement(
-           `Komutu yanlış girdin. Doğru kullanımı için !yardım adminkaldır yaz.`,
-           player.id,
-           errorColor,
-           "bold",
-           HaxNotification.CHAT
-         );
-       }
-     } else {
-       room.sendAnnouncement(
-         `Yanlış bir numara girdin. Komutun kullanımı için !yardım adminkaldır yaz.`,
-         player.id,
-         errorColor,
-         "bold",
-         HaxNotification.CHAT
-       );
-     }
-   }
-   */
-
   function passwordCommand(player, message) {
     var msgArray = message.split(/ +/).slice(1);
     if (msgArray.length > 0) {
@@ -2114,7 +1903,8 @@ HaxballJS.then((HBInit) => {
   }
 
   function admincagirCommand(player, message) {
-    const [, ...reason] = message.split(/ +/gim);
+    const [, ...sebep] = message.split(/ +/gim);
+    const reason = sebep.join(" ");
     if (reason != "" && adminCagirTimeout == false && muteArray.getByAuth(authArray[player.id][0]) == null) {
       var admincagirChannel = 'https://discord.com/api/webhooks/984063139043741716/FiBS2xsGBCR7MR5DfmaXzD2y9he1GZ9wFMmVTJkONBDr63fyKA1xZU3VswybjT0-ANGm'
 
@@ -2273,9 +2063,9 @@ HaxballJS.then((HBInit) => {
     let possessionBluePct = 100 - possessionRedPct;
     let actionRedPct =
       (actionZoneHalf[0] / (actionZoneHalf[0] + actionZoneHalf[1])) * 100;
-    let possessionString = `🔴 ${possessionRedPct.toPrecision(2)}% - ${possessionBluePct.toPrecision(2)}% 🔵`;
+    let possessionString = `🔴 ${possessionRedPct.toFixed(0)}% - ${possessionBluePct.toFixed(0)}% 🔵`;
     let actionBluePct = 100 - actionRedPct;
-    let actionString = `🔴 ${actionRedPct.toPrecision(2)}% - ${actionBluePct.toPrecision(2)}% 🔵`;
+    let actionString = `🔴 ${actionRedPct.toFixed(0)}% - ${actionBluePct.toFixed(0)}% 🔵`;
     let CSString = getCSString(scores);
     room.sendAnnouncement(
       `📊 Topla oynama: ${possessionString}\n` +
@@ -3367,38 +3157,21 @@ HaxballJS.then((HBInit) => {
       if (goalAttribution[0].team == team) {
         if (goalAttribution[1] != null && goalAttribution[1].team == team) {
           goalString = `⌛ ${getTimeGame(scores.time)} ┊ ⚽ ${goalAttribution[0].name} ┊ 🦶 ${goalAttribution[1].name} ┊ 💨 ${ballSpeed.toFixed(2)} km/s`;
+          goalCelebration(goalAttribution[0].id, goalAttribution[1].id, null, team);
           game.goals.push(
             new Goal(scores.time, team, goalAttribution[0], goalAttribution[1])
           );
-          //golü atan
-          room.setPlayerDiscProperties(goalAttribution[0].id, { radius: 30 });
-          setTimeout(function () {
-            room.setPlayerDiscProperties(goalAttribution[0].id, { radius: 15 });
-          }, 2000);
-          //asist yapan
-          room.setPlayerDiscProperties(goalAttribution[1].id, { radius: 25 });
-          setTimeout(function () {
-            room.setPlayerDiscProperties(goalAttribution[1].id, { radius: 15 });
-          }, 2000);
         } else {
           goalString = `⌛ ${getTimeGame(scores.time)} ┊ ⚽ ${goalAttribution[0].name} ┊ 💨 ${ballSpeed.toFixed(2)} km/s`;
+          goalCelebration(goalAttribution[0].id, null, null, team);
           game.goals.push(
             new Goal(scores.time, team, goalAttribution[0], null)
           );
-          //golü atan
-          room.setPlayerDiscProperties(goalAttribution[0].id, { radius: 30 });
-          setTimeout(function () {
-            room.setPlayerDiscProperties(goalAttribution[0].id, { radius: 15 });
-          }, 2000);
         }
       } else {
+        goalCelebration(null, null, goalAttribution[0].id, team);
         goalString = `⌛ ${getTimeGame(scores.time)} ┊ 😂 [KK] ${goalAttribution[0].name} ┊ 💨 ${ballSpeed.toFixed(2)} km/s`;
         game.goals.push(new Goal(scores.time, team, goalAttribution[0], null));
-        //kk atan
-        room.setPlayerDiscProperties(goalAttribution[0].id, { radius: 5 });
-        setTimeout(function () {
-          room.setPlayerDiscProperties(goalAttribution[0].id, { radius: 15 });
-        }, 2000);
       }
     } else {
       goalString = `⌛ ${getTimeGame(scores.time)} ┊ ⚽ ${team == Team.RED ? "Kırmızı Takım" : "Mavi Takım"} ┊ 💨 ${ballSpeed.toFixed(2)} km/s`;
@@ -3794,12 +3567,12 @@ HaxballJS.then((HBInit) => {
 
     var possR = possession[0] / (possession[0] + possession[1]);
     var possB = 1 - possR;
-    var possRString = (possR * 100).toPrecision(2).toString();
-    var possBString = (possB * 100).toPrecision(2).toString();
+    var possRString = (possR * 100).toFixed(0).toString();
+    var possBString = (possB * 100).toFixed(0).toString();
     var zoneR = actionZoneHalf[0] / (actionZoneHalf[0] + actionZoneHalf[1]);
     var zoneB = 1 - zoneR;
-    var zoneRString = (zoneR * 100).toPrecision(2).toString();
-    var zoneBString = (zoneB * 100).toPrecision(2).toString();
+    var zoneRString = (zoneR * 100).toFixed(0).toString();
+    var zoneBString = (zoneB * 100).toFixed(0).toString();
     var win =
       (game.scores.red > game.scores.blue) * 1 +
       (game.scores.blue > game.scores.red) * 2;
@@ -3857,6 +3630,8 @@ HaxballJS.then((HBInit) => {
     if (player.auth == null)
       room.kickPlayer(player.id, "Anonim hesaplar sunucumuza alınmıyor!", true);
 
+    if (await isBlacklisted(player) == true) room.kickPlayer(player.id, "Artık dinlenme vakti; kitap okuyabilirsin, uyuyabilirsin..", false);
+
     if ((await checkPlayer(authArray[player.id][0])) == null)
       await newPlayer(
         authArray[player.id][2],
@@ -3884,7 +3659,7 @@ HaxballJS.then((HBInit) => {
       fetch(giriscikisWebhook, {
         method: "POST",
         body: JSON.stringify({
-          content: `\`\`\`fix\n[${getDate()}] ${player.name
+          content: `\`\`\`fix\n[${getDate()}] (${stats.isim}) ${player.name
             }, odaya giriş yaptı (${playersAll.length + 1}/${maxPlayers})\`\`\``,
           username: "Giriş - Çıkış Takip Botu",
         }),
@@ -3894,7 +3669,7 @@ HaxballJS.then((HBInit) => {
       }).then((res) => res);
     }
     room.sendAnnouncement(
-      `👋 ${player.name}, hoşgeldin ! Komutlara göz atmayı unutma, !yardım !dc !avatarlar.\n${stats.discordID == 0 ? "📢Hesabının Discorda bağlı olmadığı tespit edildi! İstatistiklerinin silinmesini istemiyorsan kayıt olmalısın!\n📢 Discord sunucumuzda kayıt olduktan sonra isminin yanındaki işaret yeşile dönecek." : ""}`,
+      `👋 ${player.name}, hoşgeldin ! Komutlara göz atmayı unutma, !yardım !dc !avatarlar\n${stats.discordID == 0 ? "📢Hesabının Discorda bağlı olmadığı tespit edildi! İstatistiklerinin silinmesini istemiyorsan kayıt olmalısın!\n📢 Discord sunucumuzda kayıt olduktan sonra isminin yanındaki işaret yeşile dönecek." : ""}`,
       player.id,
       welcomeColor,
       "bold",
@@ -3999,47 +3774,16 @@ HaxballJS.then((HBInit) => {
   };
 
   room.onPlayerKicked = function (kickedPlayer, reason, ban, byPlayer) {
-    kickFetchVariable = true;
-    if (kickbanWebhook != "") {
-      var stringContent =
-        `\`\`\`diff\n-[${getDate()}] (${players.length}/${maxPlayers})\n` +
-        `-${kickedPlayer.name}, ${byPlayer != null ? "" + byPlayer.name + " tarafından" : ""}${reason} sebebiyle ${ban ? "banlandı" : "kicklendi"}!\`\`\``;
-
-      fetch(kickbanWebhook, {
-        method: "POST",
-        body: JSON.stringify({
-          content: stringContent,
-          username: "Kick - Ban Takip Botu",
-        }),
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }).then((res) => res);
-    }
-
-    if (
-      (ban &&
-        ((byPlayer != null &&
-          (byPlayer.id == kickedPlayer.id ||
-            getRole(byPlayer) < Role.MASTER)) ||
-          getRole(kickedPlayer) == Role.MASTER)) ||
-      disableBans
-    ) {
-      room.clearBan(kickedPlayer.id);
-      return;
-    }
-    if (byPlayer != null && getRole(byPlayer) < Role.ADMIN_PERM) {
+    if (ban) {
+      room.clearBan(kickedPlayer.id)
       room.sendAnnouncement(
-        "Oyuncuları atmak için yetkin yok !",
-        byPlayer.id,
-        errorColor,
+        `${byPlayer}, bu yöntem işe yaramıyor! Süreli ban atmak için !ban id süre sebep, süresiz atmak için !ban id sebep`,
+        player.id,
+        announcementColor,
         "bold",
-        HaxNotification.CHAT
+        null
       );
-      room.setPlayerAdmin(byPlayer.id, false);
-      return;
-    }
-    if (ban) banList.push([kickedPlayer.name, kickedPlayer.id]);
+    };
   };
 
   /* PLAYER ACTIVITY */
@@ -4388,19 +4132,7 @@ HaxballJS.then((HBInit) => {
       team == Team.RED ? redColor : blueColor,
       null,
       HaxNotification.CHAT
-    );
-    /* if (roomWebhook != '') {
-        fetch(roomWebhook, {
-            method: 'POST',
-            body: JSON.stringify({
-                content: `[${getDate()}] ${goalString}`,
-                username: roomName,
-            }),
-            headers: {
-                'Content-Type': 'application/json',
-            },
-        }).then((res) => res);
-    } */
+    );                  // own goal
     if (
       (scores.scoreLimit != 0 &&
         (scores.red == scores.scoreLimit ||
@@ -4563,6 +4295,12 @@ HaxballJS.then((HBInit) => {
     return res;
   }
 
+  async function getBlacklist() {
+    const req = await fetch(`http://localhost:3000/api/getBlacklist`);
+    const res = await req.json();
+    return res;
+  }
+
   async function setAvatar(puan, player) {
     if (puan < 850) return room.setPlayerAvatar(player.id, "👎");
     if (puan >= 850 && puan < 950) return room.setPlayerAvatar(player.id, "👍");
@@ -4608,16 +4346,58 @@ HaxballJS.then((HBInit) => {
     return new RegExp(`${content}`, "gim");
   };
 
+  async function isBlacklisted(player) {
+    var blacklist = await getBlacklist()
+    return blacklist.filter(b => b.auth == player.auth || b.conn == player.conn).length > 0;
+  }
+
   setInterval(() => {
     room.sendAnnouncement("                                        ▒█▀▀▄ ▀█▀ ▒█▀▀▀█ ▒█▀▀█ ▒█▀▀▀█ ▒█▀▀█ ▒█▀▀▄ ", null, 0x5F85FF, "normal", 0)
     room.sendAnnouncement("                                        ▒█░▒█ ▒█░ ░▀▀▀▄▄ ▒█░░░ ▒█░░▒█ ▒█▄▄▀ ▒█░▒█ ", null, 0x7E76FF, "normal", 0)
     room.sendAnnouncement("                                        ▒█▄▄▀ ▄█▄ ▒█▄▄▄█ ▒█▄▄█ ▒█▄▄▄█ ▒█░▒█ ▒█▄▄▀ ", null, 0x9E66FF, "normal", 0);
-    room.sendAnnouncement("                  VIP ALARAK BİZE DESTEKTE BULUNABİLİRSİN ➡ discord.gg/TG7mr7AsQa ⬅", null, 0x17E8EC, "normal", 2);
+    room.sendAnnouncement("                  ÖDÜLLÜ V1 TURNUVASI KAYITLARI BAŞLADI ➡ discord.gg/TG7mr7AsQa ⬅", null, 0x17E8EC, "normal", 2);
   }, 3 * 60 * 1000);
 
   room.setTeamColors(1, 60, 0xcfcfcf, [0xcf1238]);
   room.setTeamColors(2, 60, 0xcfcfcf, [0x2c89ab]);
 
+  function goalCelebration(goalPlayer, assistPlayer, ogPlayer) {
+    if (goalPlayer) {
+      for (let i = 0; i < 8; i++) {
+        setTimeout(() => {
+          room.setPlayerDiscProperties(goalPlayer, { radius: (i + 15) })
+        }, i * 50)
+      }
+      for (let i = 8; i > 0; i--) {
+        setTimeout(() => {
+          room.setPlayerDiscProperties(goalPlayer, { radius: (23 - i) })
+        }, (i * 50) + 400)
+      }
+      if (assistPlayer) {
+        for (let i = 0; i < 4; i++) {
+          setTimeout(() => {
+            room.setPlayerDiscProperties(assistPlayer, { radius: (i + 15) })
+          }, i * 50)
+        }
+        for (let i = 4; i > 0; i--) {
+          setTimeout(() => {
+            room.setPlayerDiscProperties(assistPlayer, { radius: (19 - i) })
+          }, (i * 50) + 400)
+        }
+      }
+    } else if (ogPlayer) {
+      for (let i = 6; i > 0; i--) {
+        setTimeout(() => {
+          room.setPlayerDiscProperties(ogPlayer, { radius: (15 - i) })
+        }, i * 50)
+      }
+      for (let i = 0; i <= 6; i++) {
+        setTimeout(() => {
+          room.setPlayerDiscProperties(ogPlayer, { radius: (i + 9) })
+        }, (i * 50) + 400)
+      }
+    }
+  }
   //Infos
 
   function randomInt(max) {
@@ -4628,13 +4408,15 @@ HaxballJS.then((HBInit) => {
     "📢 Mesajının başına t koyarsan sadece takımına mesaj gönderirsin",
     "📢 Mesajının başına @@isim koyarsan sadece belirttiğin isme mesaj gönderirsin",
     "😎 Rankını beğenmiyorsan VIP alarak !rankres komutunu kullanabilirsin.",
-    "💖 Odalarımız kar amacı gütmeden desteklerle açılıyor, sende bunun bir parçası olmak istersen Discorda gelebilirsin",
+    "💖 Odalarımız kar amacı gütmeden desteklerle açılıyor, sen de bunun bir parçası olmak istersen Discorda gelebilirsin",
     "💖 Odaları seviyorsan ve devamını istiyorsan bize VIP alarak destek olabilirsin",
     "😒 Sunucu hakkında önerin veya şikayetin varsa bizlere Discord üzerinden ulaşabilirsin",
     "😲 Bu avatarlar ne böyle diyorsan !avatarlar yazıp bilgi alabilirsin",
     "😲 Komutların ne olduğu hakkında fikrin yoksa !yardım yazabilirsin",
-    "📣 Admin başvurularımız açık, sende ekibin parçası olmak için Discord üzerinden başvurabilirsin",
-    "📣 Discord sunucumuzda sürekli etkinlikler oluyor, sende bir parçası olmak için Discord sunucumuza gelebilirsin"
+    "📣 Admin başvurularımız açık, sen de ekibin parçası olmak için Discord üzerinden başvurabilirsin",
+    "📣 Discord sunucumuzda sürekli etkinlikler oluyor, sen de bir parçası olmak için Discord sunucumuza gelebilirsin",
+    "👑 Gol krallını ya da asist kralını mı merak ediyorsun? Discorda gelerek hepsini görebilirsin",
+    "🏆 Ödüllü FUTSAL V1 TURNUVASI düzenliyoruz, Discorda gelerek kayıt olabilirsin"
   ]
 
   setInterval(() => { room.sendAnnouncement(infoText[randomInt(infoText.length)], null, 0xF4D03F, "normal", 1); }, 30_000);

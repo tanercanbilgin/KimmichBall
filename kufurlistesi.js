@@ -659,5 +659,7 @@ module.exports = {
     "pkk",
     "deaş",
     "ananınki",
+    "http",
+    "www"
   ],
 };

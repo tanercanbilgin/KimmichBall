@@ -58,15 +58,18 @@ bot.on("messageCreate", async function (message) {
             }
           );
           if (message.deletable) await message.delete({ timeout: 5_000 });
-          message.author.send("```c\nSunucumuza başarıyla kayıt oldun! Odalarımızın devamı için VIP alarak bizlere destek olabilirsin.");
+          message.author.send("```fix\nSunucumuza başarıyla kayıt oldun! Odalarımızın devamı için VIP alarak bizlere destek olabilirsin.```");
         }
         else if (auth) {
           if (message.deletable) await message.delete({ timeout: 5_000 });
-          message.author.send("```c\nKodu yanlış veya eksik girmiş olabilirsin, tekrar kontrol et. Ayrıca, uygulama kullanıyosan kodun farklı; yöneticilerden yardım alabilirsin.```")
+          message.author.send("```diff\n- Kodu yanlış veya eksik girmiş olabilirsin, tekrar kontrol et.\n- Ayrıca, uygulama kullanıyosan kodun farklı; yöneticilerden yardım alabilirsin.```")
         }
       } catch (e) {
         console.error(e);
       }
+    }
+    else {
+      if (message.deletable) await message.delete({ timeout: 5_000 });
     }
   }
 
@@ -131,7 +134,7 @@ bot.on("messageCreate", async function (message) {
             if (user[0].puan >= 1250) return "👑";
           }
 
-          const winrate = Math.floor((100 * user[0].galibiyet) / (user[0].oyunlar || 1))
+          const winrate = ((100 * user[0].galibiyet) / (user[0].oyunlar || 1)).toFixed(0)
 
           _Embed.setTitle(`\`\`\`${avatar()}・${user[0].isim} #${user[0].rank}\`\`\``);
           _Embed.setColor("#c0f00b");
@@ -203,7 +206,7 @@ bot.on("messageCreate", async function (message) {
             embeds: [_Embed],
           });
         }
-        else if (user = "") {
+        else if (user == "") {
           _Embed.setColor("#ED4245");
           _Embed.setDescription("Odada böyle bir hesap bulunamadı, lütfen yöneticilerle iletişime geç.");
           message.channel.send({
@@ -218,77 +221,104 @@ bot.on("messageCreate", async function (message) {
 
   if (message.channel.id == '989128942982152292') {
 
-    const [cmd,] = message.content.split(/ +/gim);
+    let [cmd, stats] = message.content.split(/ +/gim);
+    let stats_list = ["puan", "gol", "asist", "kk", "oyunlar", "galibiyet", "aktiflik"]
 
     if (cmd == "!sıralama") {
-      try {
+      if (stats_list.includes(stats) || !stats) {
+        try {
+          if (!stats) stats = "puan"
+          const data = await Model.find()
+            .sort({ [stats]: -1 })
+            .limit(10)
 
-        const data = await Model.find()
-          .sort({ puan: -1 })
-          .limit(10)
+          const _Embed = new MessageEmbed();
 
+          if (data != "") {
+
+            // TIME FUNCTIONS
+            function getHoursStats(time) {
+              return Math.floor(time / 3600);
+            }
+
+            function getMinutesStats(time) {
+              return Math.floor(time / 60) - getHoursStats(time) * 60;
+            }
+
+            function getTimeStats(time) {
+              if (getHoursStats(time) > 0) {
+                return `${getHoursStats(time)} saat ${getMinutesStats(time)} dakika`;
+              } else {
+                return `${getMinutesStats(time)} dakika`;
+              }
+            }
+
+            function avatar(user) {
+              if (user.puan < 850) return "👎";
+              if (user.puan >= 850 && user.puan < 950) return "👍";
+              if (user.puan >= 950 && user.puan < 1000) return "🌵";
+              if (user.puan >= 1000 && user.puan < 1050) return "🔥";
+              if (user.puan >= 1050 && user.puan < 1100) return "💧";
+              if (user.puan >= 1100 && user.puan < 1150) return "⚡";
+              if (user.puan >= 1150 && user.puan < 1200) return "💎";
+              if (user.puan >= 1200 && user.puan < 1250) return "🏆";
+              if (user.puan >= 1250) return "👑";
+            }
+
+            let first = '';
+            let second = '';
+            let third = '';
+
+            for (let i = 0; i < data.length; i++) {
+              first += `${avatar(data[i])} ${data[i].isim}\n`;
+              if (stats == "aktiflik") second += `${getTimeStats(data[i][stats])}\n`
+              else second += `${data[i][stats]}\n`
+              third += `${i + 1}\n`
+            }
+
+            _Embed.setColor("#c0f00b");
+            _Embed.setAuthor({ "name": `👑 ${stats.toLocaleUpperCase('tr-TR')} KRALLIĞI` });
+
+            _Embed.addFields({
+              "name": "```Avatar```",
+              "value": `\`\`\`c\n${third}\`\`\``,
+              "inline": true,
+            });
+            _Embed.addFields({
+              "name": "```İsim```",
+              "value": `\`\`\`${first}\`\`\``,
+              "inline": true,
+            });
+            _Embed.addFields({
+              "name": `\`\`\`${stats.charAt(0).toUpperCase() + stats.slice(1)}\`\`\``,
+              "value": `\`\`\`c\n${second}\`\`\``,
+              "inline": true,
+            });
+
+            _Embed.setFooter({
+              "text": `🏆 Sıralama komutları: Puan, Gol, Asist, Kk, Oyunlar, Galibiyet, Aktiflik`,
+            });
+            message.channel.send({
+              embeds: [_Embed],
+            });
+          }
+          else {
+            _Embed.setColor("#ED4245");
+            _Embed.setDescription("Bir sorun var, lütfen yöneticilerle iletişime geç.");
+            message.channel.send({
+              embeds: [_Embed],
+            });
+          }
+        } catch (e) {
+          console.error(e);
+        }
+      } else {
         const _Embed = new MessageEmbed();
-
-        if (data != "") {
-
-          function avatar(user) {
-            if (user.puan < 850) return "👎";
-            if (user.puan >= 850 && user.puan < 950) return "👍";
-            if (user.puan >= 950 && user.puan < 1000) return "🌵";
-            if (user.puan >= 1000 && user.puan < 1050) return "🔥";
-            if (user.puan >= 1050 && user.puan < 1100) return "💧";
-            if (user.puan >= 1100 && user.puan < 1150) return "⚡";
-            if (user.puan >= 1150 && user.puan < 1200) return "💎";
-            if (user.puan >= 1200 && user.puan < 1250) return "🏆";
-            if (user.puan >= 1250) return "👑";
-          }
-
-          function winrate(user) {
-            return Math.floor((100 * user.galibiyet) / (user.oyunlar || 1))
-          }
-
-          let first = '';
-          let second = '';
-          let third = '';
-
-          for (let i = 0; i < data.length; i++) {
-            first += `${avatar(data[i])} ${data[i].isim}\n`;
-            second += `${data[i].puan}\n`
-            third += `%${winrate(data[i])}\n`
-          }
-
-          _Embed.setColor("#c0f00b");
-          _Embed.addFields({
-            "name": "```İsim```",
-            "value": `\`\`\`c\n${first}\`\`\``,
-            "inline": true,
-          });
-          _Embed.addFields({
-            "name": "```Puan```",
-            "value": `\`\`\`c\n${second}\`\`\``,
-            "inline": true,
-          });
-          _Embed.addFields({
-            "name": "```Kazanma Oranı```",
-            "value": `\`\`\`c\n${third}\`\`\``,
-            "inline": true,
-          });
-          _Embed.setFooter({
-            "text": `💖 VIP alarak bu sunucunun devamını sağlayabilirsin `,
-          });
-          message.channel.send({
-            embeds: [_Embed],
-          });
-        }
-        else {
-          _Embed.setColor("#ED4245");
-          _Embed.setDescription("Bir sorun var, lütfen yöneticilerle iletişime geç.");
-          message.channel.send({
-            embeds: [_Embed],
-          });
-        }
-      } catch (e) {
-        console.error(e);
+        _Embed.setColor("#ED4245");
+        _Embed.setDescription("Böyle bir istatistik yok.\nPuan, Gol, Asist, Kk, Oyunlar, Galibiyet, Aktiflik yazarak tekrar dene");
+        message.channel.send({
+          embeds: [_Embed],
+        });
       }
     }
   }
