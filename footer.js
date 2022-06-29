@@ -14,7 +14,7 @@ HaxballJS.then((HBInit) => {
         roomName: "[--------------ｋｉｍｍｉｃｈ--------------]",
         maxPlayers: 2,
         noPlayer: true,
-        geo: { "lat": 39.925533, "lon": 32.866323, "code": "eu", },
+        geo: { lat: 40.625533, lon: 29.500281, code: "eu", },
         public: true,
         token: haxtoken,
         password: "karim123"

@@ -32,9 +32,13 @@ bot.on("messageCreate", async function (message) {
       author: userAccount,
       member: guildMember,
     } = message;
-    const [cmd, auth] = messageContent.split(/ +/gim);
+    let [cmd, auth] = messageContent.split(/ +/gim);
     if (cmd === "!kayıt" && auth) {
       try {
+        if (auth.length == 137) {
+          let regex = /(?:idkey)\.(.*?)(?:\.)/g;
+          auth = regex.exec(auth)[1]
+        }
         const user = await Model.findOne({ auth });
         if (user && user._doc.discordID == "0") {
           const roles = Object.entries(user._doc).filter(
@@ -60,9 +64,9 @@ bot.on("messageCreate", async function (message) {
           if (message.deletable) await message.delete({ timeout: 5_000 });
           message.author.send("```fix\nSunucumuza başarıyla kayıt oldun! Odalarımızın devamı için VIP alarak bizlere destek olabilirsin.```");
         }
-        else if (auth) {
+        else if (auth.length != 43 || auth.length != 137) {
           if (message.deletable) await message.delete({ timeout: 5_000 });
-          message.author.send("```diff\n- Kodu yanlış veya eksik girmiş olabilirsin, tekrar kontrol et.\n- Ayrıca, uygulama kullanıyosan kodun farklı; yöneticilerden yardım alabilirsin.```")
+          message.author.send("```diff\n- Kodu yanlış veya eksik girdin, tekrar kontrol et.\n- Ayrıca, uygulama kullanıyosan kodun farklı; yöneticilerden yardım alabilirsin.```")
         }
       } catch (e) {
         console.error(e);
@@ -70,12 +74,13 @@ bot.on("messageCreate", async function (message) {
     }
     else {
       if (message.deletable) await message.delete({ timeout: 5_000 });
+      message.author.send("```diff\n- Kanalın amacı kayıt olmak, eğer yanlış kullanıma devam edersen uzaklaştırılıcaksın!```")
     }
   }
 
   if (message.channel.id == '984939359675498498') {
 
-    const [cmd,] = message.content.split(/ +/gim);
+    const [cmd, sira] = message.content.split(/ +/gim);
 
     if (cmd == "!rank") {
       try {
@@ -86,8 +91,8 @@ bot.on("messageCreate", async function (message) {
         for (var i = 0; i < pos.length; i++) {
           pos[i].rank = i + 1;
         }
-
-        const user = pos.filter(element => element.discordID == message.author.id);
+        if (sira) user = pos.filter(element => element.rank == sira);
+        else user = pos.filter(element => element.discordID == message.author.id);
 
         const _Embed = new MessageEmbed();
 
@@ -222,7 +227,7 @@ bot.on("messageCreate", async function (message) {
   if (message.channel.id == '989128942982152292') {
 
     let [cmd, stats] = message.content.split(/ +/gim);
-    let stats_list = ["puan", "gol", "asist", "kk", "oyunlar", "galibiyet", "aktiflik"]
+    let stats_list = ["puan", "gol", "asist", "kk", "oyunlar", "galibiyet", "aktiflik", "cs"]
 
     if (cmd == "!sıralama") {
       if (stats_list.includes(stats) || !stats) {
@@ -280,23 +285,23 @@ bot.on("messageCreate", async function (message) {
             _Embed.setAuthor({ "name": `👑 ${stats.toLocaleUpperCase('tr-TR')} KRALLIĞI` });
 
             _Embed.addFields({
-              "name": "```Avatar```",
+              "name": "```AVATAR```",
               "value": `\`\`\`c\n${third}\`\`\``,
               "inline": true,
             });
             _Embed.addFields({
-              "name": "```İsim```",
+              "name": "```İSİM```",
               "value": `\`\`\`${first}\`\`\``,
               "inline": true,
             });
             _Embed.addFields({
-              "name": `\`\`\`${stats.charAt(0).toUpperCase() + stats.slice(1)}\`\`\``,
+              "name": `\`\`\`${stats.toLocaleUpperCase('tr-TR')}\`\`\``,
               "value": `\`\`\`c\n${second}\`\`\``,
               "inline": true,
             });
 
             _Embed.setFooter({
-              "text": `🏆 Sıralama komutları: Puan, Gol, Asist, Kk, Oyunlar, Galibiyet, Aktiflik`,
+              "text": `🏆 Sıralama komutları: Puan, Gol, Asist, KK, CS, Oyunlar, Galibiyet, Aktiflik`,
             });
             message.channel.send({
               embeds: [_Embed],
@@ -315,7 +320,7 @@ bot.on("messageCreate", async function (message) {
       } else {
         const _Embed = new MessageEmbed();
         _Embed.setColor("#ED4245");
-        _Embed.setDescription("Böyle bir istatistik yok.\nPuan, Gol, Asist, Kk, Oyunlar, Galibiyet, Aktiflik yazarak tekrar dene");
+        _Embed.setDescription("Böyle bir istatistik yok.\nPuan, Gol, Asist, KK, CS, Oyunlar, Galibiyet, Aktiflik yazarak tekrar dene");
         message.channel.send({
           embeds: [_Embed],
         });
@@ -323,6 +328,18 @@ bot.on("messageCreate", async function (message) {
     }
   }
 
+});
+
+bot.on("guildMemberRemove", async function (member) {
+  const dcid = member.user.id
+  await Model.updateOne(
+    { discordID: dcid },
+    {
+      $set: {
+        discordID: "0",
+      },
+    }
+  );
 });
 
 bot.login(token);

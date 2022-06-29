@@ -145,13 +145,14 @@ HaxballJS.then((HBInit) => {
           "bold",
           2
         );
-        message.reply("Mesajın sunucuya başarıyla iletildi.");
+        message.react("📢");
       }
       if (command == "!kick") {
         const [, id, ...reason] = splittedMsg;
         const $reason = reason.join(" ");
         room.kickPlayer(Number(id), $reason, false);
-        message.reply(`${authArray[Number(id)][2]}, ${$reason} sebebiyle kicklendi.`);
+        message.react("🔨");
+        message.react("💬");
       }
       if (command == "!ban") {
         let [, id, sure, ...sebep] = splittedMsg;
@@ -168,18 +169,24 @@ HaxballJS.then((HBInit) => {
               room.kickPlayer(id, reason, true);
               banList.push([authArray[id][2], id, sure])
               await addBan(authArray[id][1], authArray[id][0])
-              message.reply(`${authArray[id][2]}, ${sure} dakika boyunca ${reason} sebebiyle banlandı.`);
+              message.react("🔨");
+              message.react("💬");
+              message.react("⌛");
             }
             else {
               room.kickPlayer(id, sebep, true);
               banList.push([authArray[id][2], id, "∞"])
               await addBan(authArray[id][1], authArray[id][0])
-              message.reply(`${authArray[id][2]}, kalıcı olarak ${reason} banlandı.`)
+              message.react("🔨");
+              message.react("💬");
+              message.react("♾️");
             }
           } else {
+            message.react("💬");
             message.reply(`Banlaman için bir sebep belirtmen gerekiyor.`)
           }
         } else {
+          message.react("❌");
           message.reply(`Böyle bir IDye sahip oyuncu yok. Komutun kullanımı için !yardım sustur yaz.`
           );
         }
@@ -194,44 +201,37 @@ HaxballJS.then((HBInit) => {
           );
           if (!amount) amount = muteDuration
           muteObj.setDuration(amount);
-          message.reply(`${authArray[Number(id)][2]}, ${amount} dakika boyunca susturuldu.`);
+          message.react("🔇");
+          message.react("⌛");
         }
         else {
+          message.react("❌");
           message.reply(`Yetkili veya VIP birini susturamazsın!`);
         }
       }
       if (command == "!unmute") {
         const [, id] = splittedMsg;
-        var muteObj = muteArray.getId(Number(id));
+        var muteObj = muteArray.getById(Number(id));
         muteObj.remove();
-        message.reply(`${authArray[Number(id)][2]}, artık yazabilir.`);
-      }
-      if (command == "!banlar") {
-        if (banList.length == 0) {
-          message.reply("📢 Ban listesinde kimse yok.");
-        }
-        var cstm = "📢 Ban listesi : ";
-        for (let ban of banList) {
-          cstm += `[${ban[1]}]` + ban[0] + ` ${ban[2]} dk . `;
-        }
-        message.reply(cstm)
+        message.react('✔️');
       }
       if (command == "!mutelar") {
         if (muteArray.list.length == 0) {
+          message.react("💀");
           message.reply("Mute listesinde kimse yok")
         }
-        else {
+        else if (muteArray.list.length > 0) {
           var cstm = "🔇 Mute Listesi : ";
           for (let mute of muteArray.list) {
             cstm += mute.name + `[${mute.id}], `;
           }
           cstm = cstm.substring(0, cstm.length - 2) + ".";
+          message.react("📝");
           message.reply(cstm)
         }
       }
       if (command == "!bankaldır") {
         const [, id] = splittedMsg;
-        message.reply(`${banList.filter((p) => p[1] == Number(id))[0][0]} adlı oyuncunun banı kaldırıldı.`);
         await removeBan(authArray[id][1], authArray[id][0]);
         room.clearBan(Number(id));
         banList = banList.filter((p) => p[1] != Number(id));
@@ -240,7 +240,7 @@ HaxballJS.then((HBInit) => {
         dname = message.member.nickname || message.author.username;
         if (allMuted == false) {
           allMuted = true;
-          message.reply("Sohbet tüm oyuncular için kapatıldı.");
+          message.react('🔇');
           room.sendAnnouncement(
             "DISCORD 💬 " + dname + ", oyunu etkilemesinden dolayı sohbeti geçici olarak kapattı.",
             null,
@@ -250,7 +250,7 @@ HaxballJS.then((HBInit) => {
           );
         } else {
           allMuted = false
-          message.reply("Sohbet tekrardan açıldı.");
+          message.react('🔊');
           room.sendAnnouncement(
             "DISCORD 💬 " + dname + ", sohbeti tekrardan açtı. Kapanmaması için kurallara uy!",
             null,
@@ -267,9 +267,10 @@ HaxballJS.then((HBInit) => {
           if (authArray[id][5] == false) {
             authArray[id][5] = true
             room.setPlayerAdmin(id, true);
-            message.reply(`${authArray[Number(id)][2]}, başarıyla admin yapıldı.`);
+            message.react("⚡");
           }
           else {
+            message.react("⏸️");
             message.reply(`${authArray[Number(id)][2]}, zaten admin!`)
           }
         }
@@ -277,9 +278,10 @@ HaxballJS.then((HBInit) => {
           if (authArray[id][5] == true) {
             authArray[id][5] = false
             room.setPlayerAdmin(id, false);
-            message.reply(`${authArray[Number(id)][2]}, artık admin değil.`);
+            message.react("❌");
           }
           else {
+            message.react("⏸️");
             message.reply(`${authArray[Number(id)][2]}, zaten admin değildi!`)
           }
         }
@@ -290,24 +292,27 @@ HaxballJS.then((HBInit) => {
         if (on_off == 1) {
           if (authArray[id][4] == false) {
             authArray[id][4] = true
-            message.reply(`${authArray[Number(id)][2]}, başarıyla VIP yapıldı.`);
+            message.react("💎");
           }
           else {
+            message.react("⏸️");
             message.reply(`${authArray[Number(id)][2]}, zaten VIP!`)
           }
         }
         if (on_off == 0) {
           if (authArray[id][4] == true) {
             authArray[id][4] = false
-            message.reply(`${authArray[Number(id)][2]}, artık VIP değil.`);
+            message.react("❌");
           }
           else {
+            message.react("⏸️");
             message.reply(`${authArray[Number(id)][2]}, zaten VIP değil!`)
           }
         }
       }
     }
   });
+
   /* VARIABLES */
 
   /* ROOM */
@@ -325,7 +330,7 @@ HaxballJS.then((HBInit) => {
   var giriscikisWebhook =
     "https://discord.com/api/webhooks/981886634356244480/-Nd2R1ThrJN2na0Hgp_47d70u_KOu562XX9_Pd97UVPkxBCaeexOHvBjkJbaC2lJyZU9";
 
-  var fetchRecordingVariable = false;
+  var fetchRecordingVariable = true;
   var timeLimit = 3;
   var scoreLimit = 3;
 
@@ -335,7 +340,7 @@ HaxballJS.then((HBInit) => {
     public: roomPublic,
     noPlayer: true,
     token: haxtoken,
-    geo: { "lat": 39.925533, "lon": 32.866283, "code": "JP", },
+    geo: { lat: 40.625533, lon: 29.500283, code: "JP", }
   });
 
   const antrenmanMap = JSON.stringify(futsalantmap)
@@ -343,7 +348,6 @@ HaxballJS.then((HBInit) => {
   const v4Map = JSON.stringify(futsalv4map)
 
   var currentStadium = "antrenman";
-  var v4MapObj = JSON.parse(antrenmanMap);
 
   room.setScoreLimit(scoreLimit);
   room.setTimeLimit(timeLimit);
@@ -356,7 +360,6 @@ HaxballJS.then((HBInit) => {
 
   var drawTimeLimit = Infinity;
   var teamSize = 4;
-  var disableBans = false;
   var debugMode = false;
   var afkLimit = 30;
 
@@ -815,13 +818,6 @@ HaxballJS.then((HBInit) => {
     Daha sonra oyuncunun yanındaki numarayı öğrenip !bankaldır 45(oyuncunun yanındaki numara) yazmalısın.`,
       function: clearbansCommand,
     },
-    banlar: {
-      aliases: ["banlist", "bans", "banlistesi"],
-      roles: Role.MASTER,
-      desc: `
-    Bu komut ile banlanan oyuncuları numarasıyla birlikte görebilirsin.`,
-      function: banListCommand,
-    },
     odaşifresi: {
       aliases: ["roompass", "odaşifre"],
       roles: Role.MASTER,
@@ -910,7 +906,13 @@ HaxballJS.then((HBInit) => {
 
   function getDate() {
     let d = new Date();
-    return d.toLocaleDateString() + " " + d.toLocaleTimeString();
+    var options = {
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    };
+    return d.toLocaleString('tr-TR', options);
   }
 
   /* MATH FUNCTIONS */
@@ -1047,10 +1049,20 @@ HaxballJS.then((HBInit) => {
   }
 
   function teamChat(player, message) {
-    var msgArray = message.split(/ +/).slice(1);
+    if (message.match(checkBadWords(message))) {
+      room.sendAnnouncement(
+        `Komutu kötüye kullanıyorsun, adminlere bilgi geçildi!`,
+        player.id,
+        errorColor,
+        "bold",
+        2
+      );
+    }
+    else
+      var msgArray = message.split(/ +/).slice(1);
     var emoji =
       player.team == Team.RED ? "🔴" : player.team == Team.BLUE ? "🔵" : "⚪";
-    var message = `${emoji} [TAKIM SOHBETİ] ${player.name}: ${msgArray.join(
+    var message = `${emoji} ${player.name}: ${msgArray.join(
       " "
     )}`;
     var team = getTeamArray(player.team);
@@ -1066,7 +1078,17 @@ HaxballJS.then((HBInit) => {
   }
 
   function playerChat(player, message) {
-    var msgArray = message.split(/ +/);
+    if (message.match(checkBadWords(message))) {
+      room.sendAnnouncement(
+        `Komutu kötüye kullanıyorsun, adminlere bilgi geçildi!`,
+        player.id,
+        errorColor,
+        "bold",
+        2
+      );
+    }
+    else
+      var msgArray = message.split(/ +/);
     var playerTargetIndex = playersAll.findIndex(
       (p) => p.name.replaceAll(" ", "_") == msgArray[0].substring(2)
     );
@@ -1091,7 +1113,7 @@ HaxballJS.then((HBInit) => {
       );
       return false;
     }
-    var messageFrom = `📝 [${playerTarget.name} isimli kullanıcıya mesajın] ${player.name
+    var messageFrom = `📝 [${playerTarget.name} isimli kullanıcıya] ${player.name
       }: ${msgArray.slice(1).join(" ")}`;
 
     var messageTo = `📝 [${player.name}, bir mesaj gönderdi] ${player.name
@@ -1112,25 +1134,6 @@ HaxballJS.then((HBInit) => {
       HaxNotification.CHAT
     );
   }
-
-  /* PHYSICS FUNCTIONS */
-  /*
-    function calculateStadiumVariables() {
-      if (checkStadiumVariable && teamRed.length + teamBlue.length > 0) {
-        checkStadiumVariable = false;
-        setTimeout(() => {
-          let ballDisc = room.getDiscProperties(0);
-          let playerDisc = room.getPlayerDiscProperties(
-            teamRed.concat(teamBlue)[0].id
-          );
-          ballRadius = 6.25;
-          playerRadius = playerDisc.radius;
-          triggerDistance = ballRadius + playerRadius + 0.01;
-          speedCoefficient =
-            100 / (5 * ballDisc.invMass * (ballDisc.damping ** 60 + 1));
-        }, 1);
-      }
-    }*/
 
   function checkGoalKickTouch(array, index, goal) {
     if (array != null && array.length >= index + 1) {
@@ -1447,13 +1450,15 @@ HaxballJS.then((HBInit) => {
       );
       return;
     }
-    var cstm = "😴 AFK listesi : ";
-    AFKSet.forEach((_, value) => {
-      var p = room.getPlayer(value);
-      if (p != null) cstm += p.name + `, `;
-    });
-    cstm = cstm.substring(0, cstm.length - 2) + ".";
-    room.sendAnnouncement(cstm, player.id, announcementColor, "bold", null);
+    else {
+      var cstm = "😴 AFK listesi : ";
+      AFKSet.forEach((_, value) => {
+        var p = room.getPlayer(value);
+        if (p != null) cstm += p.name + `, `;
+      });
+      cstm = cstm.substring(0, cstm.length - 2) + ".";
+      room.sendAnnouncement(cstm, player.id, announcementColor, "bold", null);
+    }
   }
 
   /* ADMIN COMMANDS */
@@ -1870,24 +1875,6 @@ HaxballJS.then((HBInit) => {
     }
   }
 
-  function banListCommand(player, message) {
-    if (banList.length == 0) {
-      room.sendAnnouncement(
-        "📢 Ban listesinde kimse yok.",
-        player.id,
-        announcementColor,
-        "bold",
-        null
-      );
-      return false;
-    }
-    var cstm = "📢 Ban listesi : ";
-    for (let ban of banList) {
-      cstm += `[${ban[1]}]` + ban[0] + ` ${ban[2]} dk . `;
-    }
-    room.sendAnnouncement(cstm, player.id, announcementColor, "bold", null);
-  }
-
   function passwordCommand(player, message) {
     var msgArray = message.split(/ +/).slice(1);
     if (msgArray.length > 0) {
@@ -1993,7 +1980,7 @@ HaxballJS.then((HBInit) => {
   /* GAME FUNCTIONS */
 
   function checkTime() {
-    const scores = room.getScores()
+    const scores = room.getScores();
     if (game != undefined) game.scores = scores;
     if (
       Math.abs(scores.time - scores.timeLimit) <= 0.01 &&
@@ -3182,19 +3169,21 @@ HaxballJS.then((HBInit) => {
   }
 
   function getGoalString(team) {
+    var ust = "╭─━━━━━━━━━━━━━━     GOL     ━━━━━━━━━━━━━━─╮"
+    var alt = "╰━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╯"
     var goalString;
     var scores = game.scores;
     var goalAttribution = getGoalAttribution(team);
     if (goalAttribution[0] != null) {
       if (goalAttribution[0].team == team) {
         if (goalAttribution[1] != null && goalAttribution[1].team == team) {
-          goalString = `⌛ ${getTimeGame(scores.time)} ┊ ⚽ ${goalAttribution[0].name} ┊ 🦶 ${goalAttribution[1].name} ┊ 💨 ${ballSpeed.toFixed(2)} km/s`;
+          goalString = `⌛ ${getTimeGame(scores.time)} ┊ ⚽ ${goalAttribution[0].name} ┊ 🦶 ${goalAttribution[1].name} ┊ 💨 ${ballSpeed.toFixed(0)} km/s`;
           goalCelebration(goalAttribution[0].id, goalAttribution[1].id, null, team);
           game.goals.push(
             new Goal(scores.time, team, goalAttribution[0], goalAttribution[1])
           );
         } else {
-          goalString = `⌛ ${getTimeGame(scores.time)} ┊ ⚽ ${goalAttribution[0].name} ┊ 💨 ${ballSpeed.toFixed(2)} km/s`;
+          goalString = `⌛ ${getTimeGame(scores.time)} ┊ ⚽ ${goalAttribution[0].name} ┊ 💨 ${ballSpeed.toFixed(0)} km/s`;
           goalCelebration(goalAttribution[0].id, null, null, team);
           game.goals.push(
             new Goal(scores.time, team, goalAttribution[0], null)
@@ -3202,15 +3191,15 @@ HaxballJS.then((HBInit) => {
         }
       } else {
         goalCelebration(null, null, goalAttribution[0].id, team);
-        goalString = `⌛ ${getTimeGame(scores.time)} ┊ 😂 [KK] ${goalAttribution[0].name} ┊ 💨 ${ballSpeed.toFixed(2)} km/s`;
+        goalString = `⌛ ${getTimeGame(scores.time)} ┊ 😂 [KK] ${goalAttribution[0].name} ┊ 💨 ${ballSpeed.toFixed(0)} km/s`;
         game.goals.push(new Goal(scores.time, team, goalAttribution[0], null));
       }
     } else {
-      goalString = `⌛ ${getTimeGame(scores.time)} ┊ ⚽ ${team == Team.RED ? "Kırmızı Takım" : "Mavi Takım"} ┊ 💨 ${ballSpeed.toFixed(2)} km/s`;
+      goalString = `⌛ ${getTimeGame(scores.time)} ┊ ⚽ ${team == Team.RED ? "Kırmızı Takım" : "Mavi Takım"} ┊ 💨 ${ballSpeed.toFixed(0)} km/s`;
       game.goals.push(new Goal(scores.time, team, null, null));
     }
 
-    return "\n" + goalString + "\n ";
+    return ust + "\n" + centerText(goalString) + "\n" + alt;
   }
 
   /* ROOM STATS FUNCTIONS */
@@ -3262,7 +3251,7 @@ HaxballJS.then((HBInit) => {
       "bold"
     );
     await updatePlayer(authArray[player.id][0], stats);
-    await setAvatar(stats.puan, player);
+    room.setPlayerAvatar(player.id, getAvatar(stats.puan));
   }
 
   async function updateStats() {
@@ -3672,12 +3661,15 @@ HaxballJS.then((HBInit) => {
       );
 
     const stats = Object.fromEntries(Object.entries(await checkPlayer(authArray[player.id][0])).filter(([key, value]) => key !== "_id"));
+    setTimeout(() => { if (stats.oyunlar > 10 && stats.puan < 1000 && stats.isAdmin == false && stats.isMaster == false) room.kickPlayer(player.id, "1000 Puan altı sadece acemi odasına girebilir.", false); }, "1000")
+
     authArray[player.id][3] = stats.discordID != 0;
     authArray[player.id][4] = stats.isVIP != 0;
     authArray[player.id][5] = stats.isAdmin != 0;
     authArray[player.id][6] = stats.isMaster != 0;
 
-    await setAvatar(stats.puan, player);
+    room.setPlayerAvatar(player.id, getAvatar(stats.puan));
+
     if (authArray[player.id][2] != stats.isim) {
       setTimeout(async () => { await updateName(authArray[player.id][0], authArray[player.id][2]) }, "1000")
       room.sendAnnouncement(
@@ -3685,20 +3677,51 @@ HaxballJS.then((HBInit) => {
         null,
         0xffffff
       )
-      //let user = await bot.users.fetch(stats.discordID)
-      //bot.setNickname(player.name)
     }
 
     if (authArray[player.id][1] != stats.conn)
       setTimeout(async () => { await updateConn(authArray[player.id][0], authArray[player.id][1]) }, "1000")
+
     if (giriscikisWebhook != "") {
+      var giriscikisfields = [
+        {
+          name: "```👤 Kullanıcı Adı```",
+          value: `\`\`\`${stats.isim != player.name ? `(${stats.isim})` : ``}${player.name}#${player.id}\`\`\``,
+          inline: false,
+        },
+        {
+          name: "```🔑 Auth```",
+          value: `\`\`\`${authArray[player.id][0]}\`\`\``,
+          inline: false,
+        },
+        {
+          name: "```🔒 Conn```",
+          value: `\`\`\`${authArray[player.id][1]}\`\`\``,
+          inline: false,
+        },
+        {
+          name: "```🗓️ Tarih```",
+          value: `\`\`\`c\n${getDate()}\`\`\``,
+          inline: false,
+        },
+        {
+          name: "```👤 Oyuncu Sayısı```",
+          value: `\`\`\`c\n(${playersAll.length + 1}/${maxPlayers})\`\`\``,
+          inline: false,
+        }
+      ]
+      var giriscikisembed = {
+        embeds: [
+          {
+            fields: giriscikisfields,
+            color: 9567999,
+            username: "Giriş - Çıkış Takip Botu",
+          }
+        ]
+      }
       fetch(giriscikisWebhook, {
         method: "POST",
-        body: JSON.stringify({
-          content: `\`\`\`fix\n[${getDate()}] (${stats.isim}) ${player.name
-            }, odaya giriş yaptı (${playersAll.length + 1}/${maxPlayers})\`\`\``,
-          username: "Giriş - Çıkış Takip Botu",
-        }),
+        body: JSON.stringify(giriscikisembed),
         headers: {
           "Content-Type": "application/json",
         },
@@ -3787,14 +3810,45 @@ HaxballJS.then((HBInit) => {
     setTimeout(() => {
       if (!kickFetchVariable) {
         if (giriscikisWebhook != "") {
-          var stringContent = `\`\`\`fix\n[${getDate()}] ${player.name
-            }, odadan çıkış yaptı (${playersAll.length}/${maxPlayers})\`\`\``;
+          var giriscikisfields = [
+            {
+              name: "```👤 Kullanıcı Adı```",
+              value: `\`\`\`${player.name}#${player.id}\`\`\``,
+              inline: false,
+            },
+            {
+              name: "```🔑 Auth```",
+              value: `\`\`\`${authArray[player.id][0]}\`\`\``,
+              inline: false,
+            },
+            {
+              name: "```🔒 Conn```",
+              value: `\`\`\`${authArray[player.id][1]}\`\`\``,
+              inline: false,
+            },
+            {
+              name: "```🗓️ Tarih```",
+              value: `\`\`\`c\n${getDate()}\`\`\``,
+              inline: false,
+            },
+            {
+              name: "```👤 Oyuncu Sayısı```",
+              value: `\`\`\`c\n(${playersAll.length}/${maxPlayers})\`\`\``,
+              inline: false,
+            }
+          ]
+          var giriscikisembed = {
+            embeds: [
+              {
+                fields: giriscikisfields,
+                color: 14958399,
+                username: "Giriş - Çıkış Takip Botu",
+              }
+            ]
+          }
           fetch(giriscikisWebhook, {
             method: "POST",
-            body: JSON.stringify({
-              content: stringContent,
-              username: "Giriş - Çıkış Takip Botu",
-            }),
+            body: JSON.stringify(giriscikisembed),
             headers: {
               "Content-Type": "application/json",
             },
@@ -3810,16 +3864,52 @@ HaxballJS.then((HBInit) => {
   };
 
   room.onPlayerKicked = function (kickedPlayer, reason, ban, byPlayer) {
-    if (ban) {
-      room.clearBan(kickedPlayer.id)
-      room.sendAnnouncement(
-        `${byPlayer}, bu yöntem işe yaramıyor! Süreli ban atmak için !ban id süre sebep, süresiz atmak için !ban id sebep`,
-        player.id,
-        announcementColor,
-        "bold",
-        null
-      );
-    };
+    kickFetchVariable = true;
+    if (kickbanWebhook != "") {
+      var kickbanfields = [
+        {
+          name: "```👤 Kullanıcı Adı```",
+          value: `\`\`\`${kickedPlayer.name}#${kickedPlayer.id}\`\`\``,
+          inline: false,
+        },
+        {
+          name: "```📝 Sebep```",
+          value: `\`\`\`${reason}\`\`\``,
+          inline: false,
+        },
+        {
+          name: `\`\`\`${ban ? "🔨 Banlayan" : "🔧 Kickleyen"}\`\`\``,
+          value: `\`\`\`${byPlayer == null ? "🤖 Bot" : byPlayer.name}\`\`\``,
+          inline: false,
+        },
+        {
+          name: "```🗓️ Tarih```",
+          value: `\`\`\`c\n${getDate()}\`\`\``,
+          inline: false,
+        },
+        {
+          name: "```👤 Oyuncu Sayısı```",
+          value: `\`\`\`c\n(${playersAll.length}/${maxPlayers})\`\`\``,
+          inline: false,
+        }
+      ]
+      var kickbanembed = {
+        embeds: [
+          {
+            fields: kickbanfields,
+            color: 14958399,
+            username: "Kick - Ban Takip Botu",
+          }
+        ]
+      }
+      fetch(kickbanWebhook, {
+        method: "POST",
+        body: JSON.stringify(kickbanembed),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }).then((res) => res);
+    }
   };
 
   /* PLAYER ACTIVITY */
@@ -3845,6 +3935,7 @@ HaxballJS.then((HBInit) => {
   }
 
   room.onPlayerChat = function (player, message) {
+    const tag = authArray[player.id][3] ? "✔️ " : "❌ ";
 
     if (gameState !== State.STOP && player.team != Team.SPECTATORS) {
       let pComp = getPlayerComp(player);
@@ -3904,7 +3995,7 @@ HaxballJS.then((HBInit) => {
       );
       for (var a = 0; a < playersAll.length; a++) {
         if (playersAll[a].admin == true) {
-          room.sendAnnouncement(player.name + "・" + message, playersAll[a].id, 0xFFFF00, "bold", 1);
+          room.sendAnnouncement(tag + player.name + "・" + message, playersAll[a].id, 0xFFFF00, "bold", 1);
         }
       }
       return false;
@@ -3933,7 +4024,7 @@ HaxballJS.then((HBInit) => {
         );
         for (var a = 0; a < playersAll.length; a++) {
           if (playersAll[a].admin == true) {
-            room.sendAnnouncement("KÜFÜR 💢 " + player.name + "・" + message, playersAll[a].id, errorColor, "bold", 0);
+            room.sendAnnouncement(tag + player.name + "・" + message, playersAll[a].id, errorColor, "bold", 0);
           }
         }
         return false;
@@ -3977,7 +4068,7 @@ HaxballJS.then((HBInit) => {
       if (allMuted == true) {
         for (var a = 0; a < playersAll.length; a++) {
           if (playersAll[a].admin == true) {
-            room.sendAnnouncement(player.name + "・" + message, playersAll[a].id, 0xFFFF00, "bold", 1);
+            room.sendAnnouncement(tag + player.name + "・" + message, playersAll[a].id, 0xFFFF00, "normal", 1);
           }
         }
         room.sendAnnouncement(
@@ -3987,16 +4078,14 @@ HaxballJS.then((HBInit) => {
           "bold",
           null
         );
+        return false;
       }
-      else {
-        const tag = authArray[player.id][3] ? "✔️ " : "❌ ";
-        room.sendAnnouncement(
-          tag + player.name + "・" + message,
-          undefined,
-          "0xD5D8DC",
-          "normal"
-        );
-      }
+      room.sendAnnouncement(
+        tag + player.name + "・" + message,
+        undefined,
+        "0xD5D8DC",
+        "normal"
+      );
       return false;
     }
   };
@@ -4168,7 +4257,7 @@ HaxballJS.then((HBInit) => {
       team == Team.RED ? redColor : blueColor,
       null,
       HaxNotification.CHAT
-    );                 // own goal
+    );
     if (
       (scores.scoreLimit != 0 &&
         (scores.red == scores.scoreLimit ||
@@ -4374,16 +4463,16 @@ HaxballJS.then((HBInit) => {
     }).then((res) => res);
   }
 
-  async function setAvatar(puan, player) {
-    if (puan < 850) return room.setPlayerAvatar(player.id, "👎");
-    if (puan >= 850 && puan < 950) return room.setPlayerAvatar(player.id, "👍");
-    if (puan >= 950 && puan < 1000) return room.setPlayerAvatar(player.id, "🌵");
-    if (puan >= 1000 && puan < 1050) return room.setPlayerAvatar(player.id, "🔥");
-    if (puan >= 1050 && puan < 1100) return room.setPlayerAvatar(player.id, "💧");
-    if (puan >= 1100 && puan < 1150) return room.setPlayerAvatar(player.id, "⚡");
-    if (puan >= 1150 && puan < 1200) return room.setPlayerAvatar(player.id, "💎");
-    if (puan >= 1200 && puan < 1250) return room.setPlayerAvatar(player.id, "🏆");
-    if (puan >= 1250) return room.setPlayerAvatar(player.id, "👑");
+  function getAvatar(puan) {
+    if (puan < 850) return "👎";
+    if (puan >= 850 && puan < 950) return "👍";
+    if (puan >= 950 && puan < 1000) return "🌵";
+    if (puan >= 1000 && puan < 1050) return "🔥";
+    if (puan >= 1050 && puan < 1100) return "💧";
+    if (puan >= 1100 && puan < 1150) return "⚡";
+    if (puan >= 1150 && puan < 1200) return "💎";
+    if (puan >= 1200 && puan < 1250) return "🏆";
+    if (puan >= 1250) return "👑";
   }
 
   function fetchRecording(game) {
@@ -4424,12 +4513,10 @@ HaxballJS.then((HBInit) => {
     return blacklist.filter(b => b.auth == player.auth || b.conn == player.conn).length > 0;
   }
 
-  setInterval(() => {
-    room.sendAnnouncement("                                        ▒█▀▀▄ ▀█▀ ▒█▀▀▀█ ▒█▀▀█ ▒█▀▀▀█ ▒█▀▀█ ▒█▀▀▄ ", null, 0x5F85FF, "normal", 0)
-    room.sendAnnouncement("                                        ▒█░▒█ ▒█░ ░▀▀▀▄▄ ▒█░░░ ▒█░░▒█ ▒█▄▄▀ ▒█░▒█ ", null, 0x7E76FF, "normal", 0)
-    room.sendAnnouncement("                                        ▒█▄▄▀ ▄█▄ ▒█▄▄▄█ ▒█▄▄█ ▒█▄▄▄█ ▒█░▒█ ▒█▄▄▀ ", null, 0x9E66FF, "normal", 0);
-    room.sendAnnouncement("                  ÖDÜLLÜ V1 TURNUVASI KAYITLARI BAŞLADI ➡ discord.gg/TG7mr7AsQa ⬅", null, 0x17E8EC, "normal", 2);
-  }, 3 * 60 * 1000);
+  setInterval(() => { room.sendAnnouncement(centerText("▒█▀▀▄ ▀█▀ ▒█▀▀▀█ ▒█▀▀█ ▒█▀▀▀█ ▒█▀▀█ ▒█▀▀▄"), null, 0x5F85FF, "normal", 0) }, 177000);
+  setInterval(() => { room.sendAnnouncement(centerText("▒█░▒█ ▒█░ ░▀▀▀▄▄ ▒█░░░ ▒█░░▒█ ▒█▄▄▀ ▒█░▒█"), null, 0x7E76FF, "normal", 0) }, 178000);
+  setInterval(() => { room.sendAnnouncement(centerText("▒█▄▄▀ ▄█▄ ▒█▄▄▄█ ▒█▄▄█ ▒█▄▄▄█ ▒█░▒█ ▒█▄▄▀"), null, 0x9E66FF, "normal", 0) }, 179000);
+  setInterval(() => { room.sendAnnouncement(centerText("【ｖ４ｆｕｔｓａｌ】ailesine katıl ➡ discord.gg/TG7mr7AsQa ⬅"), null, 0x17E8EC, "normal", 2); }, 180000);
 
   room.setTeamColors(1, 60, 0xcfcfcf, [0xcf1238]);
   room.setTeamColors(2, 60, 0xcfcfcf, [0x2c89ab]);
@@ -4471,7 +4558,6 @@ HaxballJS.then((HBInit) => {
       }
     }
   }
-
   //Infos
 
   function randomInt(max) {
@@ -4489,10 +4575,15 @@ HaxballJS.then((HBInit) => {
     "😲 Komutların ne olduğu hakkında fikrin yoksa !yardım yazabilirsin",
     "📣 Admin başvurularımız açık, sen de ekibin parçası olmak için Discord üzerinden başvurabilirsin",
     "📣 Discord sunucumuzda sürekli etkinlikler oluyor, sen de bir parçası olmak için Discord sunucumuza gelebilirsin",
-    "👑 Gol krallını ya da asist kralını mı merak ediyorsun? Discorda gelerek hepsini görebilirsin",
-    "🏆 Ödüllü FUTSAL V1 TURNUVASI düzenliyoruz, Discorda gelerek kayıt olabilirsin"
+    "👑 Gol krallını ya da asist kralını mı merak ediyorsun? Discorda gelerek hepsini görebilirsin"
   ]
 
   setInterval(() => { room.sendAnnouncement(infoText[randomInt(infoText.length)], null, 0xF4D03F, "normal", 1); }, 30_000);
+
+  function centerText(string) {
+    var space;
+    space = parseInt((80 - string.length) * 0.8, 10);
+    return ' '.repeat(space) + string + ' '.repeat(space)
+  }
 
 });
