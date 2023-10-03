@@ -1,0 +1,20 @@
+{
+  "name": "discord-test",
+  "version": "1.0.0",
+  "description": "Başarıcaz",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "tanercanbilgin",
+  "license": "ISC",
+  "dependencies": {
+    "commander": "^10.0.0",
+    "cors": "^2.8.5",
+    "discord.js": "^14.7.1",
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "haxball.js": "^2.1.2",
+    "mongoose": "^7.0.0"
+  }
+}

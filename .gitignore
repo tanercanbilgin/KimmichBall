@@ -1,0 +1,4 @@
+node_modules
+foo.txt
+.env
+.vscode

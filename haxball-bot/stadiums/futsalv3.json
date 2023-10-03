@@ -1,0 +1,936 @@
+{
+    "name": "Futsal 🔥 3",
+    "width": 650,
+    "height": 270,
+    "bg": {
+        "kickOffRadius": 80,
+        "color": "474E52"
+    },
+    "vertexes": [
+        {
+            "x": -550,
+            "y": -240,
+            "bCoef": 1,
+            "cMask": [],
+            "cGroup": [],
+            "color": "A199A3"
+        },
+        {
+            "x": 550,
+            "y": -240,
+            "bCoef": 1,
+            "cMask": [],
+            "cGroup": [],
+            "color": "A199A3"
+        },
+        {
+            "x": 550,
+            "y": 240,
+            "bCoef": 1,
+            "cMask": [],
+            "cGroup": [],
+            "color": "A199A3"
+        },
+        {
+            "x": -550,
+            "y": 240,
+            "bCoef": 1,
+            "cMask": [],
+            "cGroup": [],
+            "color": "A199A3"
+        },
+        {
+            "x": 0,
+            "y": 240,
+            "cMask": [
+                "wall"
+            ],
+            "color": "A199A3"
+        },
+        {
+            "x": 0,
+            "y": -240,
+            "cMask": [
+                "wall"
+            ],
+            "color": "A199A3"
+        },
+        {
+            "x": 0,
+            "y": -80,
+            "cMask": [
+                "red",
+                "blue"
+            ],
+            "cGroup": [
+                "redKO",
+                "blueKO"
+            ],
+            "color": "A199A3"
+        },
+        {
+            "x": 0,
+            "y": 80,
+            "cMask": [
+                "red",
+                "blue"
+            ],
+            "cGroup": [
+                "redKO",
+                "blueKO"
+            ],
+            "color": "A199A3"
+        },
+        {
+            "x": -550,
+            "y": 85,
+            "bCoef": 1,
+            "cMask": [],
+            "cGroup": [],
+            "color": "A199A3"
+        },
+        {
+            "x": -550,
+            "y": -85,
+            "bCoef": 1,
+            "cMask": [],
+            "cGroup": [],
+            "color": "A199A3"
+        },
+        {
+            "x": 550,
+            "y": -85,
+            "bCoef": 1,
+            "cMask": [],
+            "cGroup": [],
+            "color": "A199A3"
+        },
+        {
+            "x": 550,
+            "y": 85,
+            "bCoef": 1,
+            "cMask": [],
+            "cGroup": [],
+            "color": "A199A3"
+        },
+        {
+            "x": 0,
+            "y": 240,
+            "cMask": [],
+            "cGroup": []
+        },
+        {
+            "x": 0,
+            "y": -240,
+            "cMask": [],
+            "cGroup": []
+        },
+        {
+            "x": -550,
+            "y": -240,
+            "bCoef": 1,
+            "cMask": [],
+            "cGroup": [],
+            "color": "A199A3"
+        },
+        {
+            "x": 550,
+            "y": -240,
+            "bCoef": 1,
+            "cMask": [],
+            "cGroup": [],
+            "color": "A199A3"
+        },
+        {
+            "x": 550,
+            "y": 240,
+            "bCoef": 1,
+            "cMask": [],
+            "cGroup": [],
+            "color": "A199A3"
+        },
+        {
+            "x": -550,
+            "y": 240,
+            "bCoef": 1,
+            "cMask": [],
+            "cGroup": [],
+            "color": "A199A3"
+        },
+        {
+            "x": 0,
+            "y": 81.5,
+            "cMask": [
+                "wall"
+            ],
+            "color": "A199A3"
+        },
+        {
+            "x": 0,
+            "y": -81.5,
+            "cMask": [
+                "wall"
+            ],
+            "color": "A199A3"
+        },
+        {
+            "x": 550,
+            "y": -85,
+            "bCoef": 0.2,
+            "cMask": [
+                "ball"
+            ],
+            "cGroup": [
+                "ball"
+            ],
+            "bias": -10
+        },
+        {
+            "x": 585,
+            "y": -85,
+            "bCoef": 0.2,
+            "cMask": [
+                "ball"
+            ],
+            "cGroup": [
+                "ball"
+            ],
+            "bias": -10
+        },
+        {
+            "x": 555,
+            "y": 85,
+            "bCoef": 0.2,
+            "cMask": [
+                "ball"
+            ],
+            "cGroup": [
+                "ball"
+            ],
+            "bias": 10
+        },
+        {
+            "x": 585,
+            "y": 85,
+            "bCoef": 0.2,
+            "cMask": [
+                "ball"
+            ],
+            "cGroup": [
+                "ball"
+            ],
+            "bias": 10
+        },
+        {
+            "x": 585,
+            "y": -86,
+            "bCoef": 0.2,
+            "cMask": [
+                "ball"
+            ],
+            "cGroup": [
+                "ball"
+            ]
+        },
+        {
+            "x": 585,
+            "y": 86,
+            "bCoef": 0.2,
+            "cMask": [
+                "ball"
+            ],
+            "cGroup": [
+                "ball"
+            ]
+        },
+        {
+            "x": -585,
+            "y": -85,
+            "bCoef": 0.2,
+            "cMask": [
+                "ball"
+            ],
+            "cGroup": [
+                "ball"
+            ],
+            "bias": -10
+        },
+        {
+            "x": -550,
+            "y": -85,
+            "bCoef": 0.2,
+            "cMask": [
+                "ball"
+            ],
+            "cGroup": [
+                "ball"
+            ],
+            "bias": -10
+        },
+        {
+            "x": -585,
+            "y": 85,
+            "bCoef": 0.2,
+            "cMask": [
+                "ball"
+            ],
+            "cGroup": [
+                "ball"
+            ],
+            "bias": 10
+        },
+        {
+            "x": -550,
+            "y": 85,
+            "bCoef": 0.2,
+            "cMask": [
+                "ball"
+            ],
+            "cGroup": [
+                "ball"
+            ],
+            "bias": 10
+        },
+        {
+            "x": -585,
+            "y": -86,
+            "bCoef": 0.2,
+            "cMask": [
+                "ball"
+            ],
+            "cGroup": [
+                "ball"
+            ],
+            "bias": 10
+        },
+        {
+            "x": -585,
+            "y": 86,
+            "bCoef": 0.2,
+            "cMask": [
+                "ball"
+            ],
+            "cGroup": [
+                "ball"
+            ],
+            "bias": 10
+        },
+        {
+            "x": -320,
+            "y": -350,
+            "cMask": [
+                "c0"
+            ],
+            "trait": "threeDefLine",
+            "bias": 330,
+            "curve": 0
+        },
+        {
+            "x": 320,
+            "y": -350,
+            "cMask": [
+                "c1"
+            ],
+            "trait": "threeDefLine",
+            "bias": -330,
+            "curve": 0
+        },
+        {
+            "x": -320,
+            "y": 350,
+            "cMask": [
+                "c0"
+            ],
+            "trait": "threeDefLine",
+            "bias": 330,
+            "curve": 0
+        },
+        {
+            "x": 320,
+            "y": 350,
+            "cMask": [
+                "c1"
+            ],
+            "trait": "threeDefLine",
+            "bias": -330,
+            "curve": 0
+        }
+    ],
+    "segments": [
+        {
+            "v0": 0,
+            "v1": 1,
+            "color": "A199A3",
+            "bCoef": 1,
+            "cMask": [
+                "ball"
+            ],
+            "bias": -10,
+            "y": -240
+        },
+        {
+            "v0": 15,
+            "v1": 10,
+            "color": "A199A3",
+            "bCoef": 1,
+            "cMask": [
+                "ball"
+            ],
+            "bias": -10,
+            "x": 550
+        },
+        {
+            "v0": 11,
+            "v1": 16,
+            "color": "A199A3",
+            "bCoef": 1,
+            "cMask": [
+                "ball"
+            ],
+            "bias": -10,
+            "x": 550
+        },
+        {
+            "v0": 2,
+            "v1": 3,
+            "color": "A199A3",
+            "bCoef": 1,
+            "cMask": [
+                "ball"
+            ],
+            "bias": -10,
+            "y": 240
+        },
+        {
+            "v0": 17,
+            "v1": 8,
+            "color": "A199A3",
+            "bCoef": 1,
+            "cMask": [
+                "ball"
+            ],
+            "bias": -10,
+            "x": -550
+        },
+        {
+            "v0": 9,
+            "v1": 14,
+            "color": "A199A3",
+            "bCoef": 1,
+            "cMask": [
+                "ball"
+            ],
+            "bias": -10,
+            "x": -550
+        },
+        {
+            "v0": 6,
+            "v1": 13,
+            "vis": false,
+            "bCoef": 0.1,
+            "cMask": [
+                "red",
+                "blue"
+            ],
+            "cGroup": [
+                "redKO",
+                "blueKO"
+            ]
+        },
+        {
+            "v0": 7,
+            "v1": 12,
+            "vis": false,
+            "bCoef": 0.1,
+            "cMask": [
+                "red",
+                "blue"
+            ],
+            "cGroup": [
+                "redKO",
+                "blueKO"
+            ]
+        },
+        {
+            "v0": 6,
+            "v1": 7,
+            "curve": 180,
+            "color": "A199A3",
+            "bCoef": 0.1,
+            "cMask": [
+                "red",
+                "blue"
+            ],
+            "cGroup": [
+                "redKO"
+            ],
+            "curveF": 6.123233995736766e-17
+        },
+        {
+            "v0": 7,
+            "v1": 6,
+            "curve": 180,
+            "color": "A199A3",
+            "bCoef": 0.1,
+            "cMask": [
+                "red",
+                "blue"
+            ],
+            "cGroup": [
+                "blueKO"
+            ],
+            "curveF": 6.123233995736766e-17
+        },
+        {
+            "v0": 9,
+            "v1": 8,
+            "color": "CF1238",
+            "bCoef": 0,
+            "cMask": []
+        },
+        {
+            "v0": 10,
+            "v1": 11,
+            "color": "2C89AB",
+            "bCoef": 0,
+            "cMask": []
+        },
+        {
+            "v0": 4,
+            "v1": 18,
+            "color": "A199A3",
+            "cMask": [
+                "wall"
+            ]
+        },
+        {
+            "v0": 5,
+            "v1": 19,
+            "color": "A199A3",
+            "cMask": [
+                "wall"
+            ]
+        },
+        {
+            "v0": 20,
+            "v1": 21,
+            "color": "A3A3A3",
+            "bCoef": 0.2,
+            "cMask": [
+                "ball"
+            ],
+            "cGroup": [
+                "ball"
+            ],
+            "bias": -10,
+            "y": -85
+        },
+        {
+            "v0": 22,
+            "v1": 23,
+            "color": "A3A3A3",
+            "bCoef": 0.2,
+            "cMask": [
+                "ball"
+            ],
+            "cGroup": [
+                "ball"
+            ],
+            "bias": 10,
+            "y": 85
+        },
+        {
+            "v0": 24,
+            "v1": 25,
+            "color": "A3A3A3",
+            "bCoef": 0.2,
+            "cMask": [
+                "ball"
+            ],
+            "cGroup": [
+                "ball"
+            ],
+            "bias": -10,
+            "x": 735
+        },
+        {
+            "v0": 26,
+            "v1": 27,
+            "color": "a3a3a3",
+            "bCoef": 0.2,
+            "cMask": [
+                "ball"
+            ],
+            "cGroup": [
+                "ball"
+            ],
+            "bias": -10,
+            "y": -85
+        },
+        {
+            "v0": 28,
+            "v1": 29,
+            "color": "a3a3a3",
+            "bCoef": 0.2,
+            "cMask": [
+                "ball"
+            ],
+            "cGroup": [
+                "ball"
+            ],
+            "bias": 10,
+            "y": 85
+        },
+        {
+            "v0": 30,
+            "v1": 31,
+            "color": "a3a3a3",
+            "bCoef": 0.2,
+            "cMask": [
+                "ball"
+            ],
+            "cGroup": [
+                "ball"
+            ],
+            "bias": 10,
+            "x": -735
+        },
+        {
+            "v0": 32,
+            "v1": 34,
+            "curve": 0,
+            "cMask": [
+                "c0"
+            ],
+            "trait": "threeDefLine",
+            "bias": 330
+        },
+        {
+            "v0": 33,
+            "v1": 35,
+            "curve": 0,
+            "cMask": [
+                "c1"
+            ],
+            "trait": "threeDefLine",
+            "bias": -330
+        }
+    ],
+    "planes": [
+        {
+            "normal": [
+                0,
+                1
+            ],
+            "dist": -350,
+            "bCoef": 0
+        },
+        {
+            "normal": [
+                0,
+                -1
+            ],
+            "dist": -350,
+            "bCoef": 0
+        },
+        {
+            "normal": [
+                1,
+                0
+            ],
+            "dist": -660,
+            "bCoef": 0
+        },
+        {
+            "normal": [
+                -1,
+                0
+            ],
+            "dist": -660,
+            "bCoef": 0
+        },
+        {
+            "normal": [
+                -1,
+                0
+            ],
+            "dist": -1500,
+            "bCoef": 0,
+            "cMask": [
+                "c0"
+            ],
+            "cGroup": [
+                "c0"
+            ]
+        }
+    ],
+    "goals": [
+        {
+            "p0": [
+                -555,
+                87
+            ],
+            "p1": [
+                -555,
+                -85
+            ],
+            "team": "red"
+        },
+        {
+            "p0": [
+                555,
+                85
+            ],
+            "p1": [
+                555.8,
+                -85
+            ],
+            "team": "blue"
+        }
+    ],
+    "discs": [
+        {
+            "radius": 5,
+            "invMass": 0,
+            "pos": [
+                -550,
+                -85
+            ],
+            "color": "A3A3A3",
+            "bCoef": 1
+        },
+        {
+            "radius": 5,
+            "invMass": 0,
+            "pos": [
+                -550,
+                85
+            ],
+            "color": "A3A3A3",
+            "bCoef": 1
+        },
+        {
+            "radius": 5,
+            "invMass": 0,
+            "pos": [
+                550,
+                -85
+            ],
+            "color": "A3A3A3",
+            "bCoef": 1
+        },
+        {
+            "radius": 5,
+            "invMass": 0,
+            "pos": [
+                550,
+                85
+            ],
+            "color": "A3A3A3",
+            "bCoef": 1
+        },
+        {
+            "pos": [
+                -320,
+                -240
+            ],
+            "trait": "threeDefLineBall_RedFirst"
+        },
+        {
+            "pos": [
+                -320,
+                240
+            ],
+            "trait": "threeDefLineBall_RedFirst"
+        },
+        {
+            "pos": [
+                -1300,
+                -240
+            ],
+            "trait": "threeDefLineBall_RedSecond"
+        },
+        {
+            "pos": [
+                -1300,
+                240
+            ],
+            "trait": "threeDefLineBall_RedSecond"
+        },
+        {
+            "pos": [
+                320,
+                -240
+            ],
+            "trait": "threeDefLineBall_BlueFirst"
+        },
+        {
+            "pos": [
+                320,
+                240
+            ],
+            "trait": "threeDefLineBall_BlueFirst"
+        },
+        {
+            "pos": [
+                1300,
+                -240
+            ],
+            "trait": "threeDefLineBall_BlueSecond"
+        },
+        {
+            "pos": [
+                1300,
+                240
+            ],
+            "trait": "threeDefLineBall_BlueSecond"
+        }
+    ],
+    "playerPhysics": {
+        "bCoef": 0,
+        "acceleration": 0.11,
+        "kickingAcceleration": 0.083,
+        "kickStrength": 4.545,
+        "radius": 15,
+        "invMass": 0.5,
+        "damping": 0.96,
+        "cGroup": [
+            "red",
+            "blue"
+        ],
+        "gravity": [
+            0,
+            0
+        ],
+        "kickingDamping": 0.96,
+        "kickback": 0
+    },
+    "ballPhysics": {
+        "radius": 5.8,
+        "bCoef": 0.412,
+        "invMass": 1.5,
+        "damping": 0.99,
+        "cGroup": [
+            "ball",
+            "kick",
+            "score"
+        ],
+        "cMask": [
+            "all"
+        ],
+        "gravity": [
+            0,
+            0
+        ],
+        "color": "ffffff"
+    },
+    "joints": [
+        {
+            "d0": 5,
+            "d1": 6,
+            "color": "A199A3"
+        },
+        {
+            "d0": 9,
+            "d1": 10,
+            "color": "A199A3"
+        }
+    ],
+    "canBeStored": false,
+    "traits": {
+        "threeDefLine": {
+            "bCoef": 0,
+            "cGroup": [
+                "wall"
+            ],
+            "bias": -300,
+            "vis": false
+        },
+        "threeDefLineBall_RedFirst": {
+            "radius": 0,
+            "invMass": 0,
+            "damping": 0,
+            "cMask": [
+                "none"
+            ],
+            "cGroup": [
+                "none"
+            ]
+        },
+        "threeDefLineBall_RedSecond": {
+            "radius": 0,
+            "invMass": 0,
+            "damping": 0,
+            "cMask": [
+                "none"
+            ],
+            "cGroup": [
+                "none"
+            ]
+        },
+        "threeDefLineBall_BlueFirst": {
+            "radius": 0,
+            "invMass": 0,
+            "damping": 0,
+            "cMask": [
+                "none"
+            ],
+            "cGroup": [
+                "none"
+            ]
+        },
+        "threeDefLineBall_BlueSecond": {
+            "radius": 0,
+            "invMass": 0,
+            "damping": 0,
+            "cMask": [
+                "none"
+            ],
+            "cGroup": [
+                "none"
+            ]
+        }
+    },
+    "redSpawnPoints": [
+        [
+            -135,
+            -80
+        ],
+        [
+            -135,
+            80
+        ],
+        [
+            -420,
+            0
+        ],
+        [
+            -700,
+            0
+        ]
+    ],
+    "blueSpawnPoints": [
+        [
+            135,
+            -80
+        ],
+        [
+            135,
+            80
+        ],
+        [
+            420,
+            0
+        ],
+        [
+            700,
+            0
+        ]
+    ],
+    "kickOffReset": "full",
+    "cameraWidth": 0,
+    "cameraHeight": 0,
+    "maxViewWidth": 0,
+    "cameraFollow": "ball",
+    "spawnDistance": 350
+}
