@@ -1,17 +1,26 @@
-const roomBuilder = (HBInit, config) => {
-    const room = HBInit({
-        roomName: config.name,
-        maxPlayers: config.maxPlayers,
-        public: true,
-        noPlayer: true,
-        token: config.token,
-    })
-    import("../bot/base.js")
-    global.room = room;
-    global.roomName = config.name;
-    global.maxPlayers = config.maxPlayers;
-    global.token = config.token;
-    global.public = config.public;
-    module.exports.room = room;
+const { DiscordManager } = require("../discord/discordManager");
+
+class RoomManager {
+    constructor(room, discord, config) {
+        this.room = room;
+        this.discord = discord;
+        this.config = config;
+
+        this.room.logging = false;
+    
+        this.listenEvents();
+    }
+
+    listenEvents() {
+        this.room.onRoomLink = (link) => {
+        }
+
+        this.room.onPlayerJoin = (player) => {
+        }
+
+        this.room.onPlayerChat = (player, message) => {
+        }
+    }
 }
-module.exports = roomBuilder;
+
+module.exports = { RoomManager };

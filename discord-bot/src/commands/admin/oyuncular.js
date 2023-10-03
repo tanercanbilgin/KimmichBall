@@ -1,17 +1,16 @@
-const { getRoom } = require("../../../../haxball-bot/main");
-const { SlashCommandBuilder } = require("@discordjs/builders");
+const { SlashCommandBuilder } = require('@discordjs/builders')
 
 module.exports = {
-    data: {
-        name: "oyuncular",
-        cooldown: 1,
-        slash: new SlashCommandBuilder()
-            .setName("oyuncular")
-            .setDescription("Oda oyuncularını gösterir."),
-    },
+  data: {
+    name: 'oyuncular',
+    cooldown: 1,
+    slash: new SlashCommandBuilder()
+      .setName('oyuncular')
+      .setDescription('Oda oyuncularını gösterir.')
+  },
 
-    async execute(interaction) {
-        const room = getRoom(3)(room);
-        console.log(room);
-    },
-};
+  async execute (interaction) {
+    const room = getRoom(3)(room)
+    console.log(room)
+  }
+}
