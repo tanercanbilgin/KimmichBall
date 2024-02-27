@@ -1,179 +1,180 @@
-const { readFileSync, readdirSync } = require('fs')
-const buffer = require('buffer')
+const { readFileSync } = require("fs");
+const buffer = require('buffer');
 
-const kufurlistesi = JSON.parse(readFileSync('haxball-bot/utils/kufurlistesi.json', 'utf8'))
-const antrenmanMap = readFileSync('haxball-bot/stadiums/futsalant.json', 'utf8')
-const v2Map = readFileSync('haxball-bot/stadiums/futsalv12.json', 'utf8')
-const v3Map = readFileSync('haxball-bot/stadiums/futsalv3.json', 'utf8')
+const kufurlistesi = JSON.parse(readFileSync('haxball-bot/utils/kufurlistesi.json', 'utf8'));
+const antrenmanMap = readFileSync("haxball-bot/stadiums/futsalant.json", "utf8");
+const v2Map = readFileSync("haxball-bot/stadiums/futsalv12.json", "utf8");
+const v3Map = readFileSync("haxball-bot/stadiums/futsalv3.json", "utf8");
 
-require('dotenv').config()
+require("dotenv").config();
 
-const roomWebhook =
-  'https://discord.com/api/webhooks/979845451132076102/9RIyNHCcaUASkZ_drvmrf50bLW3-Gd1wj_wolFUIctyorih6qBGrnIaOFASBptG_K9CI'
-const gameWebhook =
-  'https://discord.com/api/webhooks/979834834702704670/Ap0OSK-wilADiZQRGvfgVt5yJOe1zK16swSpnfLcq-No3R69d0a-j9WNIPsLvqMIn1Um'
-const kickbanWebhook =
-  'https://discord.com/api/webhooks/980049915268968508/1YXK-RQhEGxziVvIxHPe8fY4s1Bywgz7QMZF56jNWIngh-RIJ8yNwzPFvrKXTHiWsSeC'
-const giriscikisWebhook =
-  'https://discord.com/api/webhooks/980050003290640386/TmAz0d-mLNWLTRtFCfwNYdWaQv9lRPfKyeYKlblI3vT3FZDLyENo0o_9ygBFXCLR7UUg'
-const recordingWebhook =
-  'https://discord.com/api/webhooks/1084552885502738493/ZJlaIzCKBkgXwcmHXE6BT3LrY8eny_hmML4QsQZkLfeZZ7iJSCOyrf7pEMZoXZHO0FDm'
+var roomWebhook =
+  "https://discord.com/api/webhooks/979845451132076102/9RIyNHCcaUASkZ_drvmrf50bLW3-Gd1wj_wolFUIctyorih6qBGrnIaOFASBptG_K9CI";
+var gameWebhook =
+  "https://discord.com/api/webhooks/979834834702704670/Ap0OSK-wilADiZQRGvfgVt5yJOe1zK16swSpnfLcq-No3R69d0a-j9WNIPsLvqMIn1Um";
+var kickbanWebhook =
+  "https://discord.com/api/webhooks/980049915268968508/1YXK-RQhEGxziVvIxHPe8fY4s1Bywgz7QMZF56jNWIngh-RIJ8yNwzPFvrKXTHiWsSeC";
+var giriscikisWebhook =
+  "https://discord.com/api/webhooks/980050003290640386/TmAz0d-mLNWLTRtFCfwNYdWaQv9lRPfKyeYKlblI3vT3FZDLyENo0o_9ygBFXCLR7UUg";
+var recordingWebhook =
+  "https://discord.com/api/webhooks/1084552885502738493/ZJlaIzCKBkgXwcmHXE6BT3LrY8eny_hmML4QsQZkLfeZZ7iJSCOyrf7pEMZoXZHO0FDm";
 
-const fetchRecordingVariable = true
-const timeLimit = 3
-const scoreLimit = 1
 
-let currentStadium = 'antrenman'
+var fetchRecordingVariable = true;
+var timeLimit = 3;
+var scoreLimit = 1;
 
-room.setScoreLimit(scoreLimit)
-room.setTimeLimit(timeLimit)
-room.setTeamsLock(true)
-room.setKickRateLimit(6, 0, 0)
+var currentStadium = "antrenman";
 
-let roomPassword = ''
+room.setScoreLimit(scoreLimit);
+room.setTimeLimit(timeLimit);
+room.setTeamsLock(true);
+room.setKickRateLimit(6, 0, 0);
+
+var roomPassword = "";
 
 /* OPTIONS */
 
-const drawTimeLimit = Infinity
-const teamSize = 3
-const debugMode = true
-const afkLimit = debugMode ? Infinity : 30
-const JMap = JSON.parse(v3Map)
+var drawTimeLimit = Infinity;
+var teamSize = 3;
+var debugMode = true;
+var afkLimit = debugMode ? Infinity : 30;
+var JMap = JSON.parse(v3Map);
 
-const defaultSlowMode = 0.5
-const chooseModeSlowMode = 1
-let slowMode = defaultSlowMode
-const SMSet = new Set()
+var defaultSlowMode = 0.5;
+var chooseModeSlowMode = 1;
+var slowMode = defaultSlowMode;
+var SMSet = new Set();
 
-const mentionPlayersUnpause = true
+var mentionPlayersUnpause = true;
 
-let allMuted = false
+var allMuted = false
 
-let adminCagirTimeout = false
+var adminCagirTimeout = false
 
 /* OBJECTS */
 
 class Goal {
-  constructor (time, team, striker, assist) {
-    this.time = time
-    this.team = team
-    this.striker = striker
-    this.assist = assist
+  constructor(time, team, striker, assist) {
+    this.time = time;
+    this.team = team;
+    this.striker = striker;
+    this.assist = assist;
   }
 }
 
 class Game {
-  constructor () {
-    this.date = Date.now()
-    this.scores = room.getScores()
-    this.playerComp = getStartingLineups()
-    this.rec = room.startRecording()
-    this.goals = []
-    this.touchArray = []
+  constructor() {
+    this.date = Date.now();
+    this.scores = room.getScores();
+    this.playerComp = getStartingLineups();
+    this.rec = room.startRecording();
+    this.goals = [];
+    this.touchArray = [];
   }
 }
 
 class PlayerComposition {
-  constructor (player, auth, timeEntry, timeExit) {
-    this.player = player
-    this.auth = auth
-    this.timeEntry = timeEntry
-    this.timeExit = timeExit
-    this.inactivityTicks = 0
-    this.GKTicks = 0
+  constructor(player, auth, timeEntry, timeExit) {
+    this.player = player;
+    this.auth = auth;
+    this.timeEntry = timeEntry;
+    this.timeExit = timeExit;
+    this.inactivityTicks = 0;
+    this.GKTicks = 0;
   }
 }
 
 class MutePlayer {
-  constructor (name, id, auth) {
-    this.id = MutePlayer.incrementId()
-    this.name = name
-    this.playerId = id
-    this.auth = auth
-    this.unmuteTimeout = null
+  constructor(name, id, auth) {
+    this.id = MutePlayer.incrementId();
+    this.name = name;
+    this.playerId = id;
+    this.auth = auth;
+    this.unmuteTimeout = null;
   }
 
-  static incrementId () {
-    if (!this.latestId) this.latestId = 1
-    else this.latestId++
-    return this.latestId
+  static incrementId() {
+    if (!this.latestId) this.latestId = 1;
+    else this.latestId++;
+    return this.latestId;
   }
 
-  setDuration (minutes) {
+  setDuration(minutes) {
     this.unmuteTimeout = setTimeout(() => {
       room.sendAnnouncement(
-        'Artık yazabilirsin.',
+        `Artık yazabilirsin.`,
         this.playerId,
         announcementColor,
-        'bold',
+        "bold",
         HaxNotification.CHAT
-      )
-      this.remove()
-    }, minutes * 60 * 1000)
-    muteArray.add(this)
+      );
+      this.remove();
+    }, minutes * 60 * 1000);
+    muteArray.add(this);
   }
 
-  remove () {
-    this.unmuteTimeout = null
-    muteArray.removeById(this.id)
+  remove() {
+    this.unmuteTimeout = null;
+    muteArray.removeById(this.id);
   }
 }
 
 class MuteList {
-  constructor () {
-    this.list = []
+  constructor() {
+    this.list = [];
   }
 
-  add (mutePlayer) {
-    this.list.push(mutePlayer)
-    return mutePlayer
+  add(mutePlayer) {
+    this.list.push(mutePlayer);
+    return mutePlayer;
   }
 
-  getById (id) {
-    const index = this.list.findIndex((mutePlayer) => mutePlayer.id === id)
+  getById(id) {
+    var index = this.list.findIndex((mutePlayer) => mutePlayer.id === id);
     if (index !== -1) {
-      return this.list[index]
+      return this.list[index];
     }
-    return null
+    return null;
   }
 
-  getByPlayerId (id) {
-    const index = this.list.findIndex(mutePlayer => mutePlayer.playerId === id)
+  getByPlayerId(id) {
+    var index = this.list.findIndex(mutePlayer => mutePlayer.playerId === id);
     if (index !== -1) {
-      return this.list[index]
+      return this.list[index];
     }
-    return null
+    return null;
   }
 
-  getByAuth (auth) {
-    const index = this.list.findIndex((mutePlayer) => mutePlayer.auth === auth)
+  getByAuth(auth) {
+    var index = this.list.findIndex((mutePlayer) => mutePlayer.auth === auth);
     if (index !== -1) {
-      return this.list[index]
+      return this.list[index];
     }
-    return null
+    return null;
   }
 
-  removeById (id) {
-    const index = this.list.findIndex((mutePlayer) => mutePlayer.id === id)
+  removeById(id) {
+    var index = this.list.findIndex((mutePlayer) => mutePlayer.id === id);
     if (index !== -1) {
-      this.list.splice(index, 1)
+      this.list.splice(index, 1);
     }
   }
 
-  removeByAuth (auth) {
-    const index = this.list.findIndex((mutePlayer) => mutePlayer.auth === auth)
+  removeByAuth(auth) {
+    var index = this.list.findIndex((mutePlayer) => mutePlayer.auth === auth);
     if (index !== -1) {
-      this.list.splice(index, 1)
+      this.list.splice(index, 1);
     }
   }
 }
 
 class BallTouch {
-  constructor (player, time, goal, position) {
-    this.player = player
-    this.time = time
-    this.goal = goal
-    this.position = position
+  constructor(player, time, goal, position) {
+    this.player = player;
+    this.time = time;
+    this.goal = goal;
+    this.position = position;
   }
 }
 
@@ -182,75 +183,75 @@ class BallTouch {
 const Team = {
   SPECTATORS: 0,
   RED: 1,
-  BLUE: 2
-}
+  BLUE: 2,
+};
 const State = {
   PLAY: 0,
   PAUSE: 1,
-  STOP: 2
-}
+  STOP: 2,
+};
 const Role = {
   PLAYER: 0,
   ADMIN_TEMP: 1,
   VIP: 2,
   ADMIN_PERM: 3,
-  MASTER: 4
-}
+  MASTER: 4,
+};
 const HaxNotification = {
   NONE: 0,
   CHAT: 1,
-  MENTION: 2
-}
+  MENTION: 2,
+};
 const Situation = {
   STOP: 0,
   KICKOFF: 1,
   PLAY: 2,
-  GOAL: 3
-}
+  GOAL: 3,
+};
 
-let gameState = State.STOP
-let playSituation = Situation.STOP
-let goldenGoal = false
+var gameState = State.STOP;
+var playSituation = Situation.STOP;
+var goldenGoal = false;
 
-let playersAll = []
-let players = []
-let teamRed = []
-let teamBlue = []
-let teamSpec = []
+var playersAll = [];
+var players = [];
+var teamRed = [];
+var teamBlue = [];
+var teamSpec = [];
 
-let teamRedStats = []
-let teamBlueStats = []
+var teamRedStats = [];
+var teamBlueStats = [];
 
-let banList = []
+var banList = [];
 
 /* STATS */
 
-let possession = [0, 0]
-let actionZoneHalf = [0, 0]
-let lastWinner = Team.SPECTATORS
-let streak = 0
+var possession = [0, 0];
+var actionZoneHalf = [0, 0];
+var lastWinner = Team.SPECTATORS;
+var streak = 0;
 
 /* AUTH */
 
-const authArray = []
+var authArray = [];
 
 /* COMMANDS */
 
-const commands = {
+var commands = {
   yardım: {
-    aliases: ['komutlar'],
+    aliases: ["komutlar"],
     roles: Role.PLAYER,
     desc: `
     Bu komut sana kullanabileceğin komutları gösterir. Nasıl kullanacağını bilmediğin komut için:
 Örnek: \'!yardım bb\' sana \'bb\' komutunun nasıl kullanacağını gösterir.`,
-    function: helpCommand
+    function: helpCommand,
   },
   discord: {
-    aliases: ['dc'],
+    aliases: ["dc"],
     roles: Role.PLAYER,
     desc: `
         Bu komut ile odanın discord linkini öğrenebilirsin.`,
-    function: dclinkCommand
+    function: dclinkCommand,
   },
   afk: {
     aliases: [],
@@ -258,673 +259,680 @@ const commands = {
     desc: `
         Bu komut ile AFK kalabilirsin.
     En az 1, en fazla 5 dakika afk kalabilirsin. Komutu tekrar kullanmak için 10 dakika beklemelisin`,
-    function: afkCommand
+    function: afkCommand,
   },
   afklar: {
-    aliases: ['afklistesi'],
+    aliases: ["afklistesi"],
     roles: Role.PLAYER,
     desc: `
         Bu komut ile kimler AFK görebilirsin.`,
-    function: afkListCommand
+    function: afkListCommand,
   },
   bb: {
-    aliases: ['bay', 'görüşürüz', 'ae'],
+    aliases: ["bay", "görüşürüz", "ae"],
     roles: Role.PLAYER,
     desc: `
     Bu komut ile oyunu sorunsuzca terkedebilirsin (önerilir).`,
-    function: leaveCommand
+    function: leaveCommand,
   },
   avatar: {
-    aliases: ['avatarlar'],
+    aliases: ["avatarlar"],
     roles: Role.PLAYER,
     desc: `
     Bu komut ile avatarının neden böyle olduğunu anlayabilirsin.`,
-    function: avatarListCommand
+    function: avatarListCommand,
   },
   ben: {
-    aliases: ['istatistik', 'stat', 'stats', 'me'],
+    aliases: ["istatistik", "stat", "stats", "me"],
     roles: Role.PLAYER,
     desc: `
         Bu komut ile istatistiklerini görebilirsin.`,
-    function: globalStatsCommand
+    function: globalStatsCommand,
   },
   oyunlar: {
     aliases: [],
     roles: Role.PLAYER,
     desc: `
         Bu komut ile odadaki en çok oyun oynamış 5 kişiyi görürsün.`,
-    function: statsLeaderboardCommand
+    function: statsLeaderboardCommand,
   },
   galibiyet: {
     aliases: [],
     roles: Role.PLAYER,
     desc: `
         Bu komut ile odadaki en çok oyun kazanmış 5 kişiyi görürsün.`,
-    function: statsLeaderboardCommand
+    function: statsLeaderboardCommand,
   },
   gol: {
     aliases: [],
     roles: Role.PLAYER,
     desc: `
         Bu komut ile odadaki en çok gol atmış 5 kişiyi görürsün`,
-    function: statsLeaderboardCommand
+    function: statsLeaderboardCommand,
   },
   asist: {
     aliases: [],
     roles: Role.PLAYER,
     desc: `
         Bu komut ile odadaki en çok asist yapmış 5 kişiyi görürsün`,
-    function: statsLeaderboardCommand
+    function: statsLeaderboardCommand,
   },
   kk: {
     aliases: [],
     roles: Role.PLAYER,
     desc: `
         Bu komut ile odadaki kendi kalesine en çok gol atmış 5 kişiyi görürsün`,
-    function: statsLeaderboardCommand
+    function: statsLeaderboardCommand,
   },
   aktiflik: {
     aliases: [],
     roles: Role.PLAYER,
     desc: `
         Bu komut ile odadaki en çok zaman geçirmiş 5 kişiyi görürsün.`,
-    function: statsLeaderboardCommand
+    function: statsLeaderboardCommand,
   },
   cs: {
     aliases: [],
     roles: Role.PLAYER,
     desc: `
         Bu komut ile odadaki en çok gol yememe rekoruna sahip 5 kaleci veya defansı görürsün`,
-    function: statsLeaderboardCommand
+    function: statsLeaderboardCommand,
   },
   puan: {
     aliases: [],
     roles: Role.PLAYER,
     desc: `
         Bu komut ile odadaki en yüksek puana sahip 5 kişiyi görürsün`,
-    function: statsLeaderboardCommand
+    function: statsLeaderboardCommand,
   },
   bakiye: {
     aliases: [],
     roles: Role.PLAYER,
     desc: `
         Bu komut ile odadaki en yüksek bakiyeye sahip 5 kişiyi görürsün`,
-    function: statsLeaderboardCommand
+    function: statsLeaderboardCommand,
   },
   adminçağır: {
-    aliases: ['admincagir', 'administe'],
+    aliases: ["admincagir", "administe"],
     roles: Role.PLAYER,
     desc: `
     Bu komut ile önemli durumlarda admin çağırabilirsin.`,
-    function: admincagirCommand
+    function: admincagirCommand,
   },
   antrenman: {
-    aliases: ['ant', 'antr'],
+    aliases: ["ant", "antr"],
     roles: Role.ADMIN_TEMP,
     desc: `
         Bu komut ile antrenman haritasını açarsın.`,
-    function: stadiumCommand
+    function: stadiumCommand,
   },
   v2: {
-    aliases: ['v1'],
+    aliases: ["v1"],
     roles: Role.ADMIN_TEMP,
     desc: `
         Bu komut ile v1 - v2 haritasını açarsın.`,
-    function: stadiumCommand
+    function: stadiumCommand,
   },
   v3: {
-    aliases: [''],
+    aliases: [""],
     roles: Role.ADMIN_TEMP,
     desc: `
         Bu komut ile v3 haritasını açarsın.`,
-    function: stadiumCommand
+    function: stadiumCommand,
   },
   rr: {
     aliases: [],
     roles: Role.ADMIN_TEMP,
     desc: `
         Bu komut ile oyunu yeniden başlatırsın`,
-    function: restartCommand
+    function: restartCommand,
   },
   rrs: {
     aliases: [],
     roles: Role.ADMIN_TEMP,
     desc: `
     Bu komut ile takımları yer değiştirip oyunu yeniden başlatırsın.`,
-    function: restartSwapCommand
+    function: restartSwapCommand,
   },
   değiş: {
-    aliases: ['swap', 's'],
+    aliases: ["swap", "s"],
     roles: Role.ADMIN_TEMP,
     desc: `
     Bu komut ile takımları yer değiştirirsin.`,
-    function: swapCommand
+    function: swapCommand,
   },
   kırmızıkick: {
     aliases: [
-      'kickr',
-      'rediat',
-      'redat',
-      'kırmızıyıat',
-      'kırmızıat',
-      'kickrec',
-      'kk'
+      "kickr",
+      "rediat",
+      "redat",
+      "kırmızıyıat",
+      "kırmızıat",
+      "kickrec",
+      "kk",
     ],
     roles: Role.ADMIN_TEMP,
     desc: `
     Bu komut ile kırmızı takımını oyundan atarsın(sen de dahilsin). Neden attığını belirtmen gerekiyor.`,
-    function: kickTeamCommand
+    function: kickTeamCommand,
   },
   mavikick: {
-    aliases: ['kickb', 'blueat', 'maviyiat', 'maviat', 'kickblue', 'mk'],
+    aliases: ["kickb", "blueat", "maviyiat", "maviat", "kickblue", "mk"],
     roles: Role.ADMIN_TEMP,
     desc: `
     Bu komut ile mavi takımını oyundan atarsın(sen de dahilsin). Neden attığını belirtmen gerekiyor.`,
-    function: kickTeamCommand
+    function: kickTeamCommand,
   },
   speckick: {
     aliases: [
-      'kicks',
-      'specat',
-      'izleyiciat',
-      'izleyiciyiat',
-      'izleyicileriat',
-      'sk'
+      "kicks",
+      "specat",
+      "izleyiciat",
+      "izleyiciyiat",
+      "izleyicileriat",
+      "sk",
     ],
     roles: Role.ADMIN_TEMP,
     desc: `
     Bu komut ile izleyici takımını oyundan atarsın(sen de dahilsin). Neden attığını belirtmen gerekiyor.`,
-    function: kickTeamCommand
+    function: kickTeamCommand,
   },
   mute: {
-    aliases: ['sustur', 'mute'],
+    aliases: ["sustur", "mute"],
     roles: Role.ADMIN_TEMP,
     desc: `
         Bu komut ile bir oyunucuyu susturursun. İstersen yanına kaç dakika susması gerektiğini belirtebilirsin.
         Örnek: !mute #3 20, 3 idsine sahip oyuncuyu 20 dakika boyunca susturur.`,
-    function: muteCommand
+    function: muteCommand,
   },
   muteall: {
-    aliases: ['toplusustur', 'toplumute'],
+    aliases: ["toplusustur", "toplumute"],
     roles: Role.ADMIN_TEMP,
     desc: `
         Bu komut ile sunucuyu toplu şekilde susturursun. Sadece adminler mesaj atabilir.`,
-    function: muteAllCommand
+    function: muteAllCommand,
   },
   unmute: {
-    aliases: ['um'],
+    aliases: ["um"],
     roles: Role.ADMIN_TEMP,
     desc: `
         Bu komut ile mutelanmış oyuncunun cezasını kaldırırsın.
         Örnek: !unmute #3, 3 idsine sahip oyuncu artık yazabilir.`,
-    function: unmuteCommand
+    function: unmuteCommand,
   },
   mutelar: {
-    aliases: ['mutes'],
+    aliases: ["mutes"],
     roles: Role.ADMIN_TEMP,
     desc: `
         Bu komut ile mutelanmış oyuncuları görürsün.`,
-    function: muteListCommand
+    function: muteListCommand,
   },
   rankres: {
-    aliases: ['ranksıfırla', 'rankreset'],
+    aliases: ["ranksıfırla", "rankreset"],
     roles: Role.VIP,
     desc: `
         Bu komut ile rankını sıfırlayabilirsin!`,
-    function: rankResetCommand
+    function: rankResetCommand,
   },
   kick: {
-    aliases: ['kickle'],
+    aliases: ["kickle"],
     roles: Role.ADMIN_PERM,
     desc: `
     Bu komut ile oyuncuları kicklersin.`,
-    function: kickCommand
+    function: kickCommand,
   },
   ban: {
-    aliases: ['banla'],
+    aliases: ["banla"],
     roles: Role.ADMIN_PERM,
     desc: `
     Bu komut ile oyuncuları süreli veya süresiz banlarsın.`,
-    function: banCommand
+    function: banCommand,
   },
   banlar: {
-    aliases: ['banlist', 'bans', 'banlistesi'],
+    aliases: ["banlist", "bans", "banlistesi"],
     roles: Role.ADMIN_PERM,
     desc: `
     Bu komut ile banlanan oyuncuları numarasıyla birlikte görebilirsin.`,
-    function: banListCommand
+    function: banListCommand,
   },
   bankaldır: {
-    aliases: ['clearbans'],
+    aliases: ["clearbans"],
     roles: Role.ADMIN_PERM,
     desc: `
     Bu komut ile banlanan bütün oyuncuların banını kaldırabilirsin. Eğer sadece bir kişinin banını kaldırmak istiyorsan !banlar yazmalısın
     Daha sonra oyuncunun yanındaki numarayı öğrenip !bankaldır 45(oyuncunun yanındaki numara) yazmalısın.`,
-    function: clearbansCommand
+    function: clearbansCommand,
   },
   odaşifresi: {
-    aliases: ['roompass', 'odaşifre'],
+    aliases: ["roompass", "odaşifre"],
     roles: Role.MASTER,
     desc: `
         Bu komut ile odaya şifre koyarsın. Kullanımı !odaşifresi deneme123
         Geri kaldırmak için !odaşifresi yazman yeterli`,
-    function: passwordCommand
-  }
-}
+    function: passwordCommand,
+  },
+};
 
 /* GAME */
 
-let lastTouches = Array(2).fill(null)
-let lastTeamTouched
+var lastTouches = Array(2).fill(null);
+var lastTeamTouched;
 
-const speedCoefficient = 100 / (5 * (0.99 ** 60 + 1))
-let ballSpeed = 0
-const playerRadius = 15
-const ballRadius = 6.25
-const triggerDistance = playerRadius + ballRadius + 0.01
+var speedCoefficient = 100 / (5 * (0.99 ** 60 + 1));
+var ballSpeed = 0;
+var playerRadius = 15;
+var ballRadius = 6.25;
+var triggerDistance = playerRadius + ballRadius + 0.01;
 
 /* COLORS */
 
-const welcomeColor = 0xc4ff65
-var announcementColor = 0xffefd6
-const infoColor = 0xbebebe
-const privateMessageColor = 0xffc933
-const redColor = 0xff4c4c
-const blueColor = 0x62cbff
-const warningColor = 0xffa135
-const errorColor = 0xa40000
-const successColor = 0x75ff75
-const defaultColor = null
+var welcomeColor = 0xc4ff65;
+var announcementColor = 0xffefd6;
+var infoColor = 0xbebebe;
+var privateMessageColor = 0xffc933;
+var redColor = 0xff4c4c;
+var blueColor = 0x62cbff;
+var warningColor = 0xffa135;
+var errorColor = 0xa40000;
+var successColor = 0x75ff75;
+var defaultColor = null;
 
 /* AUXILIARY */
 
-let checkTimeVariable = false
-let checkStadiumVariable = true
-let endGameVariable = false
-let cancelGameVariable = false
-let kickFetchVariable = false
+var checkTimeVariable = false;
+var checkStadiumVariable = true;
+var endGameVariable = false;
+var cancelGameVariable = false;
+var kickFetchVariable = false;
 
-let chooseMode = false
-let timeOutCap
-let capLeft = false
-let redCaptainChoice = ''
-let blueCaptainChoice = ''
-const chooseTime = 20
+var chooseMode = false;
+var timeOutCap;
+var capLeft = false;
+var redCaptainChoice = "";
+var blueCaptainChoice = "";
+var chooseTime = 20;
 
-const AFKSet = new Set()
-const AFKMinSet = new Set()
-const AFKCooldownSet = new Set()
-const minAFKDuration = 0
-const maxAFKDuration = 30
-const AFKCooldown = 0
+var AFKSet = new Set();
+var AFKMinSet = new Set();
+var AFKCooldownSet = new Set();
+var minAFKDuration = 0;
+var maxAFKDuration = 30;
+var AFKCooldown = 0;
 
-var muteArray = new MuteList()
-const muteDuration = 5
+var muteArray = new MuteList();
+var muteDuration = 5;
 
-let removingPlayers = false
-let insertingPlayers = false
+var removingPlayers = false;
+var insertingPlayers = false;
 
-let stopTimeout
-let startTimeout
-let unpauseTimeout
-let removingTimeout
-let insertingTimeout
+var stopTimeout;
+var startTimeout;
+var unpauseTimeout;
+var removingTimeout;
+var insertingTimeout;
 
-const emptyPlayer = {
-  id: 0
-}
-stadiumCommand(emptyPlayer, '!antrenman')
+var emptyPlayer = {
+  id: 0,
+};
+stadiumCommand(emptyPlayer, "!antrenman");
 
-let game = new Game()
+var game = new Game();
 
 /* FUNCTIONS */
 
 /* AUXILIARY FUNCTIONS */
 
-if (typeof String.prototype.replaceAll !== 'function') {
+if (typeof String.prototype.replaceAll != "function") {
   String.prototype.replaceAll = function (search, replacement) {
-    const target = this
-    return target.split(search).join(replacement)
-  }
+    var target = this;
+    return target.split(search).join(replacement);
+  };
 }
 
-function getDate () {
-  const d = new Date()
-  const options = {
-    month: 'long',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  }
-  return d.toLocaleString('tr-TR', options)
+function getDate() {
+  let d = new Date();
+  var options = {
+    month: "long",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  };
+  return d.toLocaleString('tr-TR', options);
 }
 
 /* MATH FUNCTIONS */
 
-function getRandomInt (max) {
+function getRandomInt(max) {
   // returns a random number between 0 and max-1
-  return Math.floor(Math.random() * Math.floor(max))
+  return Math.floor(Math.random() * Math.floor(max));
 }
 
-function pointDistance (p1, p2) {
-  return Math.sqrt(Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2))
+function pointDistance(p1, p2) {
+  return Math.sqrt(Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2));
 }
 
 /* TIME FUNCTIONS */
 
-function getHoursStats (time) {
-  return Math.floor(time / 3600)
+function getHoursStats(time) {
+  return Math.floor(time / 3600);
 }
 
-function getMinutesGame (time) {
-  const t = Math.floor(time / 60)
-  return `${Math.floor(t / 10)}${Math.floor(t % 10)}`
+function getMinutesGame(time) {
+  var t = Math.floor(time / 60);
+  return `${Math.floor(t / 10)}${Math.floor(t % 10)}`;
 }
 
-function getMinutesReport (time) {
-  return Math.floor(Math.round(time) / 60)
+function getMinutesReport(time) {
+  return Math.floor(Math.round(time) / 60);
 }
 
-function getMinutesEmbed (time) {
-  const t = Math.floor(Math.round(time) / 60)
-  return `${Math.floor(t / 10)}${Math.floor(t % 10)}`
+function getMinutesEmbed(time) {
+  var t = Math.floor(Math.round(time) / 60);
+  return `${Math.floor(t / 10)}${Math.floor(t % 10)}`;
 }
 
-function getMinutesStats (time) {
-  return Math.floor(time / 60) - getHoursStats(time) * 60
+function getMinutesStats(time) {
+  return Math.floor(time / 60) - getHoursStats(time) * 60;
 }
 
-function getSecondsGame (time) {
-  const t = Math.floor(time - Math.floor(time / 60) * 60)
-  return `${Math.floor(t / 10)}${Math.floor(t % 10)}`
+function getSecondsGame(time) {
+  var t = Math.floor(time - Math.floor(time / 60) * 60);
+  return `${Math.floor(t / 10)}${Math.floor(t % 10)}`;
 }
 
-function getSecondsReport (time) {
-  const t = Math.round(time)
-  return Math.floor(t - getMinutesReport(t) * 60)
+function getSecondsReport(time) {
+  var t = Math.round(time);
+  return Math.floor(t - getMinutesReport(t) * 60);
 }
 
-function getSecondsEmbed (time) {
-  const t = Math.round(time)
-  const t2 = Math.floor(t - Math.floor(t / 60) * 60)
-  return `${Math.floor(t2 / 10)}${Math.floor(t2 % 10)}`
+function getSecondsEmbed(time) {
+  var t = Math.round(time);
+  var t2 = Math.floor(t - Math.floor(t / 60) * 60);
+  return `${Math.floor(t2 / 10)}${Math.floor(t2 % 10)}`;
 }
 
-function getTimeGame (time) {
-  return `${getMinutesGame(time)}:${getSecondsGame(time)}`
+function getTimeGame(time) {
+  return `${getMinutesGame(time)}:${getSecondsGame(time)}`;
 }
 
-function getTimeEmbed (time) {
-  return `[${getMinutesEmbed(time)}:${getSecondsEmbed(time)}]`
+function getTimeEmbed(time) {
+  return `[${getMinutesEmbed(time)}:${getSecondsEmbed(time)}]`;
 }
 
-function getTimeStats (time) {
+function getTimeStats(time) {
   if (getHoursStats(time) > 0) {
-    return `${getHoursStats(time)} saat ${getMinutesStats(time)} dakika`
+    return `${getHoursStats(time)} saat ${getMinutesStats(time)} dakika`;
   } else {
-    return `${getMinutesStats(time)} dakika`
+    return `${getMinutesStats(time)} dakika`;
   }
 }
 
-function getGoalGame () {
-  return game.scores.red + game.scores.blue
+function getGoalGame() {
+  return game.scores.red + game.scores.blue;
 }
 
 /* REPORT FUNCTIONS */
 
-function findFirstNumberCharString (str) {
-  const str_number = str[str.search(/[0-9]/g)]
-  return str_number === undefined ? '0' : str_number
+function findFirstNumberCharString(str) {
+  let str_number = str[str.search(/[0-9]/g)];
+  return str_number === undefined ? "0" : str_number;
 }
 
-function getIdReport () {
-  const d = new Date()
-  return `${d.getFullYear() % 100}${d.getMonth() < 9 ? '0' : ''}${d.getMonth() + 1
-    }${d.getDate() < 10 ? '0' : ''}${d.getDate()}${d.getHours() < 10 ? '0' : ''
-    }${d.getHours()}${d.getMinutes() < 10 ? '0' : ''}${d.getMinutes()}${d.getSeconds() < 10 ? '0' : ''
-    }${d.getSeconds()}${findFirstNumberCharString(roomName)}`
+function getIdReport() {
+  var d = new Date();
+  return `${d.getFullYear() % 100}${d.getMonth() < 9 ? "0" : ""}${d.getMonth() + 1
+    }${d.getDate() < 10 ? "0" : ""}${d.getDate()}${d.getHours() < 10 ? "0" : ""
+    }${d.getHours()}${d.getMinutes() < 10 ? "0" : ""}${d.getMinutes()}${d.getSeconds() < 10 ? "0" : ""
+    }${d.getSeconds()}${findFirstNumberCharString(roomName)}`;
 }
 
-function getRecordingName (game) {
-  const d = new Date()
-  const redCap =
+function getRecordingName(game) {
+  var d = new Date();
+  var redCap =
     game.playerComp[0][0] != undefined
       ? game.playerComp[0][0].player.name
-      : 'Kirmizi'
-  const blueCap =
+      : "Kirmizi";
+  var blueCap =
     game.playerComp[1][0] != undefined
       ? game.playerComp[1][0].player.name
-      : 'Mavi'
-  return `${d.getDate()}-${d.getMonth() < 10 ? '0' + (d.getMonth() + 1) : d.getMonth() + 1
+      : "Mavi";
+  return `${d.getDate()}-${d.getMonth() < 10 ? "0" + (d.getMonth() + 1) : d.getMonth() + 1
     }-${d.getFullYear() % 100
-    }-${d.getHours()}s${d.getMinutes()}-${redCap}vs${blueCap}.hbr2`
+    }-${d.getHours()}s${d.getMinutes()}-${redCap}vs${blueCap}.hbr2`;
 }
 
 /* FEATURE FUNCTIONS */
 
-function getCommand (commandStr) {
-  if (commands.hasOwnProperty(commandStr)) return commandStr
+function getCommand(commandStr) {
+  if (commands.hasOwnProperty(commandStr)) return commandStr;
   for (const [key, value] of Object.entries(commands)) {
-    for (const alias of value.aliases) {
-      if (alias == commandStr) return key
+    for (let alias of value.aliases) {
+      if (alias == commandStr) return key;
     }
   }
-  return false
+  return false;
 }
 
-function getPlayerComp (player) {
-  if (player == null || player.id == 0) return null
-  const comp = game.playerComp
-  let index = comp[0].findIndex((c) => c.auth == authArray[player.id][0])
-  if (index != -1) return comp[0][index]
-  index = comp[1].findIndex((c) => c.auth == authArray[player.id][0])
-  if (index != -1) return comp[1][index]
-  return null
+function getPlayerComp(player) {
+  if (player == null || player.id == 0) return null;
+  var comp = game.playerComp;
+  var index = comp[0].findIndex((c) => c.auth == authArray[player.id][0]);
+  if (index != -1) return comp[0][index];
+  index = comp[1].findIndex((c) => c.auth == authArray[player.id][0]);
+  if (index != -1) return comp[1][index];
+  return null;
 }
 
-function getTeamArray (team, includeAFK = true) {
-  if (team == Team.RED) return teamRed
-  if (team == Team.BLUE) return teamBlue
+function getTeamArray(team, includeAFK = true) {
+  if (team == Team.RED) return teamRed;
+  if (team == Team.BLUE) return teamBlue;
   if (includeAFK) {
-    return playersAll.filter((p) => p.team === Team.SPECTATORS)
+    return playersAll.filter((p) => p.team === Team.SPECTATORS);
   }
-  return teamSpec
+  return teamSpec;
 }
 
-function sendAnnouncementTeam (message, team, color, style, mention) {
-  for (const player of team) {
-    room.sendAnnouncement(message, player.id, color, style, mention)
+function sendAnnouncementTeam(message, team, color, style, mention) {
+  for (let player of team) {
+    room.sendAnnouncement(message, player.id, color, style, mention);
   }
 }
 
-function teamChat (player, message) {
+function teamChat(player, message) {
   if (message.match(checkBadWords(message))) {
     room.sendAnnouncement(
-      'Yazdıklarına dikkat et, devam etmen durumunda atılırsın!',
+      `Yazdıklarına dikkat et, devam etmen durumunda atılırsın!`,
       player.id,
       errorColor,
-      'bold',
+      "bold",
       2
-    )
-  } else { var msgArray = message.split(/ +/).slice(1) }
-  const emoji =
-    player.team == Team.RED ? '🔴' : player.team == Team.BLUE ? '🔵' : '⚪'
+    );
+  }
+  else
+    var msgArray = message.split(/ +/).slice(1);
+  var emoji =
+    player.team == Team.RED ? "🔴" : player.team == Team.BLUE ? "🔵" : "⚪";
   var message = `${emoji} ${player.name}: ${msgArray.join(
-    ' '
-  )}`
-  const team = getTeamArray(player.team, true)
-  const color =
+    " "
+  )}`;
+  var team = getTeamArray(player.team, true);
+  var color =
     player.team == Team.RED
       ? redColor
       : player.team == Team.BLUE
         ? blueColor
-        : null
-  const style = 'bold'
-  const mention = HaxNotification.CHAT
-  sendAnnouncementTeam(message, team, color, style, mention)
+        : null;
+  var style = "bold";
+  var mention = HaxNotification.CHAT;
+  sendAnnouncementTeam(message, team, color, style, mention);
 }
 
-function playerChat (player, message) {
+function playerChat(player, message) {
   if (message.match(checkBadWords(message))) {
     room.sendAnnouncement(
-      'Yazdıklarına dikkat et, devam etmen durumunda atılırsın!',
+      `Yazdıklarına dikkat et, devam etmen durumunda atılırsın!`,
       player.id,
       errorColor,
-      'bold',
+      "bold",
       2
-    )
-  } else { var msgArray = message.split(/ +/) }
-  const playerTargetIndex = playersAll.findIndex(
-    (p) => p.name.replaceAll(' ', '_') == msgArray[0].substring(2)
-  )
+    );
+  }
+  else
+    var msgArray = message.split(/ +/);
+  var playerTargetIndex = playersAll.findIndex(
+    (p) => p.name.replaceAll(" ", "_") == msgArray[0].substring(2)
+  );
   if (playerTargetIndex == -1) {
     room.sendAnnouncement(
-      'Böyle bir oyuncu bulunamadı, girdiğin ismi kontrol et.',
+      `Böyle bir oyuncu bulunamadı, girdiğin ismi kontrol et.`,
       player.id,
       errorColor,
-      'bold',
+      "bold",
       null
-    )
-    return false
+    );
+    return false;
   }
-  const playerTarget = playersAll[playerTargetIndex]
+  var playerTarget = playersAll[playerTargetIndex];
   if (player.id == playerTarget.id) {
     room.sendAnnouncement(
-      'Kendine mesaj yollayamazsın!',
+      `Kendine mesaj yollayamazsın!`,
       player.id,
       errorColor,
-      'bold',
+      "bold",
       null
-    )
-    return false
+    );
+    return false;
   }
-  const messageFrom = `📝 [${playerTarget.name} isimli kullanıcıya] ${player.name
-    }: ${msgArray.slice(1).join(' ')}`
+  var messageFrom = `📝 [${playerTarget.name} isimli kullanıcıya] ${player.name
+    }: ${msgArray.slice(1).join(" ")}`;
 
-  const messageTo = `📝 [${player.name}, bir mesaj gönderdi] ${player.name
-    }: ${msgArray.slice(1).join(' ')}`
+  var messageTo = `📝 [${player.name}, bir mesaj gönderdi] ${player.name
+    }: ${msgArray.slice(1).join(" ")}`;
 
   room.sendAnnouncement(
     messageFrom,
     player.id,
     privateMessageColor,
-    'bold',
+    "bold",
     HaxNotification.CHAT
-  )
+  );
   room.sendAnnouncement(
     messageTo,
     playerTarget.id,
     privateMessageColor,
-    'bold',
+    "bold",
     HaxNotification.CHAT
-  )
+  );
 }
 
-function checkGoalKickTouch (array, index, goal) {
+function checkGoalKickTouch(array, index, goal) {
   if (array != null && array.length >= index + 1) {
-    const obj = array[index]
-    if (obj != null && obj.goal != null && obj.goal == goal) return obj
+    var obj = array[index];
+    if (obj != null && obj.goal != null && obj.goal == goal) return obj;
   }
-  return null
+  return null;
 }
 
 /* BUTTONS */
 
-function topButton () {
+function topButton() {
   if (teamSpec.length > 0) {
     if (teamRed.length == teamBlue.length && teamSpec.length > 1) {
-      room.setPlayerTeam(teamSpec[0].id, Team.RED)
-      room.setPlayerTeam(teamSpec[1].id, Team.BLUE)
-    } else if (teamRed.length < teamBlue.length) { room.setPlayerTeam(teamSpec[0].id, Team.RED) } else room.setPlayerTeam(teamSpec[0].id, Team.BLUE)
+      room.setPlayerTeam(teamSpec[0].id, Team.RED);
+      room.setPlayerTeam(teamSpec[1].id, Team.BLUE);
+    } else if (teamRed.length < teamBlue.length)
+      room.setPlayerTeam(teamSpec[0].id, Team.RED);
+    else room.setPlayerTeam(teamSpec[0].id, Team.BLUE);
   }
 }
 
-function randomButton () {
+function randomButton() {
   if (teamSpec.length > 0) {
     if (teamRed.length == teamBlue.length && teamSpec.length > 1) {
-      const r = getRandomInt(teamSpec.length)
-      room.setPlayerTeam(teamSpec[r].id, Team.RED)
-      teamSpec = teamSpec.filter((spec) => spec.id != teamSpec[r].id)
+      var r = getRandomInt(teamSpec.length);
+      room.setPlayerTeam(teamSpec[r].id, Team.RED);
+      teamSpec = teamSpec.filter((spec) => spec.id != teamSpec[r].id);
       room.setPlayerTeam(
         teamSpec[getRandomInt(teamSpec.length)].id,
         Team.BLUE
-      )
-    } else if (teamRed.length < teamBlue.length) {
+      );
+    } else if (teamRed.length < teamBlue.length)
       room.setPlayerTeam(
         teamSpec[getRandomInt(teamSpec.length)].id,
         Team.RED
-      )
-    } else {
+      );
+    else
       room.setPlayerTeam(
         teamSpec[getRandomInt(teamSpec.length)].id,
         Team.BLUE
-      )
-    }
+      );
   }
 }
 
-function blueToSpecButton () {
-  clearTimeout(removingTimeout)
-  removingPlayers = true
+function blueToSpecButton() {
+  clearTimeout(removingTimeout);
+  removingPlayers = true;
   removingTimeout = setTimeout(() => {
-    removingPlayers = false
-  }, 100)
-  for (let i = 0; i < teamBlue.length; i++) {
-    room.setPlayerTeam(teamBlue[teamBlue.length - 1 - i].id, Team.SPECTATORS)
+    removingPlayers = false;
+  }, 100);
+  for (var i = 0; i < teamBlue.length; i++) {
+    room.setPlayerTeam(teamBlue[teamBlue.length - 1 - i].id, Team.SPECTATORS);
   }
 }
 
-function redToSpecButton () {
-  clearTimeout(removingTimeout)
-  removingPlayers = true
+function redToSpecButton() {
+  clearTimeout(removingTimeout);
+  removingPlayers = true;
   removingTimeout = setTimeout(() => {
-    removingPlayers = false
-  }, 100)
-  for (let i = 0; i < teamRed.length; i++) {
-    room.setPlayerTeam(teamRed[teamRed.length - 1 - i].id, Team.SPECTATORS)
+    removingPlayers = false;
+  }, 100);
+  for (var i = 0; i < teamRed.length; i++) {
+    room.setPlayerTeam(teamRed[teamRed.length - 1 - i].id, Team.SPECTATORS);
   }
 }
 
-function resetButton () {
-  clearTimeout(removingTimeout)
-  removingPlayers = true
+function resetButton() {
+  clearTimeout(removingTimeout);
+  removingPlayers = true;
   removingTimeout = setTimeout(() => {
-    removingPlayers = false
-  }, 100)
+    removingPlayers = false;
+  }, 100);
   for (let i = 0; i < Math.max(teamRed.length, teamBlue.length); i++) {
-    if (Math.max(teamRed.length, teamBlue.length) - teamRed.length - i > 0) {
+    if (Math.max(teamRed.length, teamBlue.length) - teamRed.length - i > 0)
       room.setPlayerTeam(
         teamBlue[teamBlue.length - 1 - i].id,
         Team.SPECTATORS
-      )
-    } else if (
+      );
+    else if (
       Math.max(teamRed.length, teamBlue.length) - teamBlue.length - i >
       0
-    ) { room.setPlayerTeam(teamRed[teamRed.length - 1 - i].id, Team.SPECTATORS) } else break
+    )
+      room.setPlayerTeam(teamRed[teamRed.length - 1 - i].id, Team.SPECTATORS);
+    else break;
   }
   for (let i = 0; i < Math.min(teamRed.length, teamBlue.length); i++) {
     room.setPlayerTeam(
       teamBlue[Math.min(teamRed.length, teamBlue.length) - 1 - i].id,
       Team.SPECTATORS
-    )
+    );
     room.setPlayerTeam(
       teamRed[Math.min(teamRed.length, teamBlue.length) - 1 - i].id,
       Team.SPECTATORS
-    )
+    );
   }
 }
 
-function swapButton () {
-  clearTimeout(removingTimeout)
-  removingPlayers = true
+function swapButton() {
+  clearTimeout(removingTimeout);
+  removingPlayers = true;
   removingTimeout = setTimeout(() => {
-    removingPlayers = false
-  }, 100)
-  for (const player of teamBlue) {
-    room.setPlayerTeam(player.id, Team.RED)
+    removingPlayers = false;
+  }, 100);
+  for (let player of teamBlue) {
+    room.setPlayerTeam(player.id, Team.RED);
   }
-  for (const player of teamRed) {
-    room.setPlayerTeam(player.id, Team.BLUE)
+  for (let player of teamRed) {
+    room.setPlayerTeam(player.id, Team.BLUE);
   }
 }
 
@@ -932,108 +940,114 @@ function swapButton () {
 
 /* PLAYER COMMANDS */
 
-function leaveCommand (player, message) {
-  room.kickPlayer(player.id, 'Görüşürüz !', false)
+function leaveCommand(player, message) {
+  room.kickPlayer(player.id, "Görüşürüz !", false);
 }
 
-function dclinkCommand (player, message) {
+function dclinkCommand(player, message) {
   room.sendAnnouncement(
-    'Discord sunucumuza davetlisin ! Link: https://discord.gg/TG7mr7AsQa',
+    `Discord sunucumuza davetlisin ! Link: https://discord.gg/TG7mr7AsQa`,
     player.id,
-    '0xA569BD',
-    'bold',
+    "0xA569BD",
+    "bold",
     HaxNotification.CHAT
-  )
+  );
 }
 
-function helpCommand (player, message) {
-  const msgArray = message.split(/ +/).slice(1)
+function helpCommand(player, message) {
+  var msgArray = message.split(/ +/).slice(1);
   if (msgArray.length == 0) {
-    let commandString = '🎮 Oyuncu komutları :'
+    var commandString = "🎮 Oyuncu komutları :";
     for (const [key, value] of Object.entries(commands)) {
-      if (value.desc && value.roles == Role.PLAYER) { commandString += ` !${key},` }
+      if (value.desc && value.roles == Role.PLAYER)
+        commandString += ` !${key},`;
     }
     commandString =
-      commandString.substring(0, commandString.length - 1) + '.\n'
+      commandString.substring(0, commandString.length - 1) + ".\n";
     if (getRole(player) >= Role.VIP) {
-      commandString += '💎 VIP komutları:'
+      commandString += `💎 VIP komutları:`;
       for (const [key, value] of Object.entries(commands)) {
-        if (value.desc && value.roles == Role.VIP) { commandString += ` !${key},` }
+        if (value.desc && value.roles == Role.VIP)
+          commandString += ` !${key},`;
       }
-      if (commandString.slice(commandString.length - 1) == ':') { commandString += ' Yok,' }
+      if (commandString.slice(commandString.length - 1) == ":")
+        commandString += ` Yok,`;
       commandString =
-        commandString.substring(0, commandString.length - 1) + '.\n'
+        commandString.substring(0, commandString.length - 1) + ".\n";
     }
     if (getRole(player) >= Role.ADMIN_PERM) {
-      commandString += '⚡️ Admin komutları:'
+      commandString += `⚡️ Admin komutları:`;
       for (const [key, value] of Object.entries(commands)) {
-        if (value.desc && value.roles == Role.ADMIN_TEMP) { commandString += ` !${key},` }
+        if (value.desc && value.roles == Role.ADMIN_TEMP)
+          commandString += ` !${key},`;
       }
-      if (commandString.slice(commandString.length - 1) == ':') { commandString += ' Yok,' }
+      if (commandString.slice(commandString.length - 1) == ":")
+        commandString += ` Yok,`;
       commandString =
-        commandString.substring(0, commandString.length - 1) + '.\n'
+        commandString.substring(0, commandString.length - 1) + ".\n";
     }
     if (getRole(player) == Role.MASTER) {
-      commandString += '👑 Yetkili komutları :'
+      commandString += `👑 Yetkili komutları :`;
       for (const [key, value] of Object.entries(commands)) {
-        if (value.desc && value.roles == Role.MASTER) { commandString += ` !${key},` }
+        if (value.desc && value.roles == Role.MASTER)
+          commandString += ` !${key},`;
       }
-      if (commandString.slice(commandString.length - 1) == ':') { commandString += ' Yok,' }
+      if (commandString.slice(commandString.length - 1) == ":")
+        commandString += ` Yok,`;
       commandString =
-        commandString.substring(0, commandString.length - 1) + '.\n'
+        commandString.substring(0, commandString.length - 1) + ".\n";
     }
     commandString +=
-      "\n🤖 Bir komut için detaylı bilgi almak için ''!yardım <komutismi>'."
+      "\n🤖 Bir komut için detaylı bilgi almak için ''!yardım <komutismi>'.";
     room.sendAnnouncement(
       commandString,
       player.id,
       infoColor,
-      'bold',
+      "bold",
       HaxNotification.CHAT
-    )
+    );
   } else if (msgArray.length >= 1) {
-    const commandName = getCommand(msgArray[0].toLowerCase())
-    if (commandName != false && commands[commandName].desc != false) {
+    var commandName = getCommand(msgArray[0].toLowerCase());
+    if (commandName != false && commands[commandName].desc != false)
       room.sendAnnouncement(
         `🎮 \'${commandName}\' komutu :\n${commands[commandName].desc}`,
         player.id,
         infoColor,
-        'bold',
+        "bold",
         HaxNotification.CHAT
-      )
-    } else {
+      );
+    else
       room.sendAnnouncement(
-        '❌ Böyle bir komut yok, komutları görmek için \'!yardım\'',
+        `❌ Böyle bir komut yok, komutları görmek için \'!yardım\'`,
         player.id,
         errorColor,
-        'bold',
+        "bold",
         HaxNotification.CHAT
-      )
-    }
+      );
   }
 }
 
-async function globalStatsCommand (player, message) {
-  const data = await checkStats(authArray[player.id][0])
+async function globalStatsCommand(player, message) {
+  var data = await checkStats(authArray[player.id][0]);
   const stats = Object.fromEntries(
-    Object.entries(data).filter(([key, value]) => key !== '_id')
-  )
-  const statsString = printPlayerStats(stats)
+    Object.entries(data).filter(([key, value]) => key !== "_id")
+  );
+  var statsString = printPlayerStats(stats);
   room.sendAnnouncement(
     statsString,
     player.id,
     infoColor,
-    'bold',
+    "bold",
     HaxNotification.CHAT
-  )
+  );
 }
 
-function statsLeaderboardCommand (player, message) {
-  const key = message.split(/ +/)[0].substring(1).toLowerCase()
-  printRankings(key, player.id)
+function statsLeaderboardCommand(player, message) {
+  var key = message.split(/ +/)[0].substring(1).toLowerCase();
+  printRankings(key, player.id);
 }
 
-function afkCommand (player, message) {
+function afkCommand(player, message) {
   if (player.team == Team.SPECTATORS || players.length == 1) {
     if (AFKSet.has(player.id)) {
       if (AFKMinSet.has(player.id)) {
@@ -1041,20 +1055,20 @@ function afkCommand (player, message) {
           `Minumum ${minAFKDuration} dakika AFK kalabilirsin. Komutu kötüye kullanmamalısın !`,
           player.id,
           errorColor,
-          'bold',
+          "bold",
           HaxNotification.CHAT
-        )
+        );
       } else {
-        AFKSet.delete(player.id)
+        AFKSet.delete(player.id);
         room.sendAnnouncement(
           `🌅 ${player.name} artık AFK değil !`,
           null,
           announcementColor,
-          'bold',
+          "bold",
           null
-        )
-        updateTeams()
-        handlePlayersJoin()
+        );
+        updateTeams();
+        handlePlayersJoin();
       }
     } else {
       if (AFKCooldownSet.has(player.id)) {
@@ -1062,422 +1076,424 @@ function afkCommand (player, message) {
           `Sadece ${AFKCooldown} dakikada bir AFK kalabilirsin. Komutu kötüye kullanmamalısın !`,
           player.id,
           errorColor,
-          'bold',
+          "bold",
           HaxNotification.CHAT
-        )
+        );
       } else {
-        AFKSet.add(player.id)
+        AFKSet.add(player.id);
         if (!player.admin) {
-          AFKMinSet.add(player.id)
-          AFKCooldownSet.add(player.id)
+          AFKMinSet.add(player.id);
+          AFKCooldownSet.add(player.id);
           setTimeout(
             (id) => {
-              AFKMinSet.delete(id)
+              AFKMinSet.delete(id);
             },
             minAFKDuration * 60 * 1000,
             player.id
-          )
+          );
           setTimeout(
             (id) => {
-              AFKSet.delete(id)
+              AFKSet.delete(id);
             },
             maxAFKDuration * 60 * 1000,
             player.id
-          )
+          );
           setTimeout(
             (id) => {
-              AFKCooldownSet.delete(id)
+              AFKCooldownSet.delete(id);
             },
             AFKCooldown * 60 * 1000,
             player.id
-          )
+          );
         }
-        room.setPlayerTeam(player.id, Team.SPECTATORS)
+        room.setPlayerTeam(player.id, Team.SPECTATORS);
         room.sendAnnouncement(
           `😴 ${player.name} artık AFK !`,
           null,
           announcementColor,
-          'bold',
+          "bold",
           null
-        )
-        updateTeams()
-        handlePlayersLeave()
+        );
+        updateTeams();
+        handlePlayersLeave();
       }
     }
   } else {
     room.sendAnnouncement(
-      'Oyundayken AFK kalamazsın !',
+      `Oyundayken AFK kalamazsın !`,
       player.id,
       errorColor,
-      'bold',
+      "bold",
       HaxNotification.CHAT
-    )
+    );
   }
 }
 
-function afkListCommand (player, message) {
+function afkListCommand(player, message) {
   if (AFKSet.size == 0) {
     room.sendAnnouncement(
-      '😴 AFK listesinde kimse yok',
+      "😴 AFK listesinde kimse yok",
       player.id,
       announcementColor,
-      'bold',
+      "bold",
       null
-    )
-  } else {
-    let cstm = '😴 AFK listesi : '
+    );
+    return;
+  }
+  else {
+    var cstm = "😴 AFK listesi : ";
     AFKSet.forEach((_, value) => {
-      const p = room.getPlayer(value)
-      if (p != null) cstm += p.name + ', '
-    })
-    cstm = cstm.substring(0, cstm.length - 2) + '.'
-    room.sendAnnouncement(cstm, player.id, announcementColor, 'bold', null)
+      var p = room.getPlayer(value);
+      if (p != null) cstm += p.name + `, `;
+    });
+    cstm = cstm.substring(0, cstm.length - 2) + ".";
+    room.sendAnnouncement(cstm, player.id, announcementColor, "bold", null);
   }
 }
 
 /* ADMIN COMMANDS */
 
-function restartCommand (player, message) {
-  instantRestart()
+function restartCommand(player, message) {
+  instantRestart();
 }
 
-function restartSwapCommand (player, message) {
-  room.stopGame()
-  swapButton()
+function restartSwapCommand(player, message) {
+  room.stopGame();
+  swapButton();
   startTimeout = setTimeout(() => {
-    room.startGame()
-  }, 10)
+    room.startGame();
+  }, 10);
 }
 
-function swapCommand (player, message) {
+function swapCommand(player, message) {
   if (playSituation == Situation.STOP) {
-    swapButton()
+    swapButton();
     room.sendAnnouncement(
-      '✔️ Takımlar değişti !',
+      "✔️ Takımlar değişti !",
       null,
       announcementColor,
-      'bold',
+      "bold",
       null
-    )
+    );
   } else {
     room.sendAnnouncement(
-      'Takımları değiştirmek için oyunu durdurmalısın.',
+      `Takımları değiştirmek için oyunu durdurmalısın.`,
       player.id,
       errorColor,
-      'bold',
+      "bold",
       HaxNotification.CHAT
-    )
+    );
   }
 }
 
-function kickTeamCommand (player, message) {
-  const msgArray = message.split(/ +/)
-  let reasonString = `${player.name} tarafından takımca kicklendiniz`
+function kickTeamCommand(player, message) {
+  var msgArray = message.split(/ +/);
+  var reasonString = `${player.name} tarafından takımca kicklendiniz`;
   if (msgArray.length > 1) {
-    reasonString = msgArray.slice(1).join(' ')
+    reasonString = msgArray.slice(1).join(" ");
   }
-  if (['!kickred', '!kickr'].includes(msgArray[0].toLowerCase())) {
+  if (["!kickred", "!kickr"].includes(msgArray[0].toLowerCase())) {
     for (let i = 0; i < teamRed.length; i++) {
       setTimeout(() => {
-        room.kickPlayer(teamRed[0].id, reasonString, false)
-      }, i * 20)
+        room.kickPlayer(teamRed[0].id, reasonString, false);
+      }, i * 20);
     }
-  } else if (['!kickblue', '!kickb'].includes(msgArray[0].toLowerCase())) {
+  } else if (["!kickblue", "!kickb"].includes(msgArray[0].toLowerCase())) {
     for (let i = 0; i < teamBlue.length; i++) {
       setTimeout(() => {
-        room.kickPlayer(teamBlue[0].id, reasonString, false)
-      }, i * 20)
+        room.kickPlayer(teamBlue[0].id, reasonString, false);
+      }, i * 20);
     }
-  } else if (['!kickspec', '!kicks'].includes(msgArray[0].toLowerCase())) {
+  } else if (["!kickspec", "!kicks"].includes(msgArray[0].toLowerCase())) {
     for (let i = 0; i < teamSpec.length; i++) {
       setTimeout(() => {
-        room.kickPlayer(teamSpec[0].id, reasonString, false)
-      }, i * 20)
+        room.kickPlayer(teamSpec[0].id, reasonString, false);
+      }, i * 20);
     }
   }
 }
 
-function stadiumCommand (player, message) {
-  const msgArray = message.split(/ +/)
+function stadiumCommand(player, message) {
+  var msgArray = message.split(/ +/);
   if (gameState == State.STOP) {
-    if (['!v2'].includes(msgArray[0].toLowerCase())) {
-      if (JSON.parse(v2Map).name == 'v2') {
-        room.setDefaultStadium('v2')
+    if (["!v2"].includes(msgArray[0].toLowerCase())) {
+      if (JSON.parse(v2Map).name == "v2") {
+        room.setDefaultStadium("v2");
       } else {
-        room.setCustomStadium(v2Map)
+        room.setCustomStadium(v2Map);
       }
-      currentStadium = 'v2'
-    } else if (['!v3'].includes(msgArray[0].toLowerCase())) {
-      if (JSON.parse(v3Map).name == 'v3') {
-        room.setDefaultStadium('v3')
+      currentStadium = "v2";
+    } else if (["!v3"].includes(msgArray[0].toLowerCase())) {
+      if (JSON.parse(v3Map).name == "v3") {
+        room.setDefaultStadium("v3");
       } else {
-        room.setCustomStadium(v3Map)
+        room.setCustomStadium(v3Map);
       }
-      currentStadium = 'v3'
-    } else if (['!antrenman'].includes(msgArray[0].toLowerCase())) {
-      room.setCustomStadium(antrenmanMap)
-      currentStadium = 'antrenman'
+      currentStadium = "v3";
+    } else if (["!antrenman"].includes(msgArray[0].toLowerCase())) {
+      room.setCustomStadium(antrenmanMap);
+      currentStadium = "antrenman";
     } else {
       room.sendAnnouncement(
-        'Böyle bir harita yok.',
+        `Böyle bir harita yok.`,
         player.id,
         errorColor,
-        'bold',
+        "bold",
         HaxNotification.CHAT
-      )
+      );
     }
   } else {
     room.sendAnnouncement(
-      'Bu komutu kullanmak için oyunu durdurmalısın.',
+      `Bu komutu kullanmak için oyunu durdurmalısın.`,
       player.id,
       errorColor,
-      'bold',
+      "bold",
       HaxNotification.CHAT
-    )
+    );
   }
 }
 
-function muteCommand (player, message) {
-  const msgArray = message.split(/ +/).slice(1)
+function muteCommand(player, message) {
+  var msgArray = message.split(/ +/).slice(1);
   if (msgArray.length > 0) {
-    if (msgArray[0].length > 0 && msgArray[0][0] == '#') {
-      msgArray[0] = msgArray[0].substring(1, msgArray[0].length)
+    if (msgArray[0].length > 0 && msgArray[0][0] == "#") {
+      msgArray[0] = msgArray[0].substring(1, msgArray[0].length);
       if (room.getPlayer(parseInt(msgArray[0])) != null) {
-        const playerMute = room.getPlayer(parseInt(msgArray[0]))
-        let minutesMute = muteDuration
+        var playerMute = room.getPlayer(parseInt(msgArray[0]));
+        var minutesMute = muteDuration;
         if (msgArray.length > 1 && parseInt(msgArray[1]) > 0) {
-          minutesMute = parseInt(msgArray[1])
+          minutesMute = parseInt(msgArray[1]);
         }
         if (!playerMute.admin) {
-          const muteObj = new MutePlayer(
+          var muteObj = new MutePlayer(
             playerMute.name,
             playerMute.id,
             authArray[playerMute.id][0]
-          )
-          muteObj.setDuration(minutesMute)
+          );
+          muteObj.setDuration(minutesMute);
           room.sendAnnouncement(
             `${playerMute.name}, ${minutesMute} dakika boyunca susturuldu.`,
             null,
             announcementColor,
-            'bold',
+            "bold",
             null
-          )
+          );
         } else {
           room.sendAnnouncement(
-            'Bir admini susturamazsın.',
+            `Bir admini susturamazsın.`,
             player.id,
             errorColor,
-            'bold',
+            "bold",
             HaxNotification.CHAT
-          )
+          );
         }
       } else {
         room.sendAnnouncement(
-          'Böyle bir IDye sahip oyuncu yok. Komutun kullanımı için !yardım sustur yaz.',
+          `Böyle bir IDye sahip oyuncu yok. Komutun kullanımı için !yardım sustur yaz.`,
           player.id,
           errorColor,
-          'bold',
+          "bold",
           HaxNotification.CHAT
-        )
+        );
       }
     } else {
       room.sendAnnouncement(
-        'Yanlış komut kullanımı. Doğru kullanımı için !yardım sustur yaz.',
+        `Yanlış komut kullanımı. Doğru kullanımı için !yardım sustur yaz.`,
         player.id,
         errorColor,
-        'bold',
+        "bold",
         HaxNotification.CHAT
-      )
+      );
     }
   } else {
     room.sendAnnouncement(
-      'Yanlış bir numara girdin. Komutun kullanımı için !yardım sustur yaz.',
+      `Yanlış bir numara girdin. Komutun kullanımı için !yardım sustur yaz.`,
       player.id,
       errorColor,
-      'bold',
+      "bold",
       HaxNotification.CHAT
-    )
+    );
   }
 }
 
-function muteAllCommand (player, message) {
+function muteAllCommand(player, message) {
   if (allMuted == true) {
-    allMuted = false
+    allMuted = false;
     room.sendAnnouncement(
-      'Sohbet tekrardan aktif, tekrardan kapanmaması için lütfen kurallara uyalım.',
+      `Sohbet tekrardan aktif, tekrardan kapanmaması için lütfen kurallara uyalım.`,
       null,
       announcementColor,
-      'bold',
+      "bold",
       null
-    )
+    );
   } else {
     allMuted = true
     room.sendAnnouncement(
-      'Sohbetin oyunu etkilemesinden dolayı geçici olarak sohbet kapatıldı.',
+      `Sohbetin oyunu etkilemesinden dolayı geçici olarak sohbet kapatıldı.`,
       null,
       announcementColor,
-      'bold',
+      "bold",
       null
-    )
+    );
   }
 }
 
-function unmuteCommand (player, message) {
-  const msgArray = message.split(/ +/).slice(1)
+function unmuteCommand(player, message) {
+  var msgArray = message.split(/ +/).slice(1);
   if (msgArray.length > 0) {
-    if (msgArray[0].length > 0 && msgArray[0][0] == '#') {
-      msgArray[0] = msgArray[0].substring(1, msgArray[0].length)
+    if (msgArray[0].length > 0 && msgArray[0][0] == "#") {
+      msgArray[0] = msgArray[0].substring(1, msgArray[0].length);
       if (room.getPlayer(parseInt(msgArray[0])) != null) {
-        var playerUnmute = room.getPlayer(parseInt(msgArray[0]))
+        var playerUnmute = room.getPlayer(parseInt(msgArray[0]));
         if (muteArray.getByPlayerId(playerUnmute.id) != null) {
-          const muteObj = muteArray.getByPlayerId(playerUnmute.id)
-          muteObj.remove()
+          var muteObj = muteArray.getByPlayerId(playerUnmute.id);
+          muteObj.remove();
           room.sendAnnouncement(
             `${playerUnmute.name} artık konuşabilir!`,
             null,
             announcementColor,
-            'bold',
+            "bold",
             HaxNotification.CHAT
-          )
+          );
         } else {
           room.sendAnnouncement(
-            'Bu oyuncu susturulmuş değil !',
+            `Bu oyuncu susturulmuş değil !`,
             player.id,
             errorColor,
-            'bold',
+            "bold",
             HaxNotification.CHAT
-          )
+          );
         }
       } else {
         room.sendAnnouncement(
-          'Böyle bir IDye sahip oyuncu yok. Komutun kullanımı için !yardım unmute yaz.',
+          `Böyle bir IDye sahip oyuncu yok. Komutun kullanımı için !yardım unmute yaz.`,
           player.id,
           errorColor,
-          'bold',
+          "bold",
           HaxNotification.CHAT
-        )
+        );
       }
     } else if (
       msgArray[0].length > 0 &&
       parseInt(msgArray[0]) > 0 &&
       muteArray.getById(parseInt(msgArray[0])) != null
     ) {
-      var playerUnmute = muteArray.getById(parseInt(msgArray[0]))
-      playerUnmute.remove()
+      var playerUnmute = muteArray.getById(parseInt(msgArray[0]));
+      playerUnmute.remove();
       room.sendAnnouncement(
         `${playerUnmute.name} artık konuşabilir !`,
         null,
         announcementColor,
-        'bold',
+        "bold",
         HaxNotification.CHAT
-      )
+      );
     } else {
       room.sendAnnouncement(
-        'Yanlış komut kullanımı. Doğru kullanımı için !yardım unmute yaz.',
+        `Yanlış komut kullanımı. Doğru kullanımı için !yardım unmute yaz.`,
         player.id,
         errorColor,
-        'bold',
+        "bold",
         HaxNotification.CHAT
-      )
+      );
     }
   } else {
     room.sendAnnouncement(
-      'Yanlış bir numara girdin. Komutun kullanımı için !yardım unmute yaz.',
+      `Yanlış bir numara girdin. Komutun kullanımı için !yardım unmute yaz.`,
       player.id,
       errorColor,
-      'bold',
+      "bold",
       HaxNotification.CHAT
-    )
+    );
   }
 }
 
-function muteListCommand (player, message) {
+function muteListCommand(player, message) {
   if (muteArray.list.length == 0) {
     room.sendAnnouncement(
-      '🔇 Mute listesinde kimse yok',
+      "🔇 Mute listesinde kimse yok",
       player.id,
       announcementColor,
-      'bold',
+      "bold",
       null
-    )
-    return false
+    );
+    return false;
   }
-  let cstm = '🔇 Mute Listesi : '
-  for (const mute of muteArray.list) {
-    cstm += mute.name + `[${mute.id}], `
+  var cstm = "🔇 Mute Listesi : ";
+  for (let mute of muteArray.list) {
+    cstm += mute.name + `[${mute.id}], `;
   }
-  cstm = cstm.substring(0, cstm.length - 2) + '.'
-  room.sendAnnouncement(cstm, player.id, announcementColor, 'bold', null)
+  cstm = cstm.substring(0, cstm.length - 2) + ".";
+  room.sendAnnouncement(cstm, player.id, announcementColor, "bold", null);
 }
 
-function kickCommand (player, message) {
-  const splittedMsg = message.split(/ +/gm)
-  const [, gid, ...sebep] = splittedMsg
-  const id = parseInt(gid.includes('#') ? gid.replace('#', '') : gid)
-  reason = sebep.join(' ')
+function kickCommand(player, message) {
+  let splittedMsg = message.split(/ +/gm);
+  let [, gid, ...sebep] = splittedMsg;
+  let id = parseInt(gid.includes("#") ? gid.replace("#", "") : gid)
+  reason = sebep.join(" ");
   room.kickPlayer(id, reason, false)
   room.sendAnnouncement(
     `${authArray[id][2]}, ${reason} sebebiyle odadan atıldı.`,
     player.id,
     announcementColor,
-    'bold',
+    "bold",
     null
-  )
+  );
 }
 
-async function banCommand (player, message) {
-  const splittedMsg = message.split(/ +/gm)
-  let [, gid, sure, ...gereksiz] = splittedMsg
-  const id = parseInt(gid.includes('#') ? gid.replace('#', '') : gid)
+async function banCommand(player, message) {
+  let splittedMsg = message.split(/ +/gm);
+  let [, gid, sure, ...gereksiz] = splittedMsg;
+  let id = parseInt(gid.includes("#") ? gid.replace("#", "") : gid)
   sure = Number.isInteger(sure) ? sure : parseInt(sure)
-  let sebep = ''
+  let sebep = ""
   if (room.getPlayer(id) != null) {
     if (sure) {
       setTimeout(async () => {
         await removeBan(authArray[id][1], authArray[id][0]),
-        room.clearBan(id),
-        banList = banList.filter((p) => p[1] != id)
+          room.clearBan(id),
+          banList = banList.filter((p) => p[1] != id)
       }, sure * 60_000)
       sebep = `${sure} dakika boyunca odadan uzaklaştırıldın`
-      room.kickPlayer(id, sebep, false)
+      room.kickPlayer(id, sebep, false);
       banList.push([authArray[id][2], id, sure])
       await addBan(authArray[id][1], authArray[id][0])
       room.sendAnnouncement(
         `${authArray[id][2]}, ${sure} dakika boyunca banlandı.`,
         player.id,
         announcementColor,
-        'bold',
+        "bold",
         null
-      )
+      );
     } else {
-      sebep = 'Süresiz olarak odadan uzaklaştırıldın'
-      room.kickPlayer(id, sebep, false)
-      banList.push([authArray[id][2], id, '∞'])
+      sebep = `Süresiz olarak odadan uzaklaştırıldın`
+      room.kickPlayer(id, sebep, false);
+      banList.push([authArray[id][2], id, "∞"])
       await addBan(authArray[id][1], authArray[id][0])
       room.sendAnnouncement(
         `${authArray[id][2]}, kalıcı olarak banlandı.`,
         player.id,
         announcementColor,
-        'bold',
+        "bold",
         null
-      )
+      );
     }
   } else {
     room.sendAnnouncement(
-      'Böyle bir IDye sahip oyuncu yok. Komutun kullanımı için !yardım sustur yaz.',
+      `Böyle bir IDye sahip oyuncu yok. Komutun kullanımı için !yardım sustur yaz.`,
       player.id,
       errorColor,
-      'bold',
+      "bold",
       HaxNotification.CHAT
-    )
+    );
   }
 }
 
 /* VIP COMMANDS */
 
-async function rankResetCommand (player, message) {
+async function rankResetCommand(player, message) {
   try {
-    const data = await checkStats(authArray[player.id][0])
+    const data = await checkStats(authArray[player.id][0]);
     const stats = Object.assign({
       gol: 0,
       asist: 0,
@@ -1485,202 +1501,202 @@ async function rankResetCommand (player, message) {
       galibiyet: 0,
       oyunlar: 0,
       cs: 0,
-      puan: 1000
-    }, data)
-    await updatePlayer(authArray[player.id][0], stats)
+      puan: 1000,
+    }, data);
+    await updatePlayer(authArray[player.id][0], stats);
     room.sendAnnouncement(
       `${player.name}, başarıyla rankını resetledin!`,
       player.id,
       successColor,
-      'bold'
-    )
+      "bold"
+    );
   } catch (error) {
-    console.error(error)
+    console.error(error);
     room.sendAnnouncement(
       `${player.name}, bir hata oluştu. Lütfen tekrar dene.`,
       player.id,
       errorColor,
-      'bold'
-    )
+      "bold"
+    );
   }
 }
 
 /* MASTER COMMANDS */
 
-async function clearbansCommand (player, message) {
-  const msgArray = message.split(/ +/).slice(1)
+async function clearbansCommand(player, message) {
+  var msgArray = message.split(/ +/).slice(1);
   if (msgArray.length == 1) {
     if (parseInt(msgArray[0]) > 0) {
-      const ID = parseInt(msgArray[0])
-      room.clearBan(ID)
+      var ID = parseInt(msgArray[0]);
+      room.clearBan(ID);
       if (banList.length != banList.filter((p) => p[1] != ID).length) {
         room.sendAnnouncement(
           `✔️ ${banList.filter((p) => p[1] == ID)[0][0]
           } adlı oyuncunun banlı kaldırıldı !`,
           null,
           announcementColor,
-          'bold',
+          "bold",
           null
-        )
+        );
       } else {
         room.sendAnnouncement(
-          'Girdiğin numaraya sahip bir oyuncu yok. Komutun kullanımı için !yardım bankaldır yaz.',
+          `Girdiğin numaraya sahip bir oyuncu yok. Komutun kullanımı için !yardım bankaldır yaz.`,
           player.id,
           errorColor,
-          'bold',
+          "bold",
           HaxNotification.CHAT
-        )
+        );
       }
       await removeBan(authArray[ID][1], authArray[ID][0]),
-      banList = banList.filter((p) => p[1] != ID)
+        banList = banList.filter((p) => p[1] != ID);
     } else {
       room.sendAnnouncement(
-        'Yanlış ID girdin. Komutun kullanımı için !yardım bankaldır yaz.',
+        `Yanlış ID girdin. Komutun kullanımı için !yardım bankaldır yaz.`,
         player.id,
         errorColor,
-        'bold',
+        "bold",
         HaxNotification.CHAT
-      )
+      );
     }
   } else {
     room.sendAnnouncement(
-      'Yanlış numara girdin. Komutun kullanımı için !yardım bankaldır yaz.',
+      `Yanlış numara girdin. Komutun kullanımı için !yardım bankaldır yaz.`,
       player.id,
       errorColor,
-      'bold',
+      "bold",
       HaxNotification.CHAT
-    )
+    );
   }
 }
 
-function banListCommand (player, message) {
+function banListCommand(player, message) {
   if (banList.length == 0) {
     room.sendAnnouncement(
-      '📢 Ban listesinde kimse yok.',
+      "📢 Ban listesinde kimse yok.",
       player.id,
       announcementColor,
-      'bold',
+      "bold",
       null
-    )
-    return false
+    );
+    return false;
   }
-  let cstm = '📢 Ban listesi : '
-  for (const ban of banList) {
-    cstm += `[${ban[1]}]` + ban[0] + ` ${ban[2]} dk . `
+  var cstm = "📢 Ban listesi : ";
+  for (let ban of banList) {
+    cstm += `[${ban[1]}]` + ban[0] + ` ${ban[2]} dk . `;
   }
-  cstm = cstm.substring(0, cstm.length - 2) + '.'
-  room.sendAnnouncement(cstm, player.id, announcementColor, 'bold', null)
+  cstm = cstm.substring(0, cstm.length - 2) + ".";
+  room.sendAnnouncement(cstm, player.id, announcementColor, "bold", null);
 }
 
-function passwordCommand (player, message) {
-  const msgArray = message.split(/ +/).slice(1)
+function passwordCommand(player, message) {
+  var msgArray = message.split(/ +/).slice(1);
   if (msgArray.length > 0) {
-    if (msgArray.length == 1 && msgArray[0] == '') {
-      roomPassword = ''
-      room.setPassword(null)
+    if (msgArray.length == 1 && msgArray[0] == "") {
+      roomPassword = "";
+      room.setPassword(null);
       room.sendAnnouncement(
-        'Oda şifresi kaldırıldı.',
+        `Oda şifresi kaldırıldı.`,
         player.id,
         announcementColor,
-        'bold',
+        "bold",
         HaxNotification.CHAT
-      )
+      );
     }
-    roomPassword = msgArray.join(' ')
-    room.setPassword(roomPassword)
+    roomPassword = msgArray.join(" ");
+    room.setPassword(roomPassword);
     room.sendAnnouncement(
       `Odanın şifresi artık: ${roomPassword} !`,
       player.id,
       announcementColor,
-      'bold',
+      "bold",
       HaxNotification.CHAT
-    )
+    );
   } else {
-    if (roomPassword != '') {
-      roomPassword = ''
-      room.setPassword(null)
+    if (roomPassword != "") {
+      roomPassword = "";
+      room.setPassword(null);
       room.sendAnnouncement(
-        'Odanın şifresi kaldırıldı.',
+        `Odanın şifresi kaldırıldı.`,
         player.id,
         announcementColor,
-        'bold',
+        "bold",
         HaxNotification.CHAT
-      )
+      );
     } else {
       room.sendAnnouncement(
-        'Odanın şu an bir şifresi yok. !yardım odaşifresi yazarak komut hakkında bilgi sahibi olabilirsin.',
+        `Odanın şu an bir şifresi yok. !yardım odaşifresi yazarak komut hakkında bilgi sahibi olabilirsin.`,
         player.id,
         errorColor,
-        'bold',
+        "bold",
         HaxNotification.CHAT
-      )
+      );
     }
   }
 }
 
-function admincagirCommand (player, message) {
-  const [, ...sebep] = message.split(/ +/gim)
-  const reason = sebep.join(' ')
+function admincagirCommand(player, message) {
+  const [, ...sebep] = message.split(/ +/gim);
+  const reason = sebep.join(" ");
 
-  if (reason === '' && adminCagirTimeout === false && muteArray.getByAuth(authArray[player.id][0]) === null) {
-    room.sendAnnouncement(`${player.name}, admin çağırabilmek için yanına sebebini de yazmalısın.`, player.id, 0x2C89AB, 'bold', 2)
-    return false
+  if (reason === "" && adminCagirTimeout === false && muteArray.getByAuth(authArray[player.id][0]) === null) {
+    room.sendAnnouncement(`${player.name}, admin çağırabilmek için yanına sebebini de yazmalısın.`, player.id, 0x2C89AB, "bold", 2);
+    return false;
   }
 
   if (adminCagirTimeout === true && muteArray.getByAuth(authArray[player.id][0]) === null) {
-    room.sendAnnouncement(`${player.name}, kısa bir süre önce zaten admin çağırıldı.`, player.id, 0x2C89AB, 'bold', 2)
-    return false
+    room.sendAnnouncement(`${player.name}, kısa bir süre önce zaten admin çağırıldı.`, player.id, 0x2C89AB, "bold", 2);
+    return false;
   }
 
   if (adminCagirTimeout === false && muteArray.getByAuth(authArray[player.id][0]) === null) {
-    const admincagirChannel = 'https://discord.com/api/webhooks/984063139043741716/FiBS2xsGBCR7MR5DfmaXzD2y9he1GZ9wFMmVTJkONBDr63fyKA1xZU3VswybjT0-ANGm'
-    const admincagirText = `\`\`\`ini\n[${player.name}#${player.id}, ${reason} sebebiyle admin çağırdı]\`\`\`\n||<@&839206422461546557>||`
+    const admincagirChannel = 'https://discord.com/api/webhooks/984063139043741716/FiBS2xsGBCR7MR5DfmaXzD2y9he1GZ9wFMmVTJkONBDr63fyKA1xZU3VswybjT0-ANGm';
+    const admincagirText = `\`\`\`ini\n[${player.name}#${player.id}, ${reason} sebebiyle admin çağırdı]\`\`\`\n||<@&839206422461546557>||`;
 
     fetch(admincagirChannel, {
-      method: 'POST',
+      method: "POST",
       body: JSON.stringify({
         content: admincagirText,
-        username: 'Admin Çağırma Botu'
+        username: "Admin Çağırma Botu",
       }),
       headers: {
-        'Content-Type': 'application/json'
-      }
-    }).then((res) => res)
+        "Content-Type": "application/json",
+      },
+    }).then((res) => res);
 
-    room.sendAnnouncement(`${player.name}, başarıyla admin çağırdın. Unutma bu komutu kötüye kullanırsan banlanırsın!`, player.id, 0x2C89AB, 'bold', 2)
-    adminCagirTimeout = true
-    setTimeout(() => { adminCagirTimeout = false }, 90_000)
+    room.sendAnnouncement(`${player.name}, başarıyla admin çağırdın. Unutma bu komutu kötüye kullanırsan banlanırsın!`, player.id, 0x2C89AB, "bold", 2);
+    adminCagirTimeout = true;
+    setTimeout(() => { adminCagirTimeout = false; }, 90_000);
   }
 
-  return false
+  return false;
 }
 
-function avatarListCommand (player, message) {
+function avatarListCommand(player, message) {
   setTimeout(() => {
-    room.sendAnnouncement(centerText('Pro 👑 2000 | Elit 🏆 1800 | Usta 💎 1600'), player.id,
+    room.sendAnnouncement(centerText(`Pro 👑 2000 | Elit 🏆 1800 | Usta 💎 1600`), player.id,
       welcomeColor,
-      'bold',
-      HaxNotification.CHAT)
-  }, 500)
+      "bold",
+      HaxNotification.CHAT);
+  }, 500);
   setTimeout(() => {
-    room.sendAnnouncement(centerText('Yetenekli ⚡ 1400 | Normal 🔥 1200 | Acemi 👎 1000'), player.id,
+    room.sendAnnouncement(centerText(`Yetenekli ⚡ 1400 | Normal 🔥 1200 | Acemi 👎 1000`), player.id,
       welcomeColor,
-      'bold',
-      HaxNotification.CHAT)
-  }, 1_500)
+      "bold",
+      HaxNotification.CHAT);
+  }, 1_500);
   setTimeout(() => {
-    room.sendAnnouncement('1000 puan ile başlarsın ve oynadıkça puan kazanıp kaybedersin. Puanını görmek için !ben yazabilirsin', player.id,
+    room.sendAnnouncement(`1000 puan ile başlarsın ve oynadıkça puan kazanıp kaybedersin. Puanını görmek için !ben yazabilirsin`, player.id,
       welcomeColor,
-      'bold',
-      HaxNotification.CHAT)
-  }, 2_500)
+      "bold",
+      HaxNotification.CHAT);
+  }, 2_500);
 }
 
 /* GAME FUNCTIONS */
 
-function checkTime () {
-  const scores = room.getScores()
-  if (game != undefined) game.scores = scores
+function checkTime() {
+  const scores = room.getScores();
+  if (game != undefined) game.scores = scores;
   if (
     Math.abs(scores.time - scores.timeLimit) <= 0.01 &&
     scores.timeLimit != 0 &&
@@ -1688,26 +1704,26 @@ function checkTime () {
   ) {
     if (scores.red != scores.blue) {
       if (!checkTimeVariable) {
-        checkTimeVariable = true
+        checkTimeVariable = true;
         setTimeout(() => {
-          checkTimeVariable = false
-        }, 3000)
-        scores.red > scores.blue ? endGame(Team.RED) : endGame(Team.BLUE)
+          checkTimeVariable = false;
+        }, 3000);
+        scores.red > scores.blue ? endGame(Team.RED) : endGame(Team.BLUE);
         stopTimeout = setTimeout(() => {
-          room.stopGame()
-        }, 2000)
+          room.stopGame();
+        }, 2000);
       }
-      return
+      return;
     }
     if (drawTimeLimit != 0) {
-      goldenGoal = true
+      goldenGoal = true;
       room.sendAnnouncement(
-        '⚽ Altın gol ! İlk golü atan kazanır!',
+        "⚽ Altın gol ! İlk golü atan kazanır!",
         null,
         announcementColor,
-        'bold',
+        "bold",
         HaxNotification.CHAT
-      )
+      );
     }
   }
   if (
@@ -1715,151 +1731,151 @@ function checkTime () {
     scores.timeLimit != 0
   ) {
     if (!checkTimeVariable) {
-      checkTimeVariable = true
+      checkTimeVariable = true;
       setTimeout(() => {
-        checkTimeVariable = false
-      }, 10)
-      endGame(Team.SPECTATORS)
-      room.stopGame()
-      goldenGoal = false
+        checkTimeVariable = false;
+      }, 10);
+      endGame(Team.SPECTATORS);
+      room.stopGame();
+      goldenGoal = false;
     }
   }
 }
 
-function instantRestart () {
-  room.stopGame()
+function instantRestart() {
+  room.stopGame();
   startTimeout = setTimeout(() => {
-    room.startGame()
-  }, 10)
+    room.startGame();
+  }, 10);
 }
 
-function resumeGame () {
+function resumeGame() {
   startTimeout = setTimeout(() => {
-    room.startGame()
-  }, 1000)
+    room.startGame();
+  }, 1000);
   setTimeout(() => {
-    room.pauseGame(false)
-  }, 500)
+    room.pauseGame(false);
+  }, 500);
 }
 
-async function endGame (winner) {
-  if (players.length >= 2 * teamSize - 1) activateChooseMode()
-  const scores = room.getScores()
-  game.scores = scores
-  lastWinner = winner
-  endGameVariable = true
+async function endGame(winner) {
+  if (players.length >= 2 * teamSize - 1) activateChooseMode();
+  const scores = room.getScores();
+  game.scores = scores;
+  lastWinner = winner;
+  endGameVariable = true;
   if (winner == Team.RED) {
-    streak++
+    streak++;
     room.sendAnnouncement(
       `✨ Kırmız takım kazandı ${scores.red} - ${scores.blue} ! Mevcut seri: ${streak}`,
       null,
       redColor,
-      'bold',
+      "bold",
       HaxNotification.CHAT
-    )
+    );
   } else if (winner == Team.BLUE) {
-    streak = 1
+    streak = 1;
     room.sendAnnouncement(
       `✨ Mavi takım kazandı ${scores.blue} - ${scores.red} ! Mevcut seri: ${streak}`,
       null,
       blueColor,
-      'bold',
+      "bold",
       HaxNotification.CHAT
-    )
+    );
   } else {
-    streak = 0
+    streak = 0;
     room.sendAnnouncement(
-      '💤 Oyun sıkıcı olmaya başladı.. Bu duruma el atıyorum!',
+      "💤 Oyun sıkıcı olmaya başladı.. Bu duruma el atıyorum!",
       null,
       announcementColor,
-      'bold',
+      "bold",
       HaxNotification.CHAT
-    )
+    );
   }
-  const possessionRedPct =
-    (possession[0] / (possession[0] + possession[1])) * 100
-  const possessionBluePct = 100 - possessionRedPct
-  const actionRedPct =
-    (actionZoneHalf[0] / (actionZoneHalf[0] + actionZoneHalf[1])) * 100
-  const possessionString = `🔴 ${possessionRedPct.toFixed(0)}% - ${possessionBluePct.toFixed(0)}% 🔵`
-  const actionBluePct = 100 - actionRedPct
-  const actionString = `🔴 ${actionRedPct.toFixed(0)}% - ${actionBluePct.toFixed(0)}% 🔵`
-  const CSString = getCSString(scores)
+  let possessionRedPct =
+    (possession[0] / (possession[0] + possession[1])) * 100;
+  let possessionBluePct = 100 - possessionRedPct;
+  let actionRedPct =
+    (actionZoneHalf[0] / (actionZoneHalf[0] + actionZoneHalf[1])) * 100;
+  let possessionString = `🔴 ${possessionRedPct.toFixed(0)}% - ${possessionBluePct.toFixed(0)}% 🔵`;
+  let actionBluePct = 100 - actionRedPct;
+  let actionString = `🔴 ${actionRedPct.toFixed(0)}% - ${actionBluePct.toFixed(0)}% 🔵`;
+  let CSString = getCSString(scores);
   room.sendAnnouncement(
     `📊 Topla oynama: ${possessionString}\n` +
     `📊 Topun oynandığı bölgeler: ${actionString}\n` +
     `${CSString}`,
     null,
     announcementColor,
-    'bold',
+    "bold",
     HaxNotification.NONE
-  )
-  await updateStats()
+  );
+  await updateStats();
 }
 
 /* CHOOSING FUNCTIONS */
 
-function activateChooseMode () {
-  chooseMode = true
-  slowMode = chooseModeSlowMode
+function activateChooseMode() {
+  chooseMode = true;
+  slowMode = chooseModeSlowMode;
   room.sendAnnouncement(
     `🐢 Oyuncu seçmeniz için bekleme süresi ${chooseModeSlowMode} saniyeye çıkarıldı.`,
     null,
     announcementColor,
-    'bold',
+    "bold",
     HaxNotification.CHAT
-  )
+  );
 }
 
-function deactivateChooseMode () {
-  chooseMode = false
-  clearTimeout(timeOutCap)
+function deactivateChooseMode() {
+  chooseMode = false;
+  clearTimeout(timeOutCap);
   if (slowMode != defaultSlowMode) {
-    slowMode = defaultSlowMode
+    slowMode = defaultSlowMode;
     room.sendAnnouncement(
       `🐢 Bekleme süresi tekrar ${defaultSlowMode} saniyeye düşürüldü.`,
       null,
       announcementColor,
-      'bold',
+      "bold",
       HaxNotification.CHAT
-    )
+    );
   }
-  redCaptainChoice = ''
-  blueCaptainChoice = ''
+  redCaptainChoice = "";
+  blueCaptainChoice = "";
 }
 
-function getSpecList (player) {
-  if (player == null) return null
-  let cstm = 'Oyuncular : '
+function getSpecList(player) {
+  if (player == null) return null;
+  var cstm = "Oyuncular : ";
   for (let i = 0; i < teamSpec.length; i++) {
-    cstm += teamSpec[i].name + `[${i + 1}], `
+    cstm += teamSpec[i].name + `[${i + 1}], `;
   }
-  cstm = cstm.substring(0, cstm.length - 2) + '.'
+  cstm = cstm.substring(0, cstm.length - 2) + ".";
   room.sendAnnouncement(
     cstm,
     player.id,
     infoColor,
-    'bold',
+    "bold",
     HaxNotification.CHAT
-  )
+  );
 }
 
-function choosePlayer () {
-  clearTimeout(timeOutCap)
-  let captain
+function choosePlayer() {
+  clearTimeout(timeOutCap);
+  let captain;
   if (teamRed.length <= teamBlue.length && teamRed.length != 0) {
-    captain = teamRed[0]
+    captain = teamRed[0];
   } else if (teamBlue.length < teamRed.length && teamBlue.length != 0) {
-    captain = teamBlue[0]
+    captain = teamBlue[0];
   }
   if (captain != null) {
     room.sendAnnouncement(
       "Oyuncu seçmek için aşağıda verilen oyuncular yanındaki numaralı kullanabilirsin yada 'üst', 'rastgele' or 'alt'.",
       captain.id,
       infoColor,
-      'bold',
+      "bold",
       HaxNotification.MENTION
-    )
+    );
     timeOutCap = setTimeout(
       (player) => {
         room.sendAnnouncement(
@@ -1868,167 +1884,167 @@ function choosePlayer () {
           )} saniyen kaldı !`,
           player.id,
           warningColor,
-          'bold',
+          "bold",
           HaxNotification.MENTION
-        )
+        );
         timeOutCap = setTimeout(
           (player) => {
             room.kickPlayer(
               player.id,
-              'Verilen zamanda oyuncu seçmedin !',
+              "Verilen zamanda oyuncu seçmedin !",
               false
-            )
+            );
           },
           chooseTime * 500,
           captain
-        )
+        );
       },
       chooseTime * 1000,
       captain
-    )
+    );
   }
   if (teamRed.length != 0 && teamBlue.length != 0) {
-    getSpecList(teamRed.length <= teamBlue.length ? teamRed[0] : teamBlue[0])
+    getSpecList(teamRed.length <= teamBlue.length ? teamRed[0] : teamBlue[0]);
   }
 }
 
-function chooseModeFunction (player, message) {
-  const msgArray = message.split(/ +/)
+function chooseModeFunction(player, message) {
+  var msgArray = message.split(/ +/);
   if (player.id == teamRed[0].id || player.id == teamBlue[0].id) {
     if (teamRed.length <= teamBlue.length && player.id == teamRed[0].id) {
-      if (['üst', 'oto'].includes(msgArray[0].toLowerCase())) {
-        room.setPlayerTeam(teamSpec[0].id, Team.RED)
-        redCaptainChoice = 'üst'
-        clearTimeout(timeOutCap)
+      if (["üst", "oto"].includes(msgArray[0].toLowerCase())) {
+        room.setPlayerTeam(teamSpec[0].id, Team.RED);
+        redCaptainChoice = "üst";
+        clearTimeout(timeOutCap);
         room.sendAnnouncement(
           `${player.name}, üstten bir oyuncu seçti !`,
           null,
           announcementColor,
-          'bold',
+          "bold",
           HaxNotification.CHAT
-        )
-      } else if (['rastgele', 'rast'].includes(msgArray[0].toLowerCase())) {
-        const r = getRandomInt(teamSpec.length)
-        room.setPlayerTeam(teamSpec[r].id, Team.RED)
-        redCaptainChoice = 'rastgele'
-        clearTimeout(timeOutCap)
+        );
+      } else if (["rastgele", "rast"].includes(msgArray[0].toLowerCase())) {
+        var r = getRandomInt(teamSpec.length);
+        room.setPlayerTeam(teamSpec[r].id, Team.RED);
+        redCaptainChoice = "rastgele";
+        clearTimeout(timeOutCap);
         room.sendAnnouncement(
           `${player.name}, rastgele oyuncu seçmeyi tercih etti !`,
           null,
           announcementColor,
-          'bold',
+          "bold",
           HaxNotification.CHAT
-        )
-      } else if (['alt', 'aşağı'].includes(msgArray[0].toLowerCase())) {
-        room.setPlayerTeam(teamSpec[teamSpec.length - 1].id, Team.RED)
-        redCaptainChoice = 'alt'
-        clearTimeout(timeOutCap)
+        );
+      } else if (["alt", "aşağı"].includes(msgArray[0].toLowerCase())) {
+        room.setPlayerTeam(teamSpec[teamSpec.length - 1].id, Team.RED);
+        redCaptainChoice = "alt";
+        clearTimeout(timeOutCap);
         room.sendAnnouncement(
           `${player.name}, alttan oyuncu seçmeyi tercih etti !`,
           null,
           announcementColor,
-          'bold',
+          "bold",
           HaxNotification.CHAT
-        )
+        );
       } else if (!Number.isNaN(Number.parseInt(msgArray[0]))) {
         if (
           Number.parseInt(msgArray[0]) > teamSpec.length ||
           Number.parseInt(msgArray[0]) < 1
         ) {
           room.sendAnnouncement(
-            'Girdiğin numara geçersiz !',
+            `Girdiğin numara geçersiz !`,
             player.id,
             errorColor,
-            'bold',
+            "bold",
             HaxNotification.CHAT
-          )
+          );
         } else {
           room.setPlayerTeam(
             teamSpec[Number.parseInt(msgArray[0]) - 1].id,
             Team.RED
-          )
+          );
           room.sendAnnouncement(
             `${player.name}, ${teamSpec[Number.parseInt(msgArray[0]) - 1].name
             } adlı oyuncuyu seçti!`,
             null,
             announcementColor,
-            'bold',
+            "bold",
             HaxNotification.CHAT
-          )
+          );
         }
-      } else return false
-      return true
+      } else return false;
+      return true;
     }
     if (teamRed.length > teamBlue.length && player.id == teamBlue[0].id) {
-      if (['üst', 'oto'].includes(msgArray[0].toLowerCase())) {
-        room.setPlayerTeam(teamSpec[0].id, Team.BLUE)
-        blueCaptainChoice = 'üst'
-        clearTimeout(timeOutCap)
+      if (["üst", "oto"].includes(msgArray[0].toLowerCase())) {
+        room.setPlayerTeam(teamSpec[0].id, Team.BLUE);
+        blueCaptainChoice = "üst";
+        clearTimeout(timeOutCap);
         room.sendAnnouncement(
           `${player.name}, üstten bir oyuncu seçti !`,
           null,
           announcementColor,
-          'bold',
+          "bold",
           HaxNotification.CHAT
-        )
-      } else if (['rastgele', 'rast'].includes(msgArray[0].toLowerCase())) {
+        );
+      } else if (["rastgele", "rast"].includes(msgArray[0].toLowerCase())) {
         room.setPlayerTeam(
           teamSpec[getRandomInt(teamSpec.length)].id,
           Team.BLUE
-        )
-        blueCaptainChoice = 'rastgele'
-        clearTimeout(timeOutCap)
+        );
+        blueCaptainChoice = "rastgele";
+        clearTimeout(timeOutCap);
         room.sendAnnouncement(
           `${player.name}, rastgele oyuncu seçmeyi tercih etti !`,
           null,
           announcementColor,
-          'bold',
+          "bold",
           HaxNotification.CHAT
-        )
-      } else if (['alt'].includes(msgArray[0].toLowerCase())) {
-        room.setPlayerTeam(teamSpec[teamSpec.length - 1].id, Team.BLUE)
-        blueCaptainChoice = 'alt'
-        clearTimeout(timeOutCap)
+        );
+      } else if (["alt"].includes(msgArray[0].toLowerCase())) {
+        room.setPlayerTeam(teamSpec[teamSpec.length - 1].id, Team.BLUE);
+        blueCaptainChoice = "alt";
+        clearTimeout(timeOutCap);
         room.sendAnnouncement(
           `${player.name}, alttan oyuncu seçmeyi tercih etti  !`,
           null,
           announcementColor,
-          'bold',
+          "bold",
           HaxNotification.CHAT
-        )
+        );
       } else if (!Number.isNaN(Number.parseInt(msgArray[0]))) {
         if (
           Number.parseInt(msgArray[0]) > teamSpec.length ||
           Number.parseInt(msgArray[0]) < 1
         ) {
           room.sendAnnouncement(
-            'Girdiğin numara geçersiz!',
+            `Girdiğin numara geçersiz!`,
             player.id,
             errorColor,
-            'bold',
+            "bold",
             HaxNotification.CHAT
-          )
+          );
         } else {
           room.setPlayerTeam(
             teamSpec[Number.parseInt(msgArray[0]) - 1].id,
             Team.BLUE
-          )
+          );
           room.sendAnnouncement(
             `${player.name}, ${teamSpec[Number.parseInt(msgArray[0]) - 1].name
             } adlı oyuncuyu seçti!`,
             null,
             announcementColor,
-            'bold',
+            "bold",
             HaxNotification.CHAT
-          )
+          );
         }
-      } else return false
-      return true
+      } else return false;
+      return true;
     }
   }
 }
 
-function checkCaptainLeave (player) {
+function checkCaptainLeave(player) {
   if (
     (teamRed.findIndex((red) => red.id == player.id) == 0 &&
       chooseMode &&
@@ -2037,40 +2053,40 @@ function checkCaptainLeave (player) {
       chooseMode &&
       teamBlue.length < teamRed.length)
   ) {
-    choosePlayer()
-    capLeft = true
+    choosePlayer();
+    capLeft = true;
     setTimeout(() => {
-      capLeft = false
-    }, 10)
+      capLeft = false;
+    }, 10);
   }
 }
 
-function slowModeFunction (player, message) {
+function slowModeFunction(player, message) {
   if (!player.admin) {
     if (!SMSet.has(player.id)) {
-      SMSet.add(player.id)
+      SMSet.add(player.id);
       setTimeout(
         (number) => {
-          SMSet.delete(number)
+          SMSet.delete(number);
         },
         slowMode * 1000,
         player.id
-      )
+      );
     } else {
-      return true
+      return true;
     }
   }
-  return false
+  return false;
 }
 
 /* PLAYER FUNCTIONS */
 
-function updateTeams () {
-  playersAll = room.getPlayerList()
-  players = playersAll.filter((p) => !AFKSet.has(p.id))
-  teamRed = players.filter((p) => p.team == Team.RED)
-  teamBlue = players.filter((p) => p.team == Team.BLUE)
-  teamSpec = players.filter((p) => p.team == Team.SPECTATORS)
+function updateTeams() {
+  playersAll = room.getPlayerList();
+  players = playersAll.filter((p) => !AFKSet.has(p.id));
+  teamRed = players.filter((p) => p.team == Team.RED);
+  teamBlue = players.filter((p) => p.team == Team.BLUE);
+  teamSpec = players.filter((p) => p.team == Team.SPECTATORS);
 }
 
 /* PLAYER: 0,
@@ -2079,47 +2095,47 @@ VIP: 2,
 ADMIN_PERM: 3,
 MASTER: 4
 */
-function getRole (player) {
-  const [isVIP, isAdmin, isMaster] = authArray[player.id].slice(4)
+function getRole(player) {
+  const [isVIP, isAdmin, isMaster] = authArray[player.id].slice(4);
 
   if (isMaster) {
-    return 4
+    return 4;
   } else if (isAdmin) {
-    return 3
+    return 3;
   } else if (isVIP) {
-    return 2
+    return 2;
   } else if (player.admin) {
-    return 1
+    return 1;
   } else {
-    return 0
+    return 0;
   }
 }
 
-function ghostKickHandle (oldP, newP) {
-  const teamArrayId = getTeamArray(oldP.team, true).map((p) => p.id)
+function ghostKickHandle(oldP, newP) {
+  var teamArrayId = getTeamArray(oldP.team, true).map((p) => p.id);
   teamArrayId.splice(
     teamArrayId.findIndex((id) => id == oldP.id),
     1,
     newP.id
-  )
+  );
 
-  room.kickPlayer(oldP.id, 'Ghost kick', false)
-  room.setPlayerTeam(newP.id, oldP.team)
-  room.setPlayerAdmin(newP.id, oldP.admin)
-  room.reorderPlayers(teamArrayId, true)
+  room.kickPlayer(oldP.id, "Ghost kick", false);
+  room.setPlayerTeam(newP.id, oldP.team);
+  room.setPlayerAdmin(newP.id, oldP.admin);
+  room.reorderPlayers(teamArrayId, true);
 
   if (oldP.team != Team.SPECTATORS && playSituation != Situation.STOP) {
-    const discProp = room.getPlayerDiscProperties(oldP.id)
-    room.setPlayerDiscProperties(newP.id, discProp)
+    var discProp = room.getPlayerDiscProperties(oldP.id);
+    room.setPlayerDiscProperties(newP.id, discProp);
   }
 }
 
 /* ACTIVITY FUNCTIONS */
 
-function handleActivityPlayer (player) {
-  const pComp = getPlayerComp(player)
+function handleActivityPlayer(player) {
+  let pComp = getPlayerComp(player);
   if (pComp != null) {
-    pComp.inactivityTicks++
+    pComp.inactivityTicks++;
     if (pComp.inactivityTicks == 60 * ((2 / 3) * afkLimit)) {
       room.sendAnnouncement(
         `⛔ ${player.name}, eğer hareket etmezsen ${Math.floor(
@@ -2127,84 +2143,84 @@ function handleActivityPlayer (player) {
         )} saniye sonra atılacaksın !`,
         player.id,
         warningColor,
-        'bold',
+        "bold",
         HaxNotification.MENTION
-      )
-      return
+      );
+      return;
     }
     if (pComp.inactivityTicks >= 60 * afkLimit) {
-      pComp.inactivityTicks = 0
+      pComp.inactivityTicks = 0;
       if (game.scores.time <= afkLimit - 0.5) {
         setTimeout(() => {
-          !chooseMode ? instantRestart() : room.stopGame()
-        }, 10)
+          !chooseMode ? instantRestart() : room.stopGame();
+        }, 10);
       }
-      room.kickPlayer(player.id, 'AFK', false)
+      room.kickPlayer(player.id, "AFK", false);
     }
   }
 }
 
-function handleActivityPlayerTeamChange (changedPlayer) {
+function handleActivityPlayerTeamChange(changedPlayer) {
   if (changedPlayer.team == Team.SPECTATORS) {
-    const pComp = getPlayerComp(changedPlayer)
-    if (pComp != null) pComp.inactivityTicks = 0
+    let pComp = getPlayerComp(changedPlayer);
+    if (pComp != null) pComp.inactivityTicks = 0;
   }
 }
 
-function handleActivityStop () {
-  for (const player of players) {
-    const pComp = getPlayerComp(player)
-    if (pComp != null) pComp.inactivityTicks = 0
+function handleActivityStop() {
+  for (let player of players) {
+    let pComp = getPlayerComp(player);
+    if (pComp != null) pComp.inactivityTicks = 0;
   }
 }
 
-function handleActivity () {
+function handleActivity() {
   if (gameState === State.PLAY && players.length > 1) {
-    for (const player of teamRed) {
-      handleActivityPlayer(player)
+    for (let player of teamRed) {
+      handleActivityPlayer(player);
     }
-    for (const player of teamBlue) {
-      handleActivityPlayer(player)
+    for (let player of teamBlue) {
+      handleActivityPlayer(player);
     }
   }
 }
 
 /* LINEUP FUNCTIONS */
 
-function getStartingLineups () {
-  const compositions = [[], []]
-  for (const player of teamRed) {
+function getStartingLineups() {
+  var compositions = [[], []];
+  for (let player of teamRed) {
     compositions[0].push(
       new PlayerComposition(player, authArray[player.id][0], [0], [])
-    )
+    );
   }
-  for (const player of teamBlue) {
+  for (let player of teamBlue) {
     compositions[1].push(
       new PlayerComposition(player, authArray[player.id][0], [0], [])
-    )
+    );
   }
-  return compositions
+  return compositions;
 }
 
-function handleLineupChangeTeamChange (changedPlayer) {
+function handleLineupChangeTeamChange(changedPlayer) {
   if (gameState != State.STOP) {
-    let playerLineup
+    var playerLineup;
     if (changedPlayer.team == Team.RED) {
       // player gets in red team
-      var redLineupAuth = game.playerComp[0].map((p) => p.auth)
+      var redLineupAuth = game.playerComp[0].map((p) => p.auth);
       var ind = redLineupAuth.findIndex(
         (auth) => auth == authArray[changedPlayer.id][0]
-      )
+      );
       if (ind != -1) {
         // Player goes back in
-        playerLineup = game.playerComp[0][ind]
+        playerLineup = game.playerComp[0][ind];
         if (playerLineup.timeExit.includes(game.scores.time)) {
           // gets subbed off then in at the exact same time -> no sub
           playerLineup.timeExit = playerLineup.timeExit.filter(
             (t) => t != game.scores.time
-          )
+          );
         } else {
-          playerLineup.timeEntry.push(game.scores.time)
+          playerLineup.timeEntry.push(game.scores.time);
         }
       } else {
         playerLineup = new PlayerComposition(
@@ -2212,25 +2228,25 @@ function handleLineupChangeTeamChange (changedPlayer) {
           authArray[changedPlayer.id][0],
           [game.scores.time],
           []
-        )
-        game.playerComp[0].push(playerLineup)
+        );
+        game.playerComp[0].push(playerLineup);
       }
     } else if (changedPlayer.team == Team.BLUE) {
       // player gets in blue team
-      var blueLineupAuth = game.playerComp[1].map((p) => p.auth)
+      var blueLineupAuth = game.playerComp[1].map((p) => p.auth);
       var ind = blueLineupAuth.findIndex(
         (auth) => auth == authArray[changedPlayer.id][0]
-      )
+      );
       if (ind != -1) {
         // Player goes back in
-        playerLineup = game.playerComp[1][ind]
+        playerLineup = game.playerComp[1][ind];
         if (playerLineup.timeExit.includes(game.scores.time)) {
           // gets subbed off then in at the exact same time -> no sub
           playerLineup.timeExit = playerLineup.timeExit.filter(
             (t) => t != game.scores.time
-          )
+          );
         } else {
-          playerLineup.timeEntry.push(game.scores.time)
+          playerLineup.timeEntry.push(game.scores.time);
         }
       } else {
         playerLineup = new PlayerComposition(
@@ -2238,91 +2254,91 @@ function handleLineupChangeTeamChange (changedPlayer) {
           authArray[changedPlayer.id][0],
           [game.scores.time],
           []
-        )
-        game.playerComp[1].push(playerLineup)
+        );
+        game.playerComp[1].push(playerLineup);
       }
     }
     if (teamRed.some((r) => r.id == changedPlayer.id)) {
       // player leaves red team
-      var redLineupAuth = game.playerComp[0].map((p) => p.auth)
+      var redLineupAuth = game.playerComp[0].map((p) => p.auth);
       var ind = redLineupAuth.findIndex(
         (auth) => auth == authArray[changedPlayer.id][0]
-      )
-      playerLineup = game.playerComp[0][ind]
+      );
+      playerLineup = game.playerComp[0][ind];
       if (playerLineup.timeEntry.includes(game.scores.time)) {
         // gets subbed off then in at the exact same time -> no sub
         if (game.scores.time == 0) {
-          game.playerComp[0].splice(ind, 1)
+          game.playerComp[0].splice(ind, 1);
         } else {
           playerLineup.timeEntry = playerLineup.timeEntry.filter(
             (t) => t != game.scores.time
-          )
+          );
         }
       } else {
-        playerLineup.timeExit.push(game.scores.time)
+        playerLineup.timeExit.push(game.scores.time);
       }
     } else if (teamBlue.some((r) => r.id == changedPlayer.id)) {
       // player leaves blue team
-      var blueLineupAuth = game.playerComp[1].map((p) => p.auth)
+      var blueLineupAuth = game.playerComp[1].map((p) => p.auth);
       var ind = blueLineupAuth.findIndex(
         (auth) => auth == authArray[changedPlayer.id][0]
-      )
-      playerLineup = game.playerComp[1][ind]
+      );
+      playerLineup = game.playerComp[1][ind];
       if (playerLineup.timeEntry.includes(game.scores.time)) {
         // gets subbed off then in at the exact same time -> no sub
         if (game.scores.time == 0) {
-          game.playerComp[1].splice(ind, 1)
+          game.playerComp[1].splice(ind, 1);
         } else {
           playerLineup.timeEntry = playerLineup.timeEntry.filter(
             (t) => t != game.scores.time
-          )
+          );
         }
       } else {
-        playerLineup.timeExit.push(game.scores.time)
+        playerLineup.timeExit.push(game.scores.time);
       }
     }
   }
 }
 
-function handleLineupChangeLeave (player) {
+function handleLineupChangeLeave(player) {
   if (playSituation != Situation.STOP) {
     if (player.team == Team.RED) {
       // player gets in red team
-      const redLineupAuth = game.playerComp[0].map((p) => p.auth)
+      var redLineupAuth = game.playerComp[0].map((p) => p.auth);
       var ind = redLineupAuth.findIndex(
         (auth) => auth == authArray[player.id][0]
-      )
-      var playerLineup = game.playerComp[0][ind]
+      );
+      var playerLineup = game.playerComp[0][ind];
       if (playerLineup.timeEntry.includes(game.scores.time)) {
         // gets subbed off then in at the exact same time -> no sub
         if (game.scores.time == 0) {
-          game.playerComp[0].splice(ind, 1)
+          game.playerComp[0].splice(ind, 1);
         } else {
           playerLineup.timeEntry = playerLineup.timeEntry.filter(
             (t) => t != game.scores.time
-          )
+          );
         }
       } else {
-        playerLineup.timeExit.push(game.scores.time)
+        playerLineup.timeExit.push(game.scores.time);
       }
     } else if (player.team == Team.BLUE) {
       // player gets in blue team
-      const blueLineupAuth = game.playerComp[1].map((p) => p.auth)
+      var blueLineupAuth = game.playerComp[1].map((p) => p.auth);
       var ind = blueLineupAuth.findIndex(
         (auth) => auth == authArray[player.id][0]
-      )
-      var playerLineup = game.playerComp[1][ind]
+      );
+      var playerLineup = game.playerComp[1][ind];
       if (playerLineup.timeEntry.includes(game.scores.time)) {
         // gets subbed off then in at the exact same time -> no sub
         if (game.scores.time == 0) {
-          game.playerComp[1].splice(ind, 1)
+          game.playerComp[1].splice(ind, 1);
         } else {
           playerLineup.timeEntry = playerLineup.timeEntry.filter(
             (t) => t != game.scores.time
-          )
+          );
         }
       } else {
-        playerLineup.timeExit.push(game.scores.time)
+        playerLineup.timeExit.push(game.scores.time);
       }
     }
   }
@@ -2330,391 +2346,394 @@ function handleLineupChangeLeave (player) {
 
 /* TEAM BALANCE FUNCTIONS */
 
-function balanceTeams () {
+function balanceTeams() {
   if (!chooseMode) {
     if (players.length == 0) {
-      room.stopGame()
-      room.setScoreLimit(scoreLimit)
-      room.setTimeLimit(timeLimit)
+      room.stopGame();
+      room.setScoreLimit(scoreLimit);
+      room.setTimeLimit(timeLimit);
     } else if (players.length == 1 && teamRed.length == 0) {
-      instantRestart()
+      instantRestart();
       setTimeout(() => {
-        stadiumCommand(emptyPlayer, '!antrenman')
-      }, 5)
-      room.setPlayerTeam(players[0].id, Team.RED)
+        stadiumCommand(emptyPlayer, `!antrenman`);
+      }, 5);
+      room.setPlayerTeam(players[0].id, Team.RED);
     } else if (
       Math.abs(teamRed.length - teamBlue.length) == teamSpec.length &&
       teamSpec.length > 0
     ) {
-      const n = Math.abs(teamRed.length - teamBlue.length)
+      const n = Math.abs(teamRed.length - teamBlue.length);
       if (players.length == 2) {
-        instantRestart()
+        instantRestart();
         setTimeout(() => {
-          stadiumCommand(emptyPlayer, '!v2')
-        }, 5)
+          stadiumCommand(emptyPlayer, `!v2`);
+        }, 5);
       }
       if (teamRed.length > teamBlue.length) {
         for (var i = 0; i < n; i++) {
-          room.setPlayerTeam(teamSpec[i].id, Team.BLUE)
+          room.setPlayerTeam(teamSpec[i].id, Team.BLUE);
         }
       } else {
         for (var i = 0; i < n; i++) {
-          room.setPlayerTeam(teamSpec[i].id, Team.RED)
+          room.setPlayerTeam(teamSpec[i].id, Team.RED);
         }
       }
     } else if (Math.abs(teamRed.length - teamBlue.length) > teamSpec.length) {
-      const n = Math.abs(teamRed.length - teamBlue.length)
+      const n = Math.abs(teamRed.length - teamBlue.length);
       if (players.length == 1) {
-        instantRestart()
+        instantRestart();
         setTimeout(() => {
-          stadiumCommand(emptyPlayer, '!antrenman')
-        }, 5)
-        room.setPlayerTeam(players[0].id, Team.RED)
-        return
+          stadiumCommand(emptyPlayer, `!antrenman`);
+        }, 5);
+        room.setPlayerTeam(players[0].id, Team.RED);
+        return;
       } else if (teamSize > 2 && players.length == 5) {
-        instantRestart()
+        instantRestart();
         setTimeout(() => {
           if (players.length == 5) {
-            stadiumCommand(emptyPlayer, '!v2')
+            stadiumCommand(emptyPlayer, `!v2`);
           } else {
             setTimeout(() => {
               if (players.length == 5) {
-                instantRestart()
-                stadiumCommand(emptyPlayer, '!v2')
+                instantRestart();
+                stadiumCommand(emptyPlayer, `!v2`);
               } else {
-                stadiumCommand(emptyPlayer, '!v3')
+                stadiumCommand(emptyPlayer, `!v3`);
               }
-            }, 10000)
+            }, 10000);
           }
-        }, 5)
+        }, 5);
       }
       if (players.length == teamSize * 2 - 1) {
-        teamRedStats = []
-        teamBlueStats = []
+        teamRedStats = [];
+        teamBlueStats = [];
       }
       if (teamRed.length > teamBlue.length) {
         for (var i = 0; i < n; i++) {
-          room.setPlayerTeam(teamRed[teamRed.length - 1 - i].id, Team.SPECTATORS)
+          room.setPlayerTeam(teamRed[teamRed.length - 1 - i].id, Team.SPECTATORS);
         }
       } else {
         for (var i = 0; i < n; i++) {
-          room.setPlayerTeam(teamBlue[teamBlue.length - 1 - i].id, Team.SPECTATORS)
+          room.setPlayerTeam(teamBlue[teamBlue.length - 1 - i].id, Team.SPECTATORS);
         }
       }
     } else if (
       Math.abs(teamRed.length - teamBlue.length) < teamSpec.length &&
       teamRed.length != teamBlue.length
     ) {
-      room.pauseGame(true)
-      activateChooseMode()
-      choosePlayer()
+      room.pauseGame(true);
+      activateChooseMode();
+      choosePlayer();
     } else if (
       teamSpec.length >= 2 &&
       teamRed.length == teamBlue.length &&
       teamRed.length < teamSize
     ) {
       if (teamRed.length == 2) {
-        instantRestart()
+        instantRestart();
         setTimeout(() => {
-          stadiumCommand(emptyPlayer, '!v3')
-        }, 5)
+          stadiumCommand(emptyPlayer, `!v3`);
+        }, 5);
       }
-      topButton()
+      topButton();
     }
   }
 }
 
-function handlePlayersJoin () {
+function handlePlayersJoin() {
   if (chooseMode) {
     if (teamSize > 2 && players.length == 6) {
       setTimeout(() => {
-        stadiumCommand(emptyPlayer, '!v3')
-      }, 5)
+        stadiumCommand(emptyPlayer, `!v3`);
+      }, 5);
     }
-    getSpecList(teamRed.length <= teamBlue.length ? teamRed[0] : teamBlue[0])
+    getSpecList(teamRed.length <= teamBlue.length ? teamRed[0] : teamBlue[0]);
   }
-  balanceTeams()
+  balanceTeams();
 }
 
-function handlePlayersLeave () {
+function handlePlayersLeave() {
   if (gameState != State.STOP) {
-    const scores = room.getScores()
+    var scores = room.getScores();
     if (
       players.length >= 2 * teamSize &&
       scores.time >= (5 / 6) * game.scores.timeLimit &&
       teamRed.length != teamBlue.length
     ) {
-      let rageQuitCheck = false
+      var rageQuitCheck = false;
       if (teamRed.length < teamBlue.length) {
         if (scores.blue - scores.red == 2) {
-          endGame(Team.BLUE)
-          rageQuitCheck = true
+          endGame(Team.BLUE);
+          rageQuitCheck = true;
         }
       } else {
         if (scores.red - scores.blue == 2) {
-          endGame(Team.RED)
-          rageQuitCheck = true
+          endGame(Team.RED);
+          rageQuitCheck = true;
         }
       }
       if (rageQuitCheck) {
         room.sendAnnouncement(
-          'Oyundan kaçma tespit edildi, oyun böyle sonuçlanacak.',
+          "Oyundan kaçma tespit edildi, oyun böyle sonuçlanacak.",
           null,
           infoColor,
-          'bold',
+          "bold",
           HaxNotification.MENTION
-        )
+        );
         stopTimeout = setTimeout(() => {
-          room.stopGame()
-        }, 100)
-        return
+          room.stopGame();
+        }, 100);
+        return;
       }
     }
   }
   if (chooseMode) {
     if (teamSize > 2 && players.length == 5) {
       setTimeout(() => {
-        stadiumCommand(emptyPlayer, '!v2')
-      }, 5)
+        stadiumCommand(emptyPlayer, `!v2`);
+      }, 5);
     }
     if (teamRed.length == 0 || teamBlue.length == 0) {
       room.setPlayerTeam(
         teamSpec[0].id,
         teamRed.length == 0 ? Team.RED : Team.BLUE
-      )
-      return
+      );
+      return;
     }
     if (Math.abs(teamRed.length - teamBlue.length) == teamSpec.length) {
-      deactivateChooseMode()
-      resumeGame()
-      const b = teamSpec.length
+      deactivateChooseMode();
+      resumeGame();
+      var b = teamSpec.length;
       if (teamRed.length > teamBlue.length) {
         for (var i = 0; i < b; i++) {
-          clearTimeout(insertingTimeout)
-          insertingPlayers = true
+          clearTimeout(insertingTimeout);
+          insertingPlayers = true;
           setTimeout(() => {
-            room.setPlayerTeam(teamSpec[0].id, Team.BLUE)
-          }, 5 * i)
+            room.setPlayerTeam(teamSpec[0].id, Team.BLUE);
+          }, 5 * i);
         }
         insertingTimeout = setTimeout(() => {
-          insertingPlayers = false
-        }, 5 * b)
+          insertingPlayers = false;
+        }, 5 * b);
       } else {
         for (var i = 0; i < b; i++) {
-          clearTimeout(insertingTimeout)
-          insertingPlayers = true
+          clearTimeout(insertingTimeout);
+          insertingPlayers = true;
           setTimeout(() => {
-            room.setPlayerTeam(teamSpec[0].id, Team.RED)
-          }, 5 * i)
+            room.setPlayerTeam(teamSpec[0].id, Team.RED);
+          }, 5 * i);
         }
         insertingTimeout = setTimeout(() => {
-          insertingPlayers = false
-        }, 5 * b)
+          insertingPlayers = false;
+        }, 5 * b);
       }
-      return
+      return;
     }
     if (streak == 0 && gameState == State.STOP) {
       if (Math.abs(teamRed.length - teamBlue.length) == 2) {
-        const teamIn = teamRed.length > teamBlue.length ? teamRed : teamBlue
-        room.setPlayerTeam(teamIn[teamIn.length - 1].id, Team.SPECTATORS)
+        var teamIn = teamRed.length > teamBlue.length ? teamRed : teamBlue;
+        room.setPlayerTeam(teamIn[teamIn.length - 1].id, Team.SPECTATORS);
       }
     }
     if (teamRed.length == teamBlue.length && teamSpec.length < 2) {
-      deactivateChooseMode()
-      resumeGame()
-      return
+      deactivateChooseMode();
+      resumeGame();
+      return;
     }
 
     if (capLeft) {
-      choosePlayer()
+      choosePlayer();
     } else {
       getSpecList(
         teamRed.length <= teamBlue.length ? teamRed[0] : teamBlue[0]
-      )
+      );
     }
   }
-  balanceTeams()
+  balanceTeams();
 }
 
-function handlePlayersTeamChange (byPlayer) {
+function handlePlayersTeamChange(byPlayer) {
   if (chooseMode && !removingPlayers && byPlayer == null) {
     if (Math.abs(teamRed.length - teamBlue.length) == teamSpec.length) {
-      deactivateChooseMode()
-      resumeGame()
-      const b = teamSpec.length
+      deactivateChooseMode();
+      resumeGame();
+      var b = teamSpec.length;
       if (teamRed.length > teamBlue.length) {
         for (var i = 0; i < b; i++) {
-          clearTimeout(insertingTimeout)
-          insertingPlayers = true
+          clearTimeout(insertingTimeout);
+          insertingPlayers = true;
           setTimeout(() => {
-            room.setPlayerTeam(teamSpec[0].id, Team.BLUE)
-          }, 5 * i)
+            room.setPlayerTeam(teamSpec[0].id, Team.BLUE);
+          }, 5 * i);
         }
         insertingTimeout = setTimeout(() => {
-          insertingPlayers = false
-        }, 5 * b)
+          insertingPlayers = false;
+        }, 5 * b);
       } else {
         for (var i = 0; i < b; i++) {
-          clearTimeout(insertingTimeout)
-          insertingPlayers = true
+          clearTimeout(insertingTimeout);
+          insertingPlayers = true;
           setTimeout(() => {
-            room.setPlayerTeam(teamSpec[0].id, Team.RED)
-          }, 5 * i)
+            room.setPlayerTeam(teamSpec[0].id, Team.RED);
+          }, 5 * i);
         }
         insertingTimeout = setTimeout(() => {
-          insertingPlayers = false
-        }, 5 * b)
+          insertingPlayers = false;
+        }, 5 * b);
       }
+      return;
     } else if (
       (teamRed.length == teamSize && teamBlue.length == teamSize) ||
       (teamRed.length == teamBlue.length && teamSpec.length < 2)
     ) {
-      deactivateChooseMode()
-      resumeGame()
-    } else if (teamRed.length <= teamBlue.length && redCaptainChoice != '') {
-      if (redCaptainChoice == 'top') {
-        room.setPlayerTeam(teamSpec[0].id, Team.RED)
-      } else if (redCaptainChoice == 'random') {
-        var r = getRandomInt(teamSpec.length)
-        room.setPlayerTeam(teamSpec[r].id, Team.RED)
+      deactivateChooseMode();
+      resumeGame();
+    } else if (teamRed.length <= teamBlue.length && redCaptainChoice != "") {
+      if (redCaptainChoice == "top") {
+        room.setPlayerTeam(teamSpec[0].id, Team.RED);
+      } else if (redCaptainChoice == "random") {
+        var r = getRandomInt(teamSpec.length);
+        room.setPlayerTeam(teamSpec[r].id, Team.RED);
       } else {
-        room.setPlayerTeam(teamSpec[teamSpec.length - 1].id, Team.RED)
+        room.setPlayerTeam(teamSpec[teamSpec.length - 1].id, Team.RED);
       }
-    } else if (teamBlue.length < teamRed.length && blueCaptainChoice != '') {
-      if (blueCaptainChoice == 'top') {
-        room.setPlayerTeam(teamSpec[0].id, Team.BLUE)
-      } else if (blueCaptainChoice == 'random') {
-        var r = getRandomInt(teamSpec.length)
-        room.setPlayerTeam(teamSpec[r].id, Team.BLUE)
+      return;
+    } else if (teamBlue.length < teamRed.length && blueCaptainChoice != "") {
+      if (blueCaptainChoice == "top") {
+        room.setPlayerTeam(teamSpec[0].id, Team.BLUE);
+      } else if (blueCaptainChoice == "random") {
+        var r = getRandomInt(teamSpec.length);
+        room.setPlayerTeam(teamSpec[r].id, Team.BLUE);
       } else {
-        room.setPlayerTeam(teamSpec[teamSpec.length - 1].id, Team.BLUE)
+        room.setPlayerTeam(teamSpec[teamSpec.length - 1].id, Team.BLUE);
       }
+      return;
     } else {
-      choosePlayer()
+      choosePlayer();
     }
   }
 }
 
-function handlePlayersStop (byPlayer) {
+function handlePlayersStop(byPlayer) {
   if (byPlayer == null && endGameVariable) {
     if (chooseMode) {
       if (players.length == 2 * teamSize) {
-        chooseMode = false
-        resetButton()
-        for (let i = 0; i < teamSize; i++) {
-          clearTimeout(insertingTimeout)
-          insertingPlayers = true
+        chooseMode = false;
+        resetButton();
+        for (var i = 0; i < teamSize; i++) {
+          clearTimeout(insertingTimeout);
+          insertingPlayers = true;
           setTimeout(() => {
-            randomButton()
-          }, 200 * i)
+            randomButton();
+          }, 200 * i);
         }
         insertingTimeout = setTimeout(() => {
-          insertingPlayers = false
-        }, 200 * teamSize)
+          insertingPlayers = false;
+        }, 200 * teamSize);
         startTimeout = setTimeout(() => {
-          room.startGame()
-        }, 2000)
+          room.startGame();
+        }, 2000);
       } else {
         if (lastWinner == Team.RED) {
-          blueToSpecButton()
+          blueToSpecButton();
         } else if (lastWinner == Team.BLUE) {
-          redToSpecButton()
+          redToSpecButton();
           setTimeout(() => {
-            swapButton()
-          }, 10)
+            swapButton();
+          }, 10);
         } else {
-          resetButton()
+          resetButton();
         }
-        clearTimeout(insertingTimeout)
-        insertingPlayers = true
+        clearTimeout(insertingTimeout);
+        insertingPlayers = true;
         setTimeout(() => {
-          topButton()
-        }, 300)
+          topButton();
+        }, 300);
         insertingTimeout = setTimeout(() => {
-          insertingPlayers = false
-        }, 300)
+          insertingPlayers = false;
+        }, 300);
       }
     } else {
       if (players.length == 2) {
         if (lastWinner == Team.BLUE) {
-          swapButton()
+          swapButton();
         }
         startTimeout = setTimeout(() => {
-          room.startGame()
-        }, 2000)
+          room.startGame();
+        }, 2000);
       } else if (players.length == 3 || players.length >= 2 * teamSize + 1) {
         if (lastWinner == Team.RED) {
-          blueToSpecButton()
+          blueToSpecButton();
         } else {
-          redToSpecButton()
+          redToSpecButton();
           setTimeout(() => {
-            swapButton()
-          }, 5)
+            swapButton();
+          }, 5);
         }
-        clearTimeout(insertingTimeout)
-        insertingPlayers = true
+        clearTimeout(insertingTimeout);
+        insertingPlayers = true;
         setTimeout(() => {
-          topButton()
-        }, 200)
+          topButton();
+        }, 200);
         insertingTimeout = setTimeout(() => {
-          insertingPlayers = false
-        }, 300)
+          insertingPlayers = false;
+        }, 300);
         startTimeout = setTimeout(() => {
-          room.startGame()
-        }, 2000)
+          room.startGame();
+        }, 2000);
       } else if (players.length == 4) {
-        resetButton()
-        clearTimeout(insertingTimeout)
-        insertingPlayers = true
+        resetButton();
+        clearTimeout(insertingTimeout);
+        insertingPlayers = true;
         setTimeout(() => {
-          randomButton()
+          randomButton();
           setTimeout(() => {
-            randomButton()
-          }, 500)
-        }, 500)
+            randomButton();
+          }, 500);
+        }, 500);
         insertingTimeout = setTimeout(() => {
-          insertingPlayers = false
-        }, 2000)
+          insertingPlayers = false;
+        }, 2000);
         startTimeout = setTimeout(() => {
-          room.startGame()
-        }, 2000)
+          room.startGame();
+        }, 2000);
       } else if (players.length == 5 || players.length >= 2 * teamSize + 1) {
         if (lastWinner == Team.RED) {
-          blueToSpecButton()
+          blueToSpecButton();
         } else {
-          redToSpecButton()
+          redToSpecButton();
           setTimeout(() => {
-            swapButton()
-          }, 5)
+            swapButton();
+          }, 5);
         }
-        clearTimeout(insertingTimeout)
-        insertingPlayers = true
+        clearTimeout(insertingTimeout);
+        insertingPlayers = true;
         insertingTimeout = setTimeout(() => {
-          insertingPlayers = false
-        }, 200)
+          insertingPlayers = false;
+        }, 200);
         setTimeout(() => {
-          topButton()
-        }, 200)
-        activateChooseMode()
+          topButton();
+        }, 200);
+        activateChooseMode();
       } else if (players.length == 6) {
-        resetButton()
-        clearTimeout(insertingTimeout)
-        insertingPlayers = true
+        resetButton();
+        clearTimeout(insertingTimeout);
+        insertingPlayers = true;
         insertingTimeout = setTimeout(() => {
-          insertingPlayers = false
-        }, 1500)
+          insertingPlayers = false;
+        }, 1500);
         setTimeout(() => {
-          randomButton()
+          randomButton();
           setTimeout(() => {
-            randomButton()
+            randomButton();
             setTimeout(() => {
-              randomButton()
-            }, 500)
-          }, 500)
-        }, 500)
+              randomButton();
+            }, 500);
+          }, 500);
+        }, 500);
         startTimeout = setTimeout(() => {
-          room.startGame()
-        }, 2000)
+          room.startGame();
+        }, 2000);
       }
     }
   }
@@ -2724,87 +2743,88 @@ function handlePlayersStop (byPlayer) {
 
 /* GK FUNCTIONS */
 
-function handleGKTeam (team) {
+function handleGKTeam(team) {
   if (team == Team.SPECTATORS) {
-    return null
+    return null;
   }
-  const teamArray = team == Team.RED ? teamRed : teamBlue
-  const playerGK = teamArray.reduce((prev, current) => {
+  let teamArray = team == Team.RED ? teamRed : teamBlue;
+  let playerGK = teamArray.reduce((prev, current) => {
     if (team == Team.RED) {
       return (prev?.position.x < current.position.x) ? prev : current
     } else {
       return (prev?.position.x > current.position.x) ? prev : current
     }
-  }, null)
-  const playerCompGK = getPlayerComp(playerGK)
-  return playerCompGK
+  }, null);
+  let playerCompGK = getPlayerComp(playerGK);
+  return playerCompGK;
 }
 
-function handleGK () {
-  const redGK = handleGKTeam(Team.RED)
+function handleGK() {
+  let redGK = handleGKTeam(Team.RED);
   if (redGK != null) {
-    redGK.GKTicks++
+    redGK.GKTicks++;
   }
-  const blueGK = handleGKTeam(Team.BLUE)
+  let blueGK = handleGKTeam(Team.BLUE);
   if (blueGK != null) {
-    blueGK.GKTicks++
+    blueGK.GKTicks++;
   }
 }
 
-function getGK (team) {
+function getGK(team) {
   if (team == Team.SPECTATORS) {
-    return null
+    return null;
   }
-  const teamArray = team == Team.RED ? game.playerComp[0] : game.playerComp[1]
-  const playerGK = teamArray.reduce((prev, current) => {
+  let teamArray = team == Team.RED ? game.playerComp[0] : game.playerComp[1];
+  let playerGK = teamArray.reduce((prev, current) => {
     return (prev?.GKTicks > current.GKTicks) ? prev : current
-  }, null)
-  return playerGK
+  }, null);
+  return playerGK;
 }
 
-function getCS (scores) {
-  const playersNameCS = []
-  const redGK = getGK(Team.RED)
-  const blueGK = getGK(Team.BLUE)
+function getCS(scores) {
+  let playersNameCS = [];
+  let redGK = getGK(Team.RED);
+  let blueGK = getGK(Team.BLUE);
   if (redGK != null && scores.blue == 0) {
-    playersNameCS.push(redGK.player.name)
+    playersNameCS.push(redGK.player.name);
   }
   if (blueGK != null && scores.red == 0) {
-    playersNameCS.push(blueGK.player.name)
+    playersNameCS.push(blueGK.player.name);
   }
-  return playersNameCS
+  return playersNameCS;
 }
 
-function getCSString (scores) {
-  const playersCS = getCS(scores)
+function getCSString(scores) {
+  let playersCS = getCS(scores);
   if (playersCS.length == 0) {
-    return '🥅 İki takımda kalesini gole kapatamadı..'
+    return `🥅 İki takımda kalesini gole kapatamadı..`;
   } else if (playersCS.length == 1) {
-    return `🥅 ${playersCS[0]} gol yemedi!`
+    return `🥅 ${playersCS[0]} gol yemedi!`;
   } else if (playersCS.length == 2) {
-    return `🥅 ${playersCS[0]} ve ${playersCS[1]} gol yemedi!`
+    return `🥅 ${playersCS[0]} ve ${playersCS[1]} gol yemedi!`;
   } else {
-    return ''
+    return "";
   }
 }
 
 /* GLOBAL STATS FUNCTIONS */
 
-function getLastTouchOfTheBall () {
-  const ballPosition = room.getBallPosition()
-  updateTeams()
-  const playerArray = []
-  for (const player of players) {
+function getLastTouchOfTheBall() {
+  const ballPosition = room.getBallPosition();
+  updateTeams();
+  let playerArray = [];
+  for (let player of players) {
     if (player.position != null) {
-      const distanceToBall = pointDistance(player.position, ballPosition)
+      var distanceToBall = pointDistance(player.position, ballPosition);
       if (distanceToBall < triggerDistance) {
-        if (playSituation == Situation.KICKOFF) { playSituation = Situation.PLAY }
-        playerArray.push([player, distanceToBall])
+        if (playSituation == Situation.KICKOFF)
+          playSituation = Situation.PLAY;
+        playerArray.push([player, distanceToBall]);
       }
     }
   }
   if (playerArray.length != 0) {
-    const playerTouch = playerArray.sort((a, b) => a[1] - b[1])[0][0]
+    let playerTouch = playerArray.sort((a, b) => a[1] - b[1])[0][0];
     if (
       lastTeamTouched == playerTouch.team ||
       lastTeamTouched == Team.SPECTATORS
@@ -2820,171 +2840,216 @@ function getLastTouchOfTheBall () {
             getGoalGame(),
             ballPosition
           )
-        )
+        );
         lastTouches[0] = checkGoalKickTouch(
           game.touchArray,
           game.touchArray.length - 1,
           getGoalGame()
-        )
+        );
         lastTouches[1] = checkGoalKickTouch(
           game.touchArray,
           game.touchArray.length - 2,
           getGoalGame()
-        )
+        );
       }
     }
-    lastTeamTouched = playerTouch.team
+    lastTeamTouched = playerTouch.team;
   }
 }
 
-function getBallSpeed () {
-  const ballProp = room.getDiscProperties(0)
+function getBallSpeed() {
+  var ballProp = room.getDiscProperties(0);
   return (
     Math.sqrt(ballProp.xspeed ** 2 + ballProp.yspeed ** 2) * speedCoefficient
-  )
+  );
 }
 
-function getGameStats () {
+function getGameStats() {
   if (playSituation == Situation.PLAY && gameState == State.PLAY) {
-    lastTeamTouched == Team.RED ? possession[0]++ : possession[1]++
-    const ballPosition = room.getBallPosition()
-    ballPosition.x < 0 ? actionZoneHalf[0]++ : actionZoneHalf[1]++
-    handleGK()
+    lastTeamTouched == Team.RED ? possession[0]++ : possession[1]++;
+    var ballPosition = room.getBallPosition();
+    ballPosition.x < 0 ? actionZoneHalf[0]++ : actionZoneHalf[1]++;
+    handleGK();
   }
 }
 
 /* GOAL ATTRIBUTION FUNCTIONS */
 
-function getGoalAttribution (team) {
-  let goalAttribution = Array(2).fill(null)
+function getGoalAttribution(team) {
+  var goalAttribution = Array(2).fill(null);
   if (lastTouches[0] != null) {
     if (lastTouches[0].player.team == team) {
       // Direct goal scored by player
       if (lastTouches[1] != null && lastTouches[1].player.team == team) {
-        goalAttribution = [lastTouches[0].player, lastTouches[1].player]
+        goalAttribution = [lastTouches[0].player, lastTouches[1].player];
       } else {
-        goalAttribution = [lastTouches[0].player, null]
+        goalAttribution = [lastTouches[0].player, null];
       }
     } else {
       // Own goal
-      goalAttribution = [lastTouches[0].player, null]
+      goalAttribution = [lastTouches[0].player, null];
     }
   }
-  return goalAttribution
+  return goalAttribution;
 }
 
-function getGoalString (team) {
-  let goalString
-  let goalString2
-  const scores = game.scores
-  const goalAttribution = getGoalAttribution(team)
-  const spiker = [
-    '😲 GOOOLL!! NEFİS BİR GOL, KLASINI KONUŞTURDU!',
-    '😲 TOPA ÖYLE BİR VURDU Kİ RAKİP KALECİ DONA KALDI GOOLLL!!',
-    '😲 GOOLL! Fevklade bir şut!',
-    '😲 GOLL! Kuponları bozduran cinsten bir şut',
-    '😲 GOLLL! RTÜK GOLÜ GÖRSE SANSÜR KOYAR!!',
-    '😲 Bu adam neyin nesi bu adam uzaylı 👽',
-    '🏎️🏎️SUPPPRAAAAA 🏎️🏎️',
-    '🤵 Virtüöz.. Orkestra şefi.. Şov yaptı'
+
+function getGoalString(team) {
+  var goalString;
+  var goalString2;
+  var scores = game.scores;
+  var goalAttribution = getGoalAttribution(team);
+  var spiker = [
+    "😲 GOOOLL!! NEFİS BİR GOL, KLASINI KONUŞTURDU!",
+    "😲 TOPA ÖYLE BİR VURDU Kİ RAKİP KALECİ DONA KALDI GOOLLL!!",
+    "😲 GOOLL! Fevklade bir şut!",
+    "😲 GOLL! Kuponları bozduran cinsten bir şut",
+    "😲 GOLLL! RTÜK GOLÜ GÖRSE SANSÜR KOYAR!!",
+    "😲 Bu adam neyin nesi bu adam uzaylı 👽",
+    "🏎️🏎️SUPPPRAAAAA 🏎️🏎️",
+    "🤵 Virtüöz.. Orkestra şefi.. Şov yaptı"
   ]
   if (goalAttribution[0] != null) {
     if (goalAttribution[0].team == team) {
       if (goalAttribution[1] != null && goalAttribution[1].team == team) {
-        goalString = `⌛ ${getTimeGame(scores.time)} ┊ ⚽ ${goalAttribution[0].name} ┊ 👟 ${goalAttribution[1].name} ┊ 💨 ${ballSpeed.toFixed(0)} km/s`
+        goalString = `⌛ ${getTimeGame(scores.time)} ┊ ⚽ ${goalAttribution[0].name} ┊ 👟 ${goalAttribution[1].name} ┊ 💨 ${ballSpeed.toFixed(0)} km/s`;
         goalString2 = spiker[randomInt(spiker.length)]
-        goalCelebration(goalAttribution[0].id, goalAttribution[1].id, null, team)
+        goalCelebration(goalAttribution[0].id, goalAttribution[1].id, null, team);
         game.goals.push(
           new Goal(scores.time, team, goalAttribution[0], goalAttribution[1])
-        )
+        );
       } else {
-        goalString = `⌛ ${getTimeGame(scores.time)} ┊ ⚽ ${goalAttribution[0].name} ┊ 💨 ${ballSpeed.toFixed(0)} km/s`
+        goalString = `⌛ ${getTimeGame(scores.time)} ┊ ⚽ ${goalAttribution[0].name} ┊ 💨 ${ballSpeed.toFixed(0)} km/s`;
         goalString2 = spiker[randomInt(spiker.length)]
-        goalCelebration(goalAttribution[0].id, null, null, team)
+        goalCelebration(goalAttribution[0].id, null, null, team);
         game.goals.push(
           new Goal(scores.time, team, goalAttribution[0], null)
-        )
+        );
       }
     } else {
-      goalCelebration(null, null, goalAttribution[0].id, team)
-      goalString = `⌛ ${getTimeGame(scores.time)} ┊ 😂 [KK] ${goalAttribution[0].name} ┊ 💨 ${ballSpeed.toFixed(0)} km/s`
-      game.goals.push(new Goal(scores.time, team, goalAttribution[0], null))
+      goalCelebration(null, null, goalAttribution[0].id, team);
+      goalString = `⌛ ${getTimeGame(scores.time)} ┊ 😂 [KK] ${goalAttribution[0].name} ┊ 💨 ${ballSpeed.toFixed(0)} km/s`;
+      game.goals.push(new Goal(scores.time, team, goalAttribution[0], null));
     }
   } else {
-    goalString = `⌛ ${getTimeGame(scores.time)} ┊ ⚽ ${team == Team.RED ? 'Kırmızı Takım' : 'Mavi Takım'} ┊ 💨 ${ballSpeed.toFixed(0)} km/s`
-    game.goals.push(new Goal(scores.time, team, null, null))
+    goalString = `⌛ ${getTimeGame(scores.time)} ┊ ⚽ ${team == Team.RED ? "Kırmızı Takım" : "Mavi Takım"} ┊ 💨 ${ballSpeed.toFixed(0)} km/s`;
+    game.goals.push(new Goal(scores.time, team, null, null));
   }
-  son = centerText(goalString) + '\n' + centerText(goalString2)
+  son = centerText(goalString) + "\n" + centerText(goalString2);
   return son
 }
 
 /* ROOM STATS FUNCTIONS */
 
-async function totalTeamElo (team) {
+async function totalTeamElo(team) {
   total = 0
-  for (let i = 0; i < team.length; i++) {
-    const data = await checkStats(authArray[team[i].id][0])
-    const stats = Object.fromEntries(Object.entries(data).filter(([key, value]) => key !== '_id'))
+  for (var i = 0; i < team.length; i++) {
+    var data = await checkStats(authArray[team[i].id][0]);
+    const stats = Object.fromEntries(Object.entries(data).filter(([key, value]) => key !== "_id"));
     total += stats.puan
   }
   return total
 }
 
+/* v0
+  async function newEloDelta(player, hasWon, redElo, blueElo) {
+  abs = 0
+
+  if (player.team == Team.RED) abs = blueElo - redElo
+  if (player.team == Team.BLUE) abs = redElo - blueElo
+
+  const k = 15;
+  const finalScore = (hasWon ? 1 : 0);
+  const expectedScore = 1 / (1 + 10 ** ((abs) / 400));
+
+  return Math.round((finalScore - expectedScore) * k);
+}
+
+v1
+  async function newEloDelta(player, hasWon, redElo, blueElo) {
+  const teamEloDiff = blueElo - redElo;
+  const playerTeamElo = (player.team == Team.RED) ? redElo : blueElo;
+  const opposingTeamElo = (player.team == Team.RED) ? blueElo : redElo;
+  const expectedScore = 1 / (1 + 10 ** (teamEloDiff / 400));
+  const k = 15;
+  const finalScore = hasWon ? 1 : 0;
+  const scoreDiff = finalScore - expectedScore;
+  const eloDelta = Math.round(k * scoreDiff * (1 - (playerTeamElo / opposingTeamElo)));
+  return eloDelta;
+}
+
+v2 
+async function newEloDelta(player, hasWon, redTeamElo, blueTeamElo, isGk) {
+  const k = 32;
+  const redTeamScore = 1 / (1 + 10 ** ((blueTeamElo - redTeamElo) / 400));
+  const blueTeamScore = 1 / (1 + 10 ** ((redTeamElo - blueTeamElo) / 400));
+  const playerTeamScore = player.team === Team.RED ? redTeamScore : blueTeamScore;
+  const opposingTeamScore = player.team === Team.RED ? blueTeamScore : redTeamScore;
+  const outcome = hasWon ? 1 : 0;
+  const expectedOutcome = playerTeamScore / (playerTeamScore + opposingTeamScore);
+  const eloDelta = Math.round(k * (outcome - expectedOutcome));
+  // Add a goalkeeper bonus
+  if (isGk) {
+    eloDelta += 10;
+  }
+  return eloDelta;
+}*/
+
 /* v3 */
-async function newEloDelta (player, hasWon, redTeamElo, blueTeamElo, isGk) {
-  const k = 32
-  const redTeamScore = 1 / (1 + 10 ** ((blueTeamElo - redTeamElo) / 400))
-  const blueTeamScore = 1 / (1 + 10 ** ((redTeamElo - blueTeamElo) / 400))
-  const playerTeamScore = player.team === Team.RED ? redTeamScore : blueTeamScore
-  const opposingTeamScore = player.team === Team.RED ? blueTeamScore : redTeamScore
-  const outcome = hasWon ? 1 : 0
-  const expectedOutcome = playerTeamScore / (playerTeamScore + opposingTeamScore)
-  const eloDelta = Math.round(k * (outcome - expectedOutcome))
+async function newEloDelta(player, hasWon, redTeamElo, blueTeamElo, isGk) {
+  const k = 32;
+  const redTeamScore = 1 / (1 + 10 ** ((blueTeamElo - redTeamElo) / 400));
+  const blueTeamScore = 1 / (1 + 10 ** ((redTeamElo - blueTeamElo) / 400));
+  const playerTeamScore = player.team === Team.RED ? redTeamScore : blueTeamScore;
+  const opposingTeamScore = player.team === Team.RED ? blueTeamScore : redTeamScore;
+  const outcome = hasWon ? 1 : 0;
+  const expectedOutcome = playerTeamScore / (playerTeamScore + opposingTeamScore);
+  const eloDelta = Math.round(k * (outcome - expectedOutcome));
 
   if (hasWon && eloDelta < 0) {
-    eloDelta = Math.max(1, Math.round(eloDelta / 4))
+    eloDelta = Math.max(1, Math.round(eloDelta / 4));
   }
 
   if (isGk) {
-    eloDelta += 10
+    eloDelta += 10;
   }
 
-  return eloDelta
+  return eloDelta;
 }
 
-async function updatePlayerStats (player, teamStats, redElo, blueElo) {
+async function updatePlayerStats(player, teamStats, redElo, blueElo) {
   // Fetch player stats from the database
-  const data = await checkStats(authArray[player.id][0])
-  const stats = Object.fromEntries(Object.entries(data).filter(([key, value]) => key !== '_id'))
+  const data = await checkStats(authArray[player.id][0]);
+  const stats = Object.fromEntries(Object.entries(data).filter(([key, value]) => key !== "_id"));
 
   // Get the player's stats for this match
-  const playerComp = getPlayerComp(player)
+  const playerComp = getPlayerComp(player);
 
   // Update the player's stats
-  stats.oyunlar++
+  stats.oyunlar++;
   if (lastWinner === teamStats) {
-    stats.galibiyet++
+    stats.galibiyet++;
   }
-  stats.gol += getGoalsPlayer(playerComp)
-  stats.asist += getAssistsPlayer(playerComp)
-  stats.kk += getOwnGoalsPlayer(playerComp)
-  stats.aktiflik += getGametimePlayer(playerComp)
-  stats.cs += getCSPlayer(playerComp)
-  const isGk = (player.team === Team.RED && player.id === getGK(Team.RED).id) || (player.team === Team.BLUE && player.id === getGK(Team.BLUE).id)
-  const yeniPuan = await newEloDelta(player, lastWinner === teamStats, redElo, blueElo, isGk)
-  stats.puan += yeniPuan
+  stats.gol += getGoalsPlayer(playerComp);
+  stats.asist += getAssistsPlayer(playerComp);
+  stats.kk += getOwnGoalsPlayer(playerComp);
+  stats.aktiflik += getGametimePlayer(playerComp);
+  stats.cs += getCSPlayer(playerComp);
+  const isGk = (player.team === Team.RED && player.id === getGK(Team.RED).id) || (player.team === Team.BLUE && player.id === getGK(Team.BLUE).id);
+  const yeniPuan = await newEloDelta(player, lastWinner === teamStats, redElo, blueElo, isGk);
+  stats.puan += yeniPuan;
 
   room.sendAnnouncement(
     `${player.name}, bu maçın sonucunda aldığın puan: ` + yeniPuan,
     player.id,
     yeniPuan > 0 ? successColor : errorColor,
-    'bold'
-  )
-  await updatePlayer(authArray[player.id][0], stats)
-  room.setPlayerAvatar(player.id, getAvatar(stats.puan))
+    "bold"
+  );
+  await updatePlayer(authArray[player.id][0], stats);
+  room.setPlayerAvatar(player.id, getAvatar(stats.puan));
 }
 
-async function updateStats () {
+async function updateStats() {
   if (
     players.length >= 2 * teamSize &&
     (game.scores.time >= (5 / 6) * game.scores.timeLimit ||
@@ -2996,386 +3061,669 @@ async function updateStats () {
     const redElo = await totalTeamElo(teamRed)
     const blueElo = await totalTeamElo(teamBlue)
 
-    for (const player of teamRedStats) {
-      await updatePlayerStats(player, Team.RED, redElo, blueElo)
+    for (let player of teamRedStats) {
+      await updatePlayerStats(player, Team.RED, redElo, blueElo);
     }
-    for (const player of teamBlueStats) {
-      await updatePlayerStats(player, Team.BLUE, redElo, blueElo)
+    for (let player of teamBlueStats) {
+      await updatePlayerStats(player, Team.BLUE, redElo, blueElo);
     }
   }
 }
 
-async function printRankings (statKey, id = 0) {
-  const data = await getAll()
-  const leaderboard = []
+async function printRankings(statKey, id = 0) {
+  const data = await getAll();
+  var leaderboard = [];
   data.forEach(function (element) {
     leaderboard.push(
       Object.fromEntries(
         Object.entries(element).filter(([key, value]) =>
-          ['isim', `${statKey}`].includes(key)
+          ["isim", `${statKey}`].includes(key)
         )
       )
-    )
-  })
+    );
+  });
   if (leaderboard.length < 5) {
     if (id != 0) {
       room.sendAnnouncement(
-        'Sıralama yapabilmek için yeterince oyun oynanılmamış !',
+        "Sıralama yapabilmek için yeterince oyun oynanılmamış !",
         id,
         errorColor,
-        'bold',
+        "bold",
         HaxNotification.CHAT
-      )
+      );
     }
-    return
+    return;
   }
   leaderboard.sort(function (a, b) {
-    return b[statKey] - a[statKey]
-  })
-  let rankingString = `${statKey.charAt(0).toUpperCase() + statKey.slice(1)
-    } | `
+    return b[statKey] - a[statKey];
+  });
+  var rankingString = `${statKey.charAt(0).toUpperCase() + statKey.slice(1)
+    } | `;
   for (let i = 0; i < 5; i++) {
-    const playerName = leaderboard[i].isim
-    let playerStat = leaderboard[i][statKey]
-    if (statKey == 'aktiflik') playerStat = getTimeStats(playerStat)
-    rankingString += `${i + 1} - ${playerName} : ${playerStat}, `
+    let playerName = leaderboard[i]["isim"];
+    let playerStat = leaderboard[i][statKey];
+    if (statKey == "aktiflik") playerStat = getTimeStats(playerStat);
+    rankingString += `${i + 1} - ${playerName} : ${playerStat}, `;
   }
-  rankingString = rankingString.substring(0, rankingString.length - 2)
+  rankingString = rankingString.substring(0, rankingString.length - 2);
   room.sendAnnouncement(
     rankingString,
     id,
     infoColor,
-    'bold',
+    "bold",
     HaxNotification.CHAT
-  )
+  );
 }
 
-function getGametimePlayer (pComp) {
-  if (pComp == null) return 0
-  let timePlayer = 0
+/* GET STATS FUNCTIONS */
+
+/*async function getGamePlayerStats(player) {
+  var data = await checkStats(authArray[player.id][0]);
+  const stats = Object.fromEntries(
+    Object.entries(data).filter(([key, value]) => key !== "_id")
+  );
+  var pComp = getPlayerComp(player);
+  stats.gol += getGoalsPlayer(pComp);
+  stats.assist += getAssistsPlayer(pComp);
+  stats.kk += getOwnGoalsPlayer(pComp);
+  stats.aktiflik += getGametimePlayer(pComp);
+  return stats; 
+}*/
+
+function getGametimePlayer(pComp) {
+  if (pComp == null) return 0;
+  var timePlayer = 0;
   for (let j = 0; j < pComp.timeEntry.length; j++) {
     if (pComp.timeExit.length < j + 1) {
-      timePlayer += game.scores.time - pComp.timeEntry[j]
+      timePlayer += game.scores.time - pComp.timeEntry[j];
     } else {
-      timePlayer += pComp.timeExit[j] - pComp.timeEntry[j]
+      timePlayer += pComp.timeExit[j] - pComp.timeEntry[j];
     }
   }
-  return Math.floor(timePlayer)
+  return Math.floor(timePlayer);
 }
 
-function getGoalsPlayer (pComp) {
-  if (pComp == null) return 0
-  let goalPlayer = 0
-  for (const goal of game.goals) {
+function getGoalsPlayer(pComp) {
+  if (pComp == null) return 0;
+  var goalPlayer = 0;
+  for (let goal of game.goals) {
     if (goal.striker != null && goal.team === pComp.player.team) {
       if (authArray[goal.striker.id][0] == pComp.auth) {
-        goalPlayer++
+        goalPlayer++;
       }
     }
   }
-  return goalPlayer
+  return goalPlayer;
 }
 
-function getOwnGoalsPlayer (pComp) {
-  if (pComp == null) return 0
-  let goalPlayer = 0
-  for (const goal of game.goals) {
+function getOwnGoalsPlayer(pComp) {
+  if (pComp == null) return 0;
+  var goalPlayer = 0;
+  for (let goal of game.goals) {
     if (goal.striker != null && goal.team !== pComp.player.team) {
       if (authArray[goal.striker.id][0] == pComp.auth) {
-        goalPlayer++
+        goalPlayer++;
       }
     }
   }
-  return goalPlayer
+  return goalPlayer;
 }
 
-function getAssistsPlayer (pComp) {
-  if (pComp == null) return 0
-  let assistPlayer = 0
-  for (const goal of game.goals) {
+function getAssistsPlayer(pComp) {
+  if (pComp == null) return 0;
+  var assistPlayer = 0;
+  for (let goal of game.goals) {
     if (goal.assist != null) {
       if (authArray[goal.assist.id][0] == pComp.auth) {
-        assistPlayer++
+        assistPlayer++;
       }
     }
   }
-  return assistPlayer
+  return assistPlayer;
 }
 
-function getGKPlayer (pComp) {
-  if (pComp == null) return 0
-  const GKRed = getGK(Team.RED)
+function getGKPlayer(pComp) {
+  if (pComp == null) return 0;
+  let GKRed = getGK(Team.RED);
   if (pComp.auth == GKRed?.auth) {
-    return Team.RED
+    return Team.RED;
   }
-  const GKBlue = getGK(Team.BLUE)
+  let GKBlue = getGK(Team.BLUE);
   if (pComp.auth == GKBlue?.auth) {
-    return Team.BLUE
+    return Team.BLUE;
   }
-  return Team.SPECTATORS
+  return Team.SPECTATORS;
 }
 
-function getCSPlayer (pComp) {
-  if (pComp == null || game.scores == null) return 0
+function getCSPlayer(pComp) {
+  if (pComp == null || game.scores == null) return 0;
   if (getGKPlayer(pComp) == Team.RED && game.scores.blue == 0) {
-    return 1
+    return 1;
   } else if (getGKPlayer(pComp) == Team.BLUE && game.scores.red == 0) {
-    return 1
+    return 1;
   }
-  return 0
+  return 0;
 }
 
-function actionReportCountTeam (goals, team) {
-  const playerActionSummaryTeam = []
-  const indexTeam = team == Team.RED ? 0 : 1
-  const indexOtherTeam = team == Team.RED ? 1 : 0
-  for (const goal of goals[indexTeam]) {
+function actionReportCountTeam(goals, team) {
+  let playerActionSummaryTeam = [];
+  let indexTeam = team == Team.RED ? 0 : 1;
+  let indexOtherTeam = team == Team.RED ? 1 : 0;
+  for (let goal of goals[indexTeam]) {
     if (goal[0] != null) {
       if (playerActionSummaryTeam.find(a => a[0].id == goal[0].id)) {
-        const index = playerActionSummaryTeam.findIndex(a => a[0].id == goal[0].id)
-        playerActionSummaryTeam[index][1]++
+        let index = playerActionSummaryTeam.findIndex(a => a[0].id == goal[0].id);
+        playerActionSummaryTeam[index][1]++;
       } else {
-        playerActionSummaryTeam.push([goal[0], 1, 0, 0])
+        playerActionSummaryTeam.push([goal[0], 1, 0, 0]);
       }
       if (goal[1] != null) {
         if (playerActionSummaryTeam.find(a => a[0].id == goal[1].id)) {
-          const index = playerActionSummaryTeam.findIndex(a => a[0].id == goal[1].id)
-          playerActionSummaryTeam[index][2]++
+          let index = playerActionSummaryTeam.findIndex(a => a[0].id == goal[1].id);
+          playerActionSummaryTeam[index][2]++;
         } else {
-          playerActionSummaryTeam.push([goal[1], 0, 1, 0])
+          playerActionSummaryTeam.push([goal[1], 0, 1, 0]);
         }
       }
     }
   }
   if (goals[indexOtherTeam].length == 0) {
-    const playerCS = getGK(team)?.player
+    let playerCS = getGK(team)?.player;
     if (playerCS != null) {
       if (playerActionSummaryTeam.find(a => a[0].id == playerCS.id)) {
-        const index = playerActionSummaryTeam.findIndex(a => a[0].id == playerCS.id)
-        playerActionSummaryTeam[index][3]++
+        let index = playerActionSummaryTeam.findIndex(a => a[0].id == playerCS.id);
+        playerActionSummaryTeam[index][3]++;
       } else {
-        playerActionSummaryTeam.push([playerCS, 0, 0, 1])
+        playerActionSummaryTeam.push([playerCS, 0, 0, 1]);
       }
     }
   }
 
-  playerActionSummaryTeam.sort((a, b) => (a[1] + a[2] + a[3]) - (b[1] + b[2] + b[3]))
-  return playerActionSummaryTeam
+  playerActionSummaryTeam.sort((a, b) => (a[1] + a[2] + a[3]) - (b[1] + b[2] + b[3]));
+  return playerActionSummaryTeam;
 }
 
 /* PRINT FUNCTIONS */
 
-function printPlayerStats (stats) {
-  let statsString = ''
+function printPlayerStats(stats) {
+  let statsString = "";
   for (let [key, value] of Object.entries(stats)) {
-    if (key == 'isim') statsString += `${value}: `
+    if (key == "isim") statsString += `${value}: `;
     else {
-      if (key == 'aktiflik') value = getTimeStats(value)
-      const reCamelCase = /([A-Z](?=[a-z]+)|[A-Z]+(?![a-z]))/g
-      const statName = key.replaceAll(reCamelCase, ' $1').trim()
+      if (key == "aktiflik") value = getTimeStats(value);
+      let reCamelCase = /([A-Z](?=[a-z]+)|[A-Z]+(?![a-z]))/g;
+      let statName = key.replaceAll(reCamelCase, " $1").trim();
       statsString += `${statName.charAt(0).toUpperCase() + statName.slice(1)
-        }: ${value}, `
+        }: ${value}, `;
     }
   }
-  statsString = statsString.substring(0, statsString.length - 2)
-  return statsString
+  statsString = statsString.substring(0, statsString.length - 2);
+  return statsString;
 }
 
 /* FETCH FUNCTIONS */
 
-function fetchGametimeReport (game) {
-  const fieldGametimeRed = {
-    name: '🔴**KIRMIZI TAKIM:**',
-    value: '⌛ __**Oyun Süresi:**__\n\n',
-    inline: true
-  }
-  const fieldGametimeBlue = {
-    name: '🔵**MAVİ TAKIM**',
-    value: '⌛ __**Oyun Süresi:**__\n\n',
-    inline: true
-  }
-  const redTeamTimes = game.playerComp[0].map((p) => [
+function fetchGametimeReport(game) {
+  var fieldGametimeRed = {
+    name: "🔴**KIRMIZI TAKIM:**",
+    value: "⌛ __**Oyun Süresi:**__\n\n",
+    inline: true,
+  };
+  var fieldGametimeBlue = {
+    name: "🔵**MAVİ TAKIM**",
+    value: "⌛ __**Oyun Süresi:**__\n\n",
+    inline: true,
+  };
+  var redTeamTimes = game.playerComp[0].map((p) => [
     p.player,
-    getGametimePlayer(p)
-  ])
-  const blueTeamTimes = game.playerComp[1].map((p) => [
+    getGametimePlayer(p),
+  ]);
+  var blueTeamTimes = game.playerComp[1].map((p) => [
     p.player,
-    getGametimePlayer(p)
-  ])
+    getGametimePlayer(p),
+  ]);
 
-  for (const time of redTeamTimes) {
-    var minutes = getMinutesReport(time[1])
-    var seconds = getSecondsReport(time[1])
+  for (let time of redTeamTimes) {
+    var minutes = getMinutesReport(time[1]);
+    var seconds = getSecondsReport(time[1]);
     fieldGametimeRed.value +=
-      `> **${time[0].name}:** ${minutes > 0 ? `${minutes} dk` : ''}` +
-      `${seconds > 0 || minutes == 0 ? `${seconds} sn` : ''}\n`
+      `> **${time[0].name}:** ${minutes > 0 ? `${minutes} dk` : ""}` +
+      `${seconds > 0 || minutes == 0 ? `${seconds} sn` : ""}\n`;
   }
   fieldGametimeRed.value += `\n${blueTeamTimes.length - redTeamTimes.length > 0
-    ? '\n'.repeat(blueTeamTimes.length - redTeamTimes.length)
-    : ''
-    }`
-  fieldGametimeRed.value += '====================='
+    ? "\n".repeat(blueTeamTimes.length - redTeamTimes.length)
+    : ""
+    }`;
+  fieldGametimeRed.value += "=====================";
 
-  for (const time of blueTeamTimes) {
-    var minutes = getMinutesReport(time[1])
-    var seconds = getSecondsReport(time[1])
+  for (let time of blueTeamTimes) {
+    var minutes = getMinutesReport(time[1]);
+    var seconds = getSecondsReport(time[1]);
     fieldGametimeBlue.value +=
-      `> **${time[0].name}:** ${minutes > 0 ? `${minutes} dk` : ''}` +
-      `${seconds > 0 || minutes == 0 ? `${seconds} sn` : ''}\n`
+      `> **${time[0].name}:** ${minutes > 0 ? `${minutes} dk` : ""}` +
+      `${seconds > 0 || minutes == 0 ? `${seconds} sn` : ""}\n`;
   }
   fieldGametimeBlue.value += `\n${redTeamTimes.length - blueTeamTimes.length > 0
-    ? '\n'.repeat(redTeamTimes.length - blueTeamTimes.length)
-    : ''
-    }`
-  fieldGametimeBlue.value += '====================='
+    ? "\n".repeat(redTeamTimes.length - blueTeamTimes.length)
+    : ""
+    }`;
+  fieldGametimeBlue.value += "=====================";
 
-  return [fieldGametimeRed, fieldGametimeBlue]
+  return [fieldGametimeRed, fieldGametimeBlue];
 }
 
-function fetchActionsSummaryReport (game) {
-  const fieldReportRed = {
-    name: '🔴**KIRMIZI TAKIM**',
-    value: '📊 __**Oyuncu İstatistikleri:**__\n\n',
-    inline: true
-  }
-  const fieldReportBlue = {
-    name: '🔵**MAVİ TAKIM**',
-    value: '📊 __**Oyuncu İstatistikleri:**__\n\n',
-    inline: true
-  }
-  const goals = [[], []]
+function fetchActionsSummaryReport(game) {
+  var fieldReportRed = {
+    name: "🔴**KIRMIZI TAKIM**",
+    value: "📊 __**Oyuncu İstatistikleri:**__\n\n",
+    inline: true,
+  };
+  var fieldReportBlue = {
+    name: "🔵**MAVİ TAKIM**",
+    value: "📊 __**Oyuncu İstatistikleri:**__\n\n",
+    inline: true,
+  };
+  var goals = [[], []];
   for (let i = 0; i < game.goals.length; i++) {
     goals[game.goals[i].team - 1].push([
       game.goals[i].striker,
-      game.goals[i].assist
-    ])
+      game.goals[i].assist,
+    ]);
   }
-  const redActions = actionReportCountTeam(goals, Team.RED)
+  var redActions = actionReportCountTeam(goals, Team.RED);
   if (redActions.length > 0) {
-    for (const act of redActions) {
+    for (let act of redActions) {
       fieldReportRed.value += `> **${act[0].team != Team.RED ? '[KK] ' : ''}${act[0].name}:**` +
         `${act[1] > 0 ? ` ${act[1]}G` : ''}` +
         `${act[2] > 0 ? ` ${act[2]}A` : ''}` +
-        `${act[3] > 0 ? ` ${act[3]}CS` : ''}\n`
+        `${act[3] > 0 ? ` ${act[3]}CS` : ''}\n`;
     }
   }
-  const blueActions = actionReportCountTeam(goals, Team.BLUE)
+  var blueActions = actionReportCountTeam(goals, Team.BLUE);
   if (blueActions.length > 0) {
-    for (const act of blueActions) {
+    for (let act of blueActions) {
       fieldReportBlue.value += `> **${act[0].team != Team.BLUE ? '[KK] ' : ''}${act[0].name}:**` +
         `${act[1] > 0 ? ` ${act[1]}G` : ''}` +
         `${act[2] > 0 ? ` ${act[2]}A` : ''}` +
-        `${act[3] > 0 ? ` ${act[3]}CS` : ''}\n`
+        `${act[3] > 0 ? ` ${act[3]}CS` : ''}\n`;
     }
   }
 
   fieldReportRed.value += `\n${blueActions.length - redActions.length > 0
-    ? '\n'.repeat(blueActions.length - redActions.length)
-    : ''
-    }`
-  fieldReportRed.value += '====================='
+    ? "\n".repeat(blueActions.length - redActions.length)
+    : ""
+    }`;
+  fieldReportRed.value += "=====================";
 
   fieldReportBlue.value += `\n${redActions.length - blueActions.length > 0
-    ? '\n'.repeat(redActions.length - blueActions.length)
-    : ''
-    }`
-  fieldReportBlue.value += '====================='
+    ? "\n".repeat(redActions.length - blueActions.length)
+    : ""
+    }`;
+  fieldReportBlue.value += "=====================";
 
-  return [fieldReportRed, fieldReportBlue]
+  return [fieldReportRed, fieldReportBlue];
 }
 
-function fetchSummaryEmbed (game) {
-  const fetchEndgame = [fetchGametimeReport, fetchActionsSummaryReport]
-  const logChannel = gameWebhook
-  const fields = [
+function fetchSummaryEmbed(game) {
+  var fetchEndgame = [fetchGametimeReport, fetchActionsSummaryReport];
+  var logChannel = gameWebhook;
+  var fields = [
     {
-      name: '🔴**KIRMIZI TAKIM**',
-      value: '=====================\n\n',
-      inline: true
+      name: "🔴**KIRMIZI TAKIM**",
+      value: "=====================\n\n",
+      inline: true,
     },
     {
-      name: '🔵**MAVİ TAKIM**',
-      value: '=====================\n\n',
-      inline: true
-    }
-  ]
+      name: "🔵**MAVİ TAKIM**",
+      value: "=====================\n\n",
+      inline: true,
+    },
+  ];
   for (let i = 0; i < fetchEndgame.length; i++) {
-    const fieldsReport = fetchEndgame[i](game)
-    fields[0].value += fieldsReport[0].value + '\n\n'
-    fields[1].value += fieldsReport[1].value + '\n\n'
+    var fieldsReport = fetchEndgame[i](game);
+    fields[0].value += fieldsReport[0].value + "\n\n";
+    fields[1].value += fieldsReport[1].value + "\n\n";
   }
-  fields[0].value = fields[0].value.substring(0, fields[0].value.length - 2)
-  fields[1].value = fields[1].value.substring(0, fields[1].value.length - 2)
+  fields[0].value = fields[0].value.substring(0, fields[0].value.length - 2);
+  fields[1].value = fields[1].value.substring(0, fields[1].value.length - 2);
 
-  const possR = possession[0] / (possession[0] + possession[1])
-  const possB = 1 - possR
-  const possRString = (possR * 100).toFixed(0).toString()
-  const possBString = (possB * 100).toFixed(0).toString()
-  const zoneR = actionZoneHalf[0] / (actionZoneHalf[0] + actionZoneHalf[1])
-  const zoneB = 1 - zoneR
-  const zoneRString = (zoneR * 100).toFixed(0).toString()
-  const zoneBString = (zoneB * 100).toFixed(0).toString()
-  const win =
+  var possR = possession[0] / (possession[0] + possession[1]);
+  var possB = 1 - possR;
+  var possRString = (possR * 100).toFixed(0).toString();
+  var possBString = (possB * 100).toFixed(0).toString();
+  var zoneR = actionZoneHalf[0] / (actionZoneHalf[0] + actionZoneHalf[1]);
+  var zoneB = 1 - zoneR;
+  var zoneRString = (zoneR * 100).toFixed(0).toString();
+  var zoneBString = (zoneB * 100).toFixed(0).toString();
+  var win =
     (game.scores.red > game.scores.blue) * 1 +
-    (game.scores.blue > game.scores.red) * 2
-  const embedColor = win == 1 ? 14958399 : 9567999
-  const objectBodyWebhook = {
+    (game.scores.blue > game.scores.red) * 2;
+  let embedColor = win == 1 ? 14958399 : 9567999;
+  var objectBodyWebhook = {
     embeds: [
       {
         title: `📝 MAÇ RAPORU #${getIdReport()}`,
         description:
           `**${getTimeEmbed(game.scores.time)}** ` +
-          (win == 1 ? '**Kırmızı Takım** ' : 'Kırmızı Takım ') +
+          (win == 1 ? "**Kırmızı Takım** " : "Kırmızı Takım ") +
           game.scores.red +
-          ' - ' +
+          " - " +
           game.scores.blue +
-          (win == 2 ? ' **Mavi Takım**' : ' Mavi Takım') +
-          '\n```c\nTopla oynama: ' +
+          (win == 2 ? " **Mavi Takım**" : " Mavi Takım") +
+          "\n```c\nTopla oynama: " +
           possRString +
-          '% - ' +
+          "% - " +
           possBString +
-          '%' +
-          '\nTopun oynandığı bölgeler: ' +
+          "%" +
+          "\nTopun oynandığı bölgeler: " +
           zoneRString +
-          '% - ' +
+          "% - " +
           zoneBString +
-          '%\n```\n\n',
+          "%\n```\n\n",
         color: embedColor,
-        fields,
+        fields: fields,
         footer: {
-          text: `Kayıt: ${getRecordingName(game)}`
+          text: `Kayıt: ${getRecordingName(game)}`,
         },
-        timestamp: new Date().toISOString()
-      }
+        timestamp: new Date().toISOString(),
+      },
     ],
-    username: 'Maç Özeti Botu'
-  }
-  if (logChannel != '') {
+    username: "Maç Özeti Botu",
+  };
+  if (logChannel != "") {
     fetch(logChannel, {
-      method: 'POST',
+      method: "POST",
       body: JSON.stringify(objectBodyWebhook),
       headers: {
-        'Content-Type': 'application/json'
-      }
-    }).then((res) => res)
+        "Content-Type": "application/json",
+      },
+    }).then((res) => res);
   }
 }
 
 /* EVENTS */
 
 /* PLAYER MOVEMENT */
-async function fetchRecording (game) {
-  if (recordingWebhook != '') {
-    const form = new FormData()
-    form.append(null, new buffer.File([game.rec], getRecordingName(game), { type: 'text/plain' }))
-    form.append('payload_json', JSON.stringify({
-      username: roomName
-    }))
+
+room.onPlayerJoin = async function (player) {
+
+  authArray[player.id] = [player.auth, player.conn, player.name, false, false, false, false];
+
+  if (player.auth == null)
+    room.kickPlayer(player.id, "Anonim hesaplar sunucumuza alınmıyor!", true);
+
+  if (await isBlacklisted(player) == true) room.kickPlayer(player.id, "Artık dinlenme vakti; kitap okuyabilirsin, uyuyabilirsin..", false);
+
+  if ((await checkPlayer(authArray[player.id][0])) == null)
+    await newPlayer(
+      authArray[player.id][2],
+      authArray[player.id][0],
+      authArray[player.id][1]
+    );
+
+  const stats = Object.fromEntries(Object.entries(await checkPlayer(authArray[player.id][0])).filter(([key, value]) => key !== "_id"));
+  // 1000 Puan Filtre if (stats.oyunlar > 10 && stats.puan <= 1000 && !stats.isAdmin && !stats.isMaster) room.kickPlayer(player.id, "Sadece 1000 Puan üstü normal odasına girebilir.", false);
+
+  authArray[player.id][3] = stats.discordID != 0;
+  authArray[player.id][4] = stats.isVIP != 0;
+  authArray[player.id][5] = stats.isAdmin != 0;
+  authArray[player.id][6] = stats.isMaster != 0;
+
+  room.setPlayerAvatar(player.id, getAvatar(stats.puan));
+
+  if (authArray[player.id][2] != stats.isim) {
+    setTimeout(async () => { await updateName(authArray[player.id][0], authArray[player.id][2]) }, "1000")
+    room.sendAnnouncement(
+      stats.isim + " ismini " + player.name + " olarak değiştirmiş!",
+      null,
+      0xffffff
+    )
+  }
+
+  if (authArray[player.id][1] != stats.conn)
+    setTimeout(async () => { await updateConn(authArray[player.id][0], authArray[player.id][1]) }, "1000")
+
+  if (giriscikisWebhook != "") {
+    var giriscikisfields = [
+      {
+        name: "```👤 Kullanıcı Adı```",
+        value: `\`\`\`${stats.isim != player.name ? `(${stats.isim})` : ``}${player.name}#${player.id}\`\`\``,
+        inline: false,
+      },
+      {
+        name: "```🔑 Auth```",
+        value: `\`\`\`${authArray[player.id][0]}\`\`\``,
+        inline: false,
+      },
+      {
+        name: "```🔒 Conn```",
+        value: `\`\`\`${authArray[player.id][1]}\`\`\``,
+        inline: false,
+      },
+      {
+        name: "```🗓️ Tarih```",
+        value: `\`\`\`c\n${getDate()}\`\`\``,
+        inline: false,
+      },
+      {
+        name: "```👤 Oyuncu Sayısı```",
+        value: `\`\`\`c\n(${playersAll.length + 1}/${maxPlayers})\`\`\``,
+        inline: false,
+      }
+    ]
+    var giriscikisembed = {
+      embeds: [
+        {
+          fields: giriscikisfields,
+          color: 9567999,
+          username: "Giriş - Çıkış Takip Botu",
+        }
+      ]
+    }
+    fetch(giriscikisWebhook, {
+      method: "POST",
+      body: JSON.stringify(giriscikisembed),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }).then((res) => res);
+  }
+  room.sendAnnouncement(
+    `👋 ${player.name}, hoşgeldin ! Komutlara göz atmayı unutma, !yardım !dc !avatarlar\n${stats.discordID == 0 ? "📢Hesabının Discorda bağlı olmadığı tespit edildi! İstatistiklerinin silinmesini istemiyorsan kayıt olmalısın!\n📢 Discord sunucumuzda kayıt olduktan sonra isminin yanındaki işaret yeşile dönecek." : ""}`,
+    player.id,
+    welcomeColor,
+    "bold",
+    HaxNotification.CHAT
+  );
+  updateTeams();
+  if (authArray[player.id][6] == true) {
+    room.sendAnnouncement(
+      `KURUCU 👑 ${player.name} odaya giriş yaptı !`,
+      null,
+      "0xE91E63",
+      "bold",
+      HaxNotification.CHAT
+    );
+    room.setPlayerAdmin(player.id, true);
+  } else if (authArray[player.id][5] == true) {
+    room.sendAnnouncement(
+      `ADMİN ⚡️ ${player.name} odaya giriş yaptı !`,
+      null,
+      "0x5499C7",
+      "bold",
+      HaxNotification.CHAT
+    );
+    room.setPlayerAdmin(player.id, true);
+  } else if (authArray[player.id][4] == true) {
+    room.sendAnnouncement(
+      `VIP 💎${player.name} odaya giriş yaptı !`,
+      null,
+      "0x2ECC71",
+      "bold",
+      HaxNotification.CHAT
+    );
+  }
+  var sameAuthCheck = playersAll.filter(
+    (p) => p.id != player.id && authArray[p.id][0] == player.auth
+  );
+  if (sameAuthCheck.length > 0 && !debugMode) {
+    var oldPlayerArray = playersAll.filter(
+      (p) => p.id != player.id && authArray[p.id][0] == player.auth
+    );
+    for (let oldPlayer of oldPlayerArray) {
+      ghostKickHandle(oldPlayer, player);
+    }
+  }
+  handlePlayersJoin();
+
+};
+
+room.onPlayerTeamChange = function (changedPlayer, byPlayer) {
+  handleLineupChangeTeamChange(changedPlayer);
+  if (AFKSet.has(changedPlayer.id) && changedPlayer.team != Team.SPECTATORS) {
+    room.setPlayerTeam(changedPlayer.id, Team.SPECTATORS);
+    room.sendAnnouncement(
+      `${changedPlayer.name} AFK olduğu için onu kullanamazsın !`,
+      null,
+      errorColor,
+      "bold",
+      HaxNotification.CHAT
+    );
+    return;
+  }
+  updateTeams();
+  if (gameState != State.STOP) {
+    if (
+      changedPlayer.team != Team.SPECTATORS &&
+      game.scores.time <= (3 / 4) * game.scores.timeLimit &&
+      Math.abs(game.scores.blue - game.scores.red) < 2
+    ) {
+      changedPlayer.team == Team.RED
+        ? teamRedStats.push(changedPlayer)
+        : teamBlueStats.push(changedPlayer);
+    }
+  }
+  handleActivityPlayerTeamChange(changedPlayer);
+  handlePlayersTeamChange(byPlayer);
+};
+
+room.onPlayerLeave = function (player) {
+  setTimeout(() => {
+    if (!kickFetchVariable) {
+      if (giriscikisWebhook != "") {
+        var giriscikisfields = [
+          {
+            name: "```👤 Kullanıcı Adı```",
+            value: `\`\`\`${player.name}#${player.id}\`\`\``,
+            inline: false,
+          },
+          {
+            name: "```🔑 Auth```",
+            value: `\`\`\`${authArray[player.id][0]}\`\`\``,
+            inline: false,
+          },
+          {
+            name: "```🔒 Conn```",
+            value: `\`\`\`${authArray[player.id][1]}\`\`\``,
+            inline: false,
+          },
+          {
+            name: "```🗓️ Tarih```",
+            value: `\`\`\`c\n${getDate()}\`\`\``,
+            inline: false,
+          },
+          {
+            name: "```👤 Oyuncu Sayısı```",
+            value: `\`\`\`c\n(${playersAll.length}/${maxPlayers})\`\`\``,
+            inline: false,
+          }
+        ]
+        var giriscikisembed = {
+          embeds: [
+            {
+              fields: giriscikisfields,
+              color: 14958399,
+              username: "Giriş - Çıkış Takip Botu",
+            }
+          ]
+        }
+        fetch(giriscikisWebhook, {
+          method: "POST",
+          body: JSON.stringify(giriscikisembed),
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }).then((res) => res);
+      }
+    } else kickFetchVariable = false;
+  }, 10);
+  handleLineupChangeLeave(player);
+  checkCaptainLeave(player);
+  updateTeams();
+  handlePlayersLeave();
+};
+
+room.onPlayerKicked = function (kickedPlayer, reason, ban, byPlayer) {
+  kickFetchVariable = true;
+  if (kickbanWebhook != "") {
+    var kickbanfields = [
+      {
+        name: "```👤 Kullanıcı Adı```",
+        value: `\`\`\`${kickedPlayer.name}#${kickedPlayer.id}\`\`\``,
+        inline: false,
+      },
+      {
+        name: "```📝 Sebep```",
+        value: `\`\`\`${reason == "" ? "Yok" : reason}\`\`\``,
+        inline: false,
+      },
+      {
+        name: `\`\`\`${ban ? "🔨 Banlayan" : "🔧 Kickleyen"}\`\`\``,
+        value: `\`\`\`${byPlayer == null ? "🤖 Bot" : byPlayer.name}\`\`\``,
+        inline: false,
+      },
+      {
+        name: "```🗓️ Tarih```",
+        value: `\`\`\`c\n${getDate()}\`\`\``,
+        inline: false,
+      },
+      {
+        name: "```👤 Oyuncu Sayısı```",
+        value: `\`\`\`c\n(${playersAll.length}/${maxPlayers})\`\`\``,
+        inline: false,
+      }
+    ]
+    var kickbanembed = {
+      embeds: [
+        {
+          fields: kickbanfields,
+          color: 14958399,
+          username: "Kick - Ban Takip Botu",
+        }
+      ]
+    }
+    fetch(kickbanWebhook, {
+      method: "POST",
+      body: JSON.stringify(kickbanembed),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }).then((res) => res);
+  }
+};
+
+async function fetchRecording(game) {
+  if (recordingWebhook != "") {
+    let form = new FormData();
+    form.append(null, new buffer.File([game.rec], getRecordingName(game), { "type": "text/plain" }));
+    form.append("payload_json", JSON.stringify({
+      "username": roomName
+    }));
 
     fetch(recordingWebhook, {
       method: 'POST',
-      body: form
-    }).then((res) => res)
+      body: form,
+    }).then((res) => res);
   }
 }
 
@@ -3383,26 +3731,449 @@ async function fetchRecording (game) {
 
 const asianRegex = RegExp(
   /[\p{Script_Extensions=Mymr}\p{Script_Extensions=Han}\p{Script_Extensions=Hira}\p{Script_Extensions=Kana}\p{Script_Extensions=Bopo}\p{Script=Khmer}\p{Script=Lao}\p{Script_Extensions=Phag}\p{Script=Tai_Tham}\p{Script=Thai}\p{Script=Tibetan}]/gu
-)
+);
 const emojiRegex = RegExp(
   /[\u{1f300}-\u{1f5ff}\u{1f900}-\u{1f9ff}\u{1f600}-\u{1f64f}\u{1f680}-\u{1f6ff}\u{2600}-\u{26ff}\u{2700}-\u{27bf}\u{1f1e6}-\u{1f1ff}\u{1f191}-\u{1f251}\u{1f004}\u{1f0cf}\u{1f170}-\u{1f171}\u{1f17e}-\u{1f17f}\u{1f18e}\u{3030}\u{2b50}\u{2b55}\u{2934}-\u{2935}\u{2b05}-\u{2b07}\u{2b1b}-\u{2b1c}\u{3297}\u{3299}\u{303d}\u{00a9}\u{00ae}\u{2122}\u{23f3}\u{24c2}\u{23e9}-\u{23ef}\u{25b6}\u{23f8}-\u{23fa}]/gu
-)
-const longRegex = RegExp(/(⸻|𒈙|𒐫|﷽|𒍙|𒊎|𒄡|𒅌|𒁏|𒀰|𒐪|𒐩|𒈙|𒐫)/gi)
+);
+const longRegex = RegExp(/(⸻|𒈙|𒐫|﷽|𒍙|𒊎|𒄡|𒅌|𒁏|𒀰|𒐪|𒐩|𒈙|𒐫)/gi);
 
-function isUsingIllegalChars (message) {
-  const asian = (message.match(asianRegex) || []).length
-  const emoji = (message.match(emojiRegex) || []).length
-  const long = (message.match(longRegex) || []).length
+function isUsingIllegalChars(message) {
+  const asian = (message.match(asianRegex) || []).length;
+  const emoji = (message.match(emojiRegex) || []).length;
+  const long = (message.match(longRegex) || []).length;
 
-  if (long > 0) return true
-  if (asian > 10) return true
-  if (asian + emoji > 15) return true
+  if (long > 0) return true;
+  if (asian > 10) return true;
+  if (asian + emoji > 15) return true;
 
-  return false
+  return false;
 }
 
+room.onPlayerChat = function (player, message) {
+  const tag = authArray[player.id][3] ? "✔️ " : "❌ ";
+
+  if (gameState !== State.STOP && player.team != Team.SPECTATORS) {
+    let pComp = getPlayerComp(player);
+    if (pComp != null) pComp.inactivityTicks = 0;
+  }
+  let msgArray = message.split(/ +/);
+  if (roomWebhook != "")
+    fetch(roomWebhook, {
+      method: "POST",
+      body: JSON.stringify({
+        content: `\`\`\`diff\n+ [${getDate()}] ${player.name
+          } : ${message.replace("@", "@ ")}\`\`\``,
+        username: "Sohbet Tekrarı Botu",
+      }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }).then((res) => res);
+
+  if (msgArray[0][0] == "!") {
+    let command = getCommand(msgArray[0].slice(1).toLowerCase());
+    if (command != false && commands[command].roles <= getRole(player))
+      commands[command].function(player, message);
+    else
+      room.sendAnnouncement(
+        `Böyle bir komut yok, komutlar için !yardım yazabilirsin.`,
+        player.id,
+        errorColor,
+        "bold",
+        HaxNotification.CHAT
+      );
+    return false;
+  }
+  if (msgArray[0].toLowerCase() == "t") {
+    teamChat(player, message);
+    return false;
+  }
+  if (msgArray[0].substring(0, 2) === "@@") {
+    playerChat(player, message);
+    return false;
+  }
+  if (chooseMode && teamRed.length * teamBlue.length != 0) {
+    var choosingMessageCheck = chooseModeFunction(player, message);
+    if (choosingMessageCheck) return false;
+  }
+  if (slowMode > 0) {
+    var filter = slowModeFunction(player, message);
+    if (filter) return false;
+  }
+  if (!player.admin && muteArray.getByAuth(authArray[player.id][0]) != null) {
+    room.sendAnnouncement(
+      `Ceza yediğin için mesaj yazamazsın !`,
+      player.id,
+      errorColor,
+      "bold",
+      HaxNotification.CHAT
+    );
+    for (var a = 0; a < playersAll.length; a++) {
+      if (playersAll[a].admin == true) {
+        room.sendAnnouncement(tag + player.name + "・" + message, playersAll[a].id, 0xFFFF00, "bold", 1);
+      }
+    }
+    return false;
+  }
+
+  if (isUsingIllegalChars(message)) {
+
+    room.sendAnnouncement(
+      `Yasaklı karakterler kullanmaya devam edersen banlanacaksın!`,
+      player.id,
+      errorColor,
+      "bold",
+      2
+    );
+
+    return false;
+  }
+  if (message.match(checkBadWords(message))) {
+    if (getRole(player) <= Role.ADMIN_TEMP) {
+      room.sendAnnouncement(
+        `Böyle konuşmaya devam edersen kalıcı olarak banlanacaksın!`,
+        player.id,
+        errorColor,
+        "bold",
+        2
+      );
+      for (var a = 0; a < playersAll.length; a++) {
+        if (playersAll[a].admin == true) {
+          room.sendAnnouncement(tag + player.name + "・" + message, playersAll[a].id, errorColor, "bold", 0);
+        }
+      }
+      return false;
+    }
+  }
+
+  // Renkli Yazı
+  if (getRole(player) == Role.MASTER) {
+    room.sendAnnouncement(
+      "👑 " + player.name + "・" + message,
+      undefined,
+      "0xE91E63",
+      "normal"
+    );
+    return false;
+  } else if (getRole(player) == Role.ADMIN_PERM) {
+    room.sendAnnouncement(
+      "⚡️ " + player.name + "・" + message,
+      undefined,
+      "0x5499C7",
+      "normal"
+    );
+    return false;
+  } else if (getRole(player) == Role.VIP) {
+    room.sendAnnouncement(
+      "VIP 💎 " + player.name + "・" + message,
+      undefined,
+      "0x2ECC71",
+      "normal"
+    );
+    return false;
+  } else if (getRole(player) == Role.ADMIN_TEMP) {
+    room.sendAnnouncement(
+      "✨ " + player.name + "・" + message,
+      undefined,
+      "0xC0D8E8",
+      "normal"
+    );
+    return false;
+  } else if ((getRole(player) < Role.ADMIN_TEMP)) {
+    if (allMuted == true) {
+      for (var a = 0; a < playersAll.length; a++) {
+        if (playersAll[a].admin == true) {
+          room.sendAnnouncement(tag + player.name + "・" + message, playersAll[a].id, 0xFFFF00, "normal", 1);
+        }
+      }
+      room.sendAnnouncement(
+        `Sohbet şu anda bütün oyuncular için kapalı, açıldığında tekrar konuşabileceksin.`,
+        player.id,
+        errorColor,
+        "bold",
+        null
+      );
+      return false;
+    }
+    room.sendAnnouncement(
+      tag + player.name + "・" + message,
+      undefined,
+      "0xD5D8DC",
+      "normal"
+    );
+    return false;
+  }
+};
+
+room.onPlayerActivity = function (player) {
+  if (gameState !== State.STOP) {
+    let pComp = getPlayerComp(player);
+    if (pComp != null) pComp.inactivityTicks = 0;
+  }
+};
+
+room.onPlayerBallKick = function (player) {
+  if (playSituation != Situation.GOAL) {
+    var ballPosition = room.getBallPosition();
+    if (
+      game.touchArray.length == 0 ||
+      player.id != game.touchArray[game.touchArray.length - 1].player.id
+    ) {
+      if (playSituation == Situation.KICKOFF) playSituation = Situation.PLAY;
+      lastTeamTouched = player.team;
+      game.touchArray.push(
+        new BallTouch(player, game.scores.time, getGoalGame(), ballPosition)
+      );
+      lastTouches[0] = checkGoalKickTouch(
+        game.touchArray,
+        game.touchArray.length - 1,
+        getGoalGame()
+      );
+      lastTouches[1] = checkGoalKickTouch(
+        game.touchArray,
+        game.touchArray.length - 2,
+        getGoalGame()
+      );
+    }
+  }
+};
+
+/* GAME MANAGEMENT */
+
+room.onGameStart = async function (byPlayer) {
+  if (currentStadium == "v3") {
+    findDefLines();
+  }
+  room.startRecording();
+  clearTimeout(startTimeout);
+  if (byPlayer != null) clearTimeout(stopTimeout);
+  game = new Game();
+  possession = [0, 0];
+  actionZoneHalf = [0, 0];
+  gameState = State.PLAY;
+  endGameVariable = false;
+  goldenGoal = false;
+  playSituation = Situation.KICKOFF;
+  lastTouches = Array(2).fill(null);
+  lastTeamTouched = Team.SPECTATORS;
+  teamRedStats = [];
+  teamBlueStats = [];
+  if (teamRed.length == teamSize && teamBlue.length == teamSize) {
+    for (var i = 0; i < teamSize; i++) {
+      teamRedStats.push(teamRed[i]);
+      teamBlueStats.push(teamBlue[i]);
+    }
+  }
+  //calculateStadiumVariables();
+};
+
+room.onGameStop = function (byPlayer) {
+  if (currentStadium == "v3") {
+    defLines = [];
+  }
+  clearTimeout(stopTimeout);
+  clearTimeout(unpauseTimeout);
+  if (byPlayer != null) clearTimeout(startTimeout);
+  game.rec = room.stopRecording();
+  if (
+    !cancelGameVariable &&
+    game.playerComp[0].length + game.playerComp[1].length > 0 &&
+    ((game.scores.timeLimit != 0 &&
+      ((game.scores.time >= 0.5 * game.scores.timeLimit &&
+        game.scores.time < 0.75 * game.scores.timeLimit &&
+        game.scores.red != game.scores.blue) ||
+        game.scores.time >= 0.75 * game.scores.timeLimit)) ||
+      endGameVariable)
+  )
+    fetchSummaryEmbed(game);
+  if (fetchRecordingVariable) {
+    setTimeout((gameEnd) => { fetchRecording(gameEnd); }, 500, game);
+  }
+  cancelGameVariable = false;
+  gameState = State.STOP;
+  playSituation = Situation.STOP;
+  updateTeams();
+  handlePlayersStop(byPlayer);
+  handleActivityStop();
+};
+
+room.onGamePause = function (byPlayer) {
+  if (mentionPlayersUnpause && gameState == State.PAUSE) {
+    if (byPlayer != null) {
+      room.sendAnnouncement(
+        `Oyun ${byPlayer.name} tarafından durduruldu!`,
+        null,
+        defaultColor,
+        "bold",
+        HaxNotification.NONE
+      );
+    } else {
+      room.sendAnnouncement(
+        `Oyun durduruldu !`,
+        null,
+        defaultColor,
+        "bold",
+        HaxNotification.NONE
+      );
+    }
+  }
+  clearTimeout(unpauseTimeout);
+  gameState = State.PAUSE;
+};
+
+room.onGameUnpause = function (byPlayer) {
+  unpauseTimeout = setTimeout(() => {
+    gameState = State.PLAY;
+  }, 2000);
+  if (mentionPlayersUnpause) {
+    if (byPlayer != null) {
+      room.sendAnnouncement(
+        `Oyun ${byPlayer.name} tarafından devam ettiriliyor !`,
+        null,
+        defaultColor,
+        "bold",
+        HaxNotification.NONE
+      );
+    } else {
+      room.sendAnnouncement(
+        `Oyun devam ediyor !`,
+        null,
+        defaultColor,
+        "bold",
+        HaxNotification.NONE
+      );
+    }
+  }
+  if (
+    (teamRed.length == teamSize &&
+      teamBlue.length == teamSize &&
+      chooseMode) ||
+    (teamRed.length == teamBlue.length && teamSpec.length < 2 && chooseMode)
+  ) {
+    deactivateChooseMode();
+  }
+};
+
+room.onTeamGoal = async function (team) {
+  const scores = room.getScores();
+  game.scores = scores;
+  playSituation = Situation.GOAL;
+  ballSpeed = getBallSpeed();
+  var goalString = getGoalString(team);
+  for (let player of teamRed) {
+    var playerComp = getPlayerComp(player);
+    team == Team.RED
+      ? playerComp.goalsScoredTeam++
+      : playerComp.goalsConcededTeam++;
+  }
+  for (let player of teamBlue) {
+    var playerComp = getPlayerComp(player);
+    team == Team.BLUE
+      ? playerComp.goalsScoredTeam++
+      : playerComp.goalsConcededTeam++;
+  }
+  room.sendAnnouncement(
+    goalString,
+    null,
+    team == Team.RED ? redColor : blueColor,
+    null,
+    HaxNotification.CHAT
+  );
+  if (
+    (scores.scoreLimit != 0 &&
+      (scores.red == scores.scoreLimit ||
+        scores.blue == scores.scoreLimit)) ||
+    goldenGoal
+  ) {
+    await endGame(team);
+    goldenGoal = false;
+    stopTimeout = setTimeout(() => {
+      room.stopGame();
+    }, 1000);
+  }
+};
+
+room.onPositionsReset = function () {
+  lastTouches = Array(2).fill(null);
+  lastTeamTouched = Team.SPECTATORS;
+  playSituation = Situation.KICKOFF;
+};
+
+/* MISCELLANEOUS */
+
+room.onRoomLink = async function (url) {
+  if (currentStadium == "v3") {
+    if (isRoomSet == false) {
+      fillIndicators();
+      isRoomSet = true;
+    }
+  }
+  console.log(`${url}`);
+  roomLink = url;
+};
+
+room.onPlayerAdminChange = function (changedPlayer, byPlayer) {
+  updateTeams();
+  if (!changedPlayer.admin && getRole(changedPlayer) >= Role.ADMIN_TEMP) {
+    room.setPlayerAdmin(changedPlayer.id, true);
+    return;
+  }
+};
+
+room.onKickRateLimitSet = function (min, rate, burst, byPlayer) {
+  if (byPlayer != null) {
+    room.sendAnnouncement(
+      `Kickrate değerlerini değiştiremezsin! Bu sunucuda değerler sabit.`,
+      player.id,
+      errorColor,
+      "bold",
+      HaxNotification.CHAT
+    );
+    room.setKickRateLimit(6, 0, 0);
+  }
+};
+
+room.onStadiumChange = function (newStadiumName, byPlayer) {
+  if (byPlayer !== null) {
+    if (getRole(byPlayer) < Role.MASTER && currentStadium != "özel") {
+      room.sendAnnouncement(
+        `Elle harita değiştiremezsin. Lütfen harita komutlarını kullan.`,
+        byPlayer.id,
+        errorColor,
+        "bold",
+        HaxNotification.CHAT
+      );
+      stadiumCommand(emptyPlayer, `!${currentStadium}`);
+    } else {
+      room.sendAnnouncement(
+        `Harita değişti fakat bir dahaki sefere harita komutlarını kullan. Böyle bota zarar verebilirsin.`,
+        byPlayer.id,
+        infoColor,
+        "bold",
+        HaxNotification.CHAT
+      );
+      currentStadium = "özel";
+    }
+  }
+  checkStadiumVariable = true;
+};
+
+room.onGameTick = function () {
+  checkTime();
+  getLastTouchOfTheBall();
+  getGameStats();
+  handleActivity();
+  if (GetTeam(1).length > 0 && GetTeam(2).length > 0 && currentStadium == "v3") {
+    mostForwardPlayer();
+    adjustDefLines();
+    moveDefLines();
+    redDefPlayerCount();
+    blueDefPlayerCount();
+  }
+};
+
 // kimmich difference
-async function newPlayer (a, b, c) {
+async function newPlayer(a, b, c) {
   const data = {
     isim: a,
     auth: b,
@@ -3419,155 +4190,155 @@ async function newPlayer (a, b, c) {
     oyunlar: 0,
     cs: 0,
     puan: 1000,
-    bakiye: 0
-  }
-  const response = await fetch('http://localhost:3100/api/newplayer', {
-    method: 'POST',
+    bakiye: 0,
+  };
+  const response = await fetch("http://localhost:3100/api/newplayer", {
+    method: "POST",
     body: JSON.stringify(data),
     headers: {
-      'Content-Type': 'application/json'
-    }
-  })
+      "Content-Type": "application/json",
+    },
+  });
   if (!response.ok) {
-    throw new Error('Error adding new player')
+    throw new Error("Error adding new player");
   }
 }
 
-async function checkPlayer (auth) {
-  const response = await fetch(`http://localhost:3100/api/getAuth/${auth}`)
+async function checkPlayer(auth) {
+  const response = await fetch(`http://localhost:3100/api/getAuth/${auth}`);
   if (!response.ok) {
-    throw new Error('Error checking player')
+    throw new Error("Error checking player");
   }
-  const result = await response.json()
-  return result
+  const result = await response.json();
+  return result;
 }
 
-async function checkStats (auth) {
+async function checkStats(auth) {
   const response = await fetch(
     `http://localhost:3100/api/playerstats/${auth}`
-  )
+  );
   if (!response.ok) {
-    throw new Error('Error checking player stats')
+    throw new Error("Error checking player stats");
   }
-  const result = await response.json()
-  return result
+  const result = await response.json();
+  return result;
 }
 
-async function updatePlayer (auth, data) {
+async function updatePlayer(auth, data) {
   const response = await fetch(`http://localhost:3100/api/update/${auth}`, {
-    method: 'PATCH',
+    method: "PATCH",
     body: JSON.stringify(data),
     headers: {
-      'Content-Type': 'application/json'
-    }
-  })
+      "Content-Type": "application/json",
+    },
+  });
   if (!response.ok) {
-    throw new Error('Error updating player')
+    throw new Error("Error updating player");
   }
 }
 
-async function updateName (auth, name) {
+async function updateName(auth, name) {
   const data = {
-    isim: name
-  }
-  await updatePlayer(auth, data)
+    isim: name,
+  };
+  await updatePlayer(auth, data);
 }
 
-async function updateConn (auth, conn) {
-  const data = {
-    conn
-  }
-  await updatePlayer(auth, data)
-}
-
-async function getAll () {
-  const response = await fetch('http://localhost:3100/api/getAll')
-  if (!response.ok) {
-    throw new Error('Error getting all players')
-  }
-  const result = await response.json()
-  return result
-}
-
-async function getBlacklist () {
-  const response = await fetch('http://localhost:3100/api/getBlacklist')
-  if (!response.ok) {
-    throw new Error('Error getting blacklist')
-  }
-  const result = await response.json()
-  return result
-}
-
-async function addBan (conn, auth) {
+async function updateConn(auth, conn) {
   const data = {
     conn,
-    auth
+  };
+  await updatePlayer(auth, data);
+}
+
+async function getAll() {
+  const response = await fetch("http://localhost:3100/api/getAll");
+  if (!response.ok) {
+    throw new Error("Error getting all players");
   }
-  const response = await fetch('http://localhost:3100/api/newBan/', {
-    method: 'POST',
+  const result = await response.json();
+  return result;
+}
+
+async function getBlacklist() {
+  const response = await fetch("http://localhost:3100/api/getBlacklist");
+  if (!response.ok) {
+    throw new Error("Error getting blacklist");
+  }
+  const result = await response.json();
+  return result;
+}
+
+async function addBan(conn, auth) {
+  const data = {
+    conn,
+    auth,
+  };
+  const response = await fetch("http://localhost:3100/api/newBan/", {
+    method: "POST",
     body: JSON.stringify(data),
     headers: {
-      'Content-Type': 'application/json'
-    }
-  })
+      "Content-Type": "application/json",
+    },
+  });
   if (!response.ok) {
-    throw new Error('Error adding ban')
+    throw new Error("Error adding ban");
   }
 }
 
-async function removeBan (conn, auth) {
+async function removeBan(conn, auth) {
   const headers = {
-    'Content-Type': 'application/json'
-  }
+    "Content-Type": "application/json",
+  };
   try {
     const response1 = await fetch(`http://localhost:3100/api/deleteBan/${conn}`, {
-      method: 'DELETE',
-      headers
-    })
+      method: "DELETE",
+      headers,
+    });
     const response2 = await fetch(`http://localhost:3100/api/deleteBan/${auth}`, {
-      method: 'DELETE',
-      headers
-    })
-    const json1 = await response1.json()
-    const json2 = await response2.json()
-    return [json1, json2]
+      method: "DELETE",
+      headers,
+    });
+    const json1 = await response1.json();
+    const json2 = await response2.json();
+    return [json1, json2];
   } catch (error) {
-    console.error(error)
+    console.error(error);
   }
 }
 
-function getAvatar (puan) {
-  if (puan < 1000) return '👎'
-  if (puan >= 1000 && puan < 1200) return '🔥'
-  if (puan >= 1200 && puan < 1400) return '⚡'
-  if (puan >= 1400 && puan < 1600) return '💎'
-  if (puan >= 1600 && puan < 1800) return '🏆'
-  if (puan >= 1800 && puan < 2000) return '👑'
-  if (puan >= 2000) return '💯'
+function getAvatar(puan) {
+  if (puan < 1000) return "👎";
+  if (puan >= 1000 && puan < 1200) return "🔥";
+  if (puan >= 1200 && puan < 1400) return "⚡";
+  if (puan >= 1400 && puan < 1600) return "💎";
+  if (puan >= 1600 && puan < 1800) return "🏆";
+  if (puan >= 1800 && puan < 2000) return "👑";
+  if (puan >= 2000) return "💯";
 }
 
-function checkBadWords () {
+function checkBadWords() {
   const KUFURLER = kufurlistesi.kelimeler
-  let content = ''
-  const lastIndex = KUFURLER.length - 1
+  let content = "";
+  const lastIndex = KUFURLER.length - 1;
   for (let i = 0; i < KUFURLER.length; i++) {
-    let kufur = KUFURLER[i]
-    kufur = kufur.replace(/[A-Z]/gim, (p) => `${p}\\s*`)
-    content += kufur
-    if (i != lastIndex) content += '|'
+    let kufur = KUFURLER[i];
+    kufur = kufur.replace(/[A-Z]/gim, (p) => `${p}\\s*`);
+    content += kufur;
+    if (i != lastIndex) content += "|";
   }
-  return new RegExp(`${content}`, 'gim')
+  return new RegExp(`${content}`, "gim");
 };
 
-async function isBlacklisted (player) {
-  const blacklist = await getBlacklist()
-  return blacklist.filter(b => b.auth == player.auth || b.conn == player.conn).length > 0
+async function isBlacklisted(player) {
+  var blacklist = await getBlacklist()
+  return blacklist.filter(b => b.auth == player.auth || b.conn == player.conn).length > 0;
 }
 
-room.setTeamColors(1, 60, 0xcfcfcf, [0xcf1238])
-room.setTeamColors(2, 60, 0xcfcfcf, [0x2c89ab])
+room.setTeamColors(1, 60, 0xcfcfcf, [0xcf1238]);
+room.setTeamColors(2, 60, 0xcfcfcf, [0x2c89ab]);
 
-function goalCelebration (goalPlayer, assistPlayer, ogPlayer) {
+function goalCelebration(goalPlayer, assistPlayer, ogPlayer) {
   if (goalPlayer) {
     for (let i = 0; i < 8; i++) {
       setTimeout(() => {
@@ -3604,124 +4375,127 @@ function goalCelebration (goalPlayer, assistPlayer, ogPlayer) {
     }
   }
 }
-// Infos
+//Infos
 
-function randomInt (max) {
-  return Math.floor(Math.random() * max)
+function randomInt(max) {
+  return Math.floor(Math.random() * max);
 }
 
 const infoText = [
-  '📢 Mesajının başına t koyarsan sadece takımına mesaj gönderirsin',
-  '📢 Mesajının başına @@isim koyarsan sadece belirttiğin isme mesaj gönderirsin',
-  '😎 Rankını beğenmiyorsan VIP alarak !rankres komutunu kullanabilirsin.',
-  '💖 Odalarımız sizin desteklerinizle açılıyor, sen de bunun bir parçası olmak istersen Discorda gelebilirsin',
-  '💖 Odaları seviyorsan ve devamını istiyorsan bize VIP alarak destek olabilirsin',
-  '😒 Sunucu hakkında önerin veya şikayetin varsa bizlere Discord üzerinden ulaşabilirsin',
-  '😲 Bu avatarlar ne böyle diyorsan !avatarlar yazıp bilgi alabilirsin',
-  '😲 Komutların ne olduğu hakkında fikrin yoksa !yardım yazabilirsin',
-  '📣 Admin başvurularımız açık, sen de ekibin parçası olmak için Discord üzerinden başvurabilirsin',
-  '👑 Gol krallını ya da asist kralını mı merak ediyorsun? Discorda gelerek hepsini görebilirsin',
-  '🚀 Discord ile ailemize katılabilirsin! ➡ discord.gg/TG7mr7AsQa ⬅',
-  '⚠️ 3 kişi defans veya atak yapmak yasaktır!',
-  '⚠️ Kurallara uymamak ban sebebidir, discord üzerinden her an ban yiyebilirsiniz :)'
+  "📢 Mesajının başına t koyarsan sadece takımına mesaj gönderirsin",
+  "📢 Mesajının başına @@isim koyarsan sadece belirttiğin isme mesaj gönderirsin",
+  "😎 Rankını beğenmiyorsan VIP alarak !rankres komutunu kullanabilirsin.",
+  "💖 Odalarımız sizin desteklerinizle açılıyor, sen de bunun bir parçası olmak istersen Discorda gelebilirsin",
+  "💖 Odaları seviyorsan ve devamını istiyorsan bize VIP alarak destek olabilirsin",
+  "😒 Sunucu hakkında önerin veya şikayetin varsa bizlere Discord üzerinden ulaşabilirsin",
+  "😲 Bu avatarlar ne böyle diyorsan !avatarlar yazıp bilgi alabilirsin",
+  "😲 Komutların ne olduğu hakkında fikrin yoksa !yardım yazabilirsin",
+  "📣 Admin başvurularımız açık, sen de ekibin parçası olmak için Discord üzerinden başvurabilirsin",
+  "👑 Gol krallını ya da asist kralını mı merak ediyorsun? Discorda gelerek hepsini görebilirsin",
+  "🚀 Discord ile ailemize katılabilirsin! ➡ discord.gg/TG7mr7AsQa ⬅",
+  "⚠️ 3 kişi defans veya atak yapmak yasaktır!",
+  "⚠️ Kurallara uymamak ban sebebidir, discord üzerinden her an ban yiyebilirsiniz :)"
 ]
 
-setInterval(() => { room.sendAnnouncement(infoText[randomInt(infoText.length)], null, 0xF4D03F, 'normal', 0) }, 45_000)
+setInterval(() => { room.sendAnnouncement(infoText[randomInt(infoText.length)], null, 0xF4D03F, "normal", 0); }, 45_000);
 
-function centerText (string) {
-  if (string == undefined) return ''
-  let space = parseInt((100 - string.length) * 1, 10)
-  if (space < 0) space = 0
-  return ' '.repeat(space) + string + ' '.repeat(space)
+function centerText(string) {
+  if (string == undefined) return "";
+  var space = parseInt((100 - string.length) * 1, 10);
+  if (space < 0) space = 0;
+  return " ".repeat(space) + string + " ".repeat(space);
 }
 
 // 3 Defence
 
-var defLines = []
-const cf = room.CollisionFlags
+var defLines = [];
+var cf = room.CollisionFlags;
 
-const def_zone_player_count_bound = 2
+var def_zone_player_count_bound = 2;
 
-const number_indicators_red_first = []
-const number_indicators_red_second = []
-const number_indicators_blue_first = []
-const number_indicators_blue_second = []
+var number_indicators_red_first = [];
+var number_indicators_red_second = [];
+var number_indicators_blue_first = [];
+var number_indicators_blue_second = [];
 
-var isRoomSet = false
+var isRoomSet = false;
 
-function fillIndicators () {
-  for (let d = 0; d < JMap.discs.length; d++) {
-    if (JMap.discs[d].trait == 'threeDefLineBall_RedFirst') {
-      number_indicators_red_first.push(d + 1)
-    } else if (JMap.discs[d].trait == 'threeDefLineBall_RedSecond') {
-      number_indicators_red_second.push(d + 1)
-    } else if (JMap.discs[d].trait == 'threeDefLineBall_BlueFirst') {
-      number_indicators_blue_first.push(d + 1)
-    } else if (JMap.discs[d].trait == 'threeDefLineBall_BlueSecond') {
-      number_indicators_blue_second.push(d + 1)
+function fillIndicators() {
+  for (var d = 0; d < JMap.discs.length; d++) {
+    if (JMap.discs[d].trait == "threeDefLineBall_RedFirst") {
+      number_indicators_red_first.push(d + 1);
+    }
+    else if (JMap.discs[d].trait == "threeDefLineBall_RedSecond") {
+      number_indicators_red_second.push(d + 1);
+    }
+    else if (JMap.discs[d].trait == "threeDefLineBall_BlueFirst") {
+      number_indicators_blue_first.push(d + 1);
+    }
+    else if (JMap.discs[d].trait == "threeDefLineBall_BlueSecond") {
+      number_indicators_blue_second.push(d + 1);
     }
   }
 }
 
-function GetTeam (id) {
-  return room.getPlayerList().filter((player) => player.id != 0 && player.team == id)
+function GetTeam(id) {
+  return room.getPlayerList().filter((player) => player.id != 0 && player.team == id);
 }
 
-function updateAdmins () {
-  const players = room.getPlayerList().filter(player => player.id != 0)
-  if (players.length == 0) return
-  if (players.find(player => player.admin) != null) return
-  room.setPlayerAdmin(players[0].id, true)
+function updateAdmins() {
+  var players = room.getPlayerList().filter(player => player.id != 0);
+  if (players.length == 0) return;
+  if (players.find(player => player.admin) != null) return;
+  room.setPlayerAdmin(players[0].id, true);
 }
 
-function adjustDefLines (player) {
-  const players = room.getPlayerList()
-  const mfp_red = mostForwardPlayer(1)
-  const mfp_blue = mostForwardPlayer(2)
-  const non_mfp_red = GetTeam(1).filter(p => p.id !== mfp_red.id)
-  const non_mfp_blue = GetTeam(2).filter(p => p.id !== mfp_blue.id)
+function adjustDefLines(player) {
+  var players = room.getPlayerList();
+  var mfp_red = mostForwardPlayer(1);
+  var mfp_blue = mostForwardPlayer(2);
+  var non_mfp_red = GetTeam(1).filter(p => p.id !== mfp_red.id);
+  var non_mfp_blue = GetTeam(2).filter(p => p.id !== mfp_blue.id);
 
   if (room.getPlayerDiscProperties(mfp_red.id).cGroup === cf.red) {
-    room.setPlayerDiscProperties(mfp_red.id, { cGroup: cf.red | cf.c0 })
+    room.setPlayerDiscProperties(mfp_red.id, { cGroup: cf.red | cf.c0 });
   }
   if (room.getPlayerDiscProperties(mfp_blue.id).cGroup === cf.blue) {
-    room.setPlayerDiscProperties(mfp_blue.id, { cGroup: cf.blue | cf.c1 })
+    room.setPlayerDiscProperties(mfp_blue.id, { cGroup: cf.blue | cf.c1 });
   }
 
   for (r in non_mfp_red) {
     if (room.getPlayerDiscProperties(non_mfp_red[r].id).cGroup !== cf.red) {
-      room.setPlayerDiscProperties(non_mfp_red[r].id, { cGroup: cf.red })
+      room.setPlayerDiscProperties(non_mfp_red[r].id, { cGroup: cf.red });
     }
   }
   for (b in non_mfp_blue) {
     if (room.getPlayerDiscProperties(non_mfp_blue[b].id).cGroup !== cf.blue) {
-      room.setPlayerDiscProperties(non_mfp_blue[b].id, { cGroup: cf.blue })
+      room.setPlayerDiscProperties(non_mfp_blue[b].id, { cGroup: cf.blue });
     }
   }
 }
 
-function findDefLines () {
-  defLines = JMap.segments.filter(s => s.trait == 'threeDefLine')
+function findDefLines() {
+  defLines = JMap.segments.filter(s => s.trait == "threeDefLine");
 }
 
-function redDefPlayerCount () {
-  return room.getPlayerList().filter(p => room.getPlayerDiscProperties(p.id) != null && p.team == 1 && room.getPlayerDiscProperties(p.id).x <= JMap.vertexes[defLines[0].v0].x).length
+function redDefPlayerCount() {
+  return room.getPlayerList().filter(p => room.getPlayerDiscProperties(p.id) != null && p.team == 1 && room.getPlayerDiscProperties(p.id).x <= JMap.vertexes[defLines[0].v0].x).length;
 }
 
-function blueDefPlayerCount () {
-  return room.getPlayerList().filter(p => room.getPlayerDiscProperties(p.id) != null && p.team == 2 && room.getPlayerDiscProperties(p.id).x >= JMap.vertexes[defLines[1].v0].x).length
+function blueDefPlayerCount() {
+  return room.getPlayerList().filter(p => room.getPlayerDiscProperties(p.id) != null && p.team == 2 && room.getPlayerDiscProperties(p.id).x >= JMap.vertexes[defLines[1].v0].x).length;
 }
 
-function moveDefLines () {
+function moveDefLines() {
   if (redDefPlayerCount() >= def_zone_player_count_bound) {
     for (var n in number_indicators_red_first) {
       if (room.getDiscProperties(number_indicators_red_first[n]).x > -JMap.width) {
-        room.setDiscProperties(number_indicators_red_first[n], { x: room.getDiscProperties(number_indicators_red_first[n]).x - 1000 })
+        room.setDiscProperties(number_indicators_red_first[n], { x: room.getDiscProperties(number_indicators_red_first[n]).x - 1000 });
       }
     }
     for (var n in number_indicators_red_second) {
       if (room.getDiscProperties(number_indicators_red_second[n]).x < -JMap.width) {
-        room.setDiscProperties(number_indicators_red_second[n], { x: room.getDiscProperties(number_indicators_red_second[n]).x + 1000 })
+        room.setDiscProperties(number_indicators_red_second[n], { x: room.getDiscProperties(number_indicators_red_second[n]).x + 1000 });
       }
     }
   }
@@ -3729,12 +4503,12 @@ function moveDefLines () {
   if (redDefPlayerCount() < def_zone_player_count_bound) {
     for (var n in number_indicators_red_first) {
       if (room.getDiscProperties(number_indicators_red_first[n]).x < -JMap.width) {
-        room.setDiscProperties(number_indicators_red_first[n], { x: room.getDiscProperties(number_indicators_red_first[n]).x + 1000 })
+        room.setDiscProperties(number_indicators_red_first[n], { x: room.getDiscProperties(number_indicators_red_first[n]).x + 1000 });
       }
     }
     for (var n in number_indicators_red_second) {
       if (room.getDiscProperties(number_indicators_red_second[n]).x > -JMap.width) {
-        room.setDiscProperties(number_indicators_red_second[n], { x: room.getDiscProperties(number_indicators_red_second[n]).x - 1000 })
+        room.setDiscProperties(number_indicators_red_second[n], { x: room.getDiscProperties(number_indicators_red_second[n]).x - 1000 });
       }
     }
   }
@@ -3742,12 +4516,12 @@ function moveDefLines () {
   if (blueDefPlayerCount() >= def_zone_player_count_bound) {
     for (var n in number_indicators_blue_first) {
       if (room.getDiscProperties(number_indicators_blue_first[n]).x < JMap.width) {
-        room.setDiscProperties(number_indicators_blue_first[n], { x: room.getDiscProperties(number_indicators_blue_first[n]).x + 1000 })
+        room.setDiscProperties(number_indicators_blue_first[n], { x: room.getDiscProperties(number_indicators_blue_first[n]).x + 1000 });
       }
     }
     for (var n in number_indicators_blue_second) {
       if (room.getDiscProperties(number_indicators_blue_second[n]).x > JMap.width) {
-        room.setDiscProperties(number_indicators_blue_second[n], { x: room.getDiscProperties(number_indicators_blue_second[n]).x - 1000 })
+        room.setDiscProperties(number_indicators_blue_second[n], { x: room.getDiscProperties(number_indicators_blue_second[n]).x - 1000 });
       }
     }
   }
@@ -3755,45 +4529,37 @@ function moveDefLines () {
   if (blueDefPlayerCount() < def_zone_player_count_bound) {
     for (var n in number_indicators_blue_first) {
       if (room.getDiscProperties(number_indicators_blue_first[n]).x > JMap.width) {
-        room.setDiscProperties(number_indicators_blue_first[n], { x: room.getDiscProperties(number_indicators_blue_first[n]).x - 1000 })
+        room.setDiscProperties(number_indicators_blue_first[n], { x: room.getDiscProperties(number_indicators_blue_first[n]).x - 1000 });
       }
     }
     for (var n in number_indicators_blue_second) {
       if (room.getDiscProperties(number_indicators_blue_second[n]).x < JMap.width) {
-        room.setDiscProperties(number_indicators_blue_second[n], { x: room.getDiscProperties(number_indicators_blue_second[n]).x + 1000 })
+        room.setDiscProperties(number_indicators_blue_second[n], { x: room.getDiscProperties(number_indicators_blue_second[n]).x + 1000 });
       }
     }
   }
 }
 
-function sortByPosition (players) {
+function sortByPosition(players) {
   return players.sort(function (p1, p2) {
-    return p1.position.x - p2.position.x
-  })
+    return p1.position.x - p2.position.x;
+  });
 }
 
-function mostForwardPlayer (teamID) {
-  const players = room.getPlayerList()
-  const playersTeam = players.filter(p => p.team === teamID)
-  const redTeam = GetTeam(1)
-  const blueTeam = GetTeam(2)
-  const redTeamLength = GetTeam(1).length
-  const blueTeamLength = GetTeam(2).length
-  teamSorted = sortByPosition(playersTeam)
+function mostForwardPlayer(teamID) {
+  var players = room.getPlayerList();
+  var playersTeam = players.filter(p => p.team === teamID);
+  var redTeam = GetTeam(1);
+  var blueTeam = GetTeam(2);
+  var redTeamLength = GetTeam(1).length;
+  var blueTeamLength = GetTeam(2).length;
+  teamSorted = sortByPosition(playersTeam);
   if (teamID === 1) {
-    return teamSorted[redTeamLength - 1]
-  } else if (teamID === 2) {
-    return teamSorted[0]
+    return teamSorted[redTeamLength - 1];
+  }
+  else if (teamID === 2) {
+    return teamSorted[0];
   }
 }
 
-// Event Handler 
-try {
-  readdirSync("./haxball-bot/events").filter(file => file.endsWith(".js")).forEach(async file => {
-      const event = await import(`../events/${file}`).then(file => file.default);
-      room[event.event_name] = await event.execute;
-      await console.log(`[H-EVENT] ${event.event_name} adlı event başarıyla yüklendi!`);
-  });
-} catch(e) {
-  console.log(`[H-HATA] Eventler yüklenirken bir hata ortaya çıktı:\n` + e); 
-};
+module.exports = baseBot;

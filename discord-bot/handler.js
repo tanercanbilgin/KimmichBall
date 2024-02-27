@@ -10,8 +10,8 @@ try {
         const event = require(`./src/events/${file}`);
         if (!event) return;
         client.on(event.event_name, event.execute);
-        console.log(`[D-EVENT] ${event.name} adlı event başarıyla yüklendi!`);
     }
+    console.log(`[D-EVENT] Eventler başarıyla yüklendi!`);
 } catch (e) {
     console.log(`[D-HATA] Eventler yüklenirken bir hata ortaya çıktı:\n` + e);
 }
@@ -30,9 +30,9 @@ for (const dir of commandDirs) {
         const command = require(`./src/commands/${dir}/${file}`);
         client.commands.set(command.data.name, command);
         slash_commands.push(command.data.slash.toJSON());
-        console.log(`[D-COMMAND] ${command.data.name} adlı komut yüklendi.`);
     }
 }
+console.log(`[D-COMMAND] Komutlar başarıyla yüklendi.`);
 
 setTimeout(() =>
     rest.put(Routes.applicationGuildCommands(process.env.CLIENT_ID, process.env.GUILD_ID), { body: slash_commands }).then(() => console.log("[BOT] Slash komutları başarıyla yüklendi."))
